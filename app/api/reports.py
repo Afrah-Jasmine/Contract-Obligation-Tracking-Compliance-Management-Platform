@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -9,15 +10,32 @@ from app.schemas.report_schema import (
     ReportCreate,
     ReportUpdate,
     ReportRead,
+    DashboardSummary,
+    ContractAnalyticsResponse,
+    ObligationAnalyticsResponse,
+    RenewalAnalyticsResponse,
+    ComplianceAnalyticsResponse,
 )
 from app.services.audit_service import create_audit_log
+from app.services.report_service import get_dashboard_summary, get_contract_analytics, get_obligation_analytics, get_renewal_analytics, get_compliance_analytics
 from app.core.dependencies import get_current_user, require_permission
 from app.core.permissions import Permission
+from app.services.report_generation_service import (
+    generate_contract_report_excel,
+    generate_contract_report_pdf,
+    generate_obligation_report_excel,
+    generate_renewal_report_excel,
+    generate_dashboard_report_pdf,
+)
 
 
 router = APIRouter(
     prefix="/reports",
     tags=["Reports"],
+)
+
+dashboard_router = APIRouter(
+    tags=["Dashboard"],
 )
 
 
@@ -122,6 +140,64 @@ def list_reports(
 
 
 # =========================================================
+
+@router.get("/dashboard/summary", response_model=DashboardSummary)
+def dashboard_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_dashboard_summary(db)
+
+@dashboard_router.get("/dashboard/summary", response_model=DashboardSummary)
+def dashboard_summary_root(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_dashboard_summary(db)
+
+@router.get(
+    "/analytics/contracts",
+    response_model=ContractAnalyticsResponse,
+)
+def contract_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_contract_analytics(db)
+
+@router.get(
+    "/analytics/obligations",
+    response_model=ObligationAnalyticsResponse,
+)
+def obligation_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_obligation_analytics(db)
+
+@router.get(
+    "/analytics/renewals",
+    response_model=RenewalAnalyticsResponse,
+)
+def renewal_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return get_renewal_analytics(db)
+# =========================================================
+# COMPLIANCE ANALYTICS
+# =========================================================
+
+@router.get(
+    "/analytics/compliance",
+    response_model=ComplianceAnalyticsResponse,
+)
+def compliance_analytics(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    return get_compliance_analytics(db)
+
 # GET CURRENT USER REPORT
 # =========================================================
 
@@ -242,6 +318,146 @@ def update_report(
 
 
 # =========================================================
+# =========================================================
+# REPORT EXPORTS
+# =========================================================
+
+# =========================================================
+# GENERATED REPORT RECORD HELPER
+# =========================================================
+
+def _create_generated_report_record(
+    db: Session,
+    user_id: int,
+    report_type: str,
+    title: str,
+    file_path: str,
+):
+    report = Report(
+        user_id=user_id,
+        contract_id=None,
+        report_type=report_type,
+        title=title,
+        description=f"Generated {report_type} report",
+        file_path=file_path,
+    )
+
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+
+    return report
+
+@router.get("/export/contracts/excel")
+def export_contracts_excel(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    file_path = generate_contract_report_excel(db)
+
+    _create_generated_report_record(
+        db=db,
+        user_id=int(current_user["sub"]),
+        report_type="contract_excel",
+        title="Contract Excel Report",
+        file_path=file_path,
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="contracts.xlsx",
+    )
+
+
+@router.get("/export/contracts/pdf")
+def export_contracts_pdf(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    file_path = generate_contract_report_pdf(db)
+
+    _create_generated_report_record(
+        db=db,
+        user_id=int(current_user["sub"]),
+        report_type="contract_pdf",
+        title="Contract PDF Report",
+        file_path=file_path,
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="contracts.pdf",
+    )
+
+
+@router.get("/export/obligations/excel")
+def export_obligations_excel(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    file_path = generate_obligation_report_excel(db)
+
+    _create_generated_report_record(
+        db=db,
+        user_id=int(current_user["sub"]),
+        report_type="obligation_excel",
+        title="Obligation Excel Report",
+        file_path=file_path,
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="obligations.xlsx",
+    )
+
+
+@router.get("/export/renewals/excel")
+def export_renewals_excel(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    file_path = generate_renewal_report_excel(db)
+
+    _create_generated_report_record(
+        db=db,
+        user_id=int(current_user["sub"]),
+        report_type="renewal_excel",
+        title="Renewal Excel Report",
+        file_path=file_path,
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="renewals.xlsx",
+    )
+
+
+@router.get("/export/dashboard/pdf")
+def export_dashboard_pdf(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    dashboard_data = get_dashboard_summary(db)
+    file_path = generate_dashboard_report_pdf(db, dashboard_data)
+
+    _create_generated_report_record(
+        db=db,
+        user_id=int(current_user["sub"]),
+        report_type="dashboard_pdf",
+        title="Dashboard PDF Report",
+        file_path=file_path,
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="dashboard.pdf",
+    )
+
 # DELETE REPORT
 # =========================================================
 

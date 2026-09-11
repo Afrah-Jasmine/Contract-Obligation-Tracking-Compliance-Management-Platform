@@ -13,6 +13,7 @@ from app.api import (
     reports,
     activities,
 )
+from app.api.reports import dashboard_router
 from app.scheduler.scheduler import start_scheduler, stop_scheduler
 
 
@@ -54,6 +55,7 @@ app.include_router(contract_versions.router)
 app.include_router(renewals.router)
 app.include_router(notifications.router)
 app.include_router(reports.router)
+app.include_router(dashboard_router)
 app.include_router(activities.router)
 # ---------------------------------------------------------
 # Root

@@ -1,6 +1,9 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from app.scheduler.jobs import run_overdue_scan
+from app.scheduler.jobs import (
+    run_overdue_scan,
+    run_renewal_reminder_scan,
+)
 
 
 scheduler = BackgroundScheduler()
@@ -13,6 +16,14 @@ def start_scheduler():
             "interval",
             hours=24,
             id="overdue_obligation_scan",
+            replace_existing=True,
+        )
+
+        scheduler.add_job(
+            run_renewal_reminder_scan,
+            "interval",
+            hours=24,
+            id="renewal_reminder_scan",
             replace_existing=True,
         )
 
