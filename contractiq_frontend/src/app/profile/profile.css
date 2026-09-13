@@ -1,4 +1,4 @@
-.audit-page {
+.profile-page {
   padding: 24px;
 }
 
@@ -17,38 +17,35 @@
   color: #666;
 }
 
-.audit-card {
-  margin-bottom: 24px;
+.profile-card {
+  max-width: 700px;
 }
 
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  margin-top: 16px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 750px;
-}
-
-th,
-td {
-  padding: 14px 12px;
-  text-align: left;
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0;
   border-bottom: 1px solid #e0e0e0;
-  vertical-align: top;
 }
 
-th {
-  font-weight: 600;
-  background: #f7f7f7;
+.profile-row:last-child {
+  border-bottom: none;
 }
 
-.activity-type,
-.action-type {
+.label {
   font-weight: 600;
+  color: #555;
+}
+
+.value {
+  text-align: right;
+  word-break: break-word;
+}
+
+.role {
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 .loading-container {
@@ -60,22 +57,20 @@ th {
   gap: 12px;
 }
 
+.loading-container p {
+  margin: 0;
+  color: #666;
+}
+
 .error-message {
   padding: 16px;
   border-radius: 6px;
   background: #ffebee;
   color: #c62828;
-  margin-bottom: 20px;
-}
-
-.empty-state {
-  padding: 30px;
-  text-align: center;
-  color: #777;
 }
 
 @media (max-width: 768px) {
-  .audit-page {
+  .profile-page {
     padding: 16px;
   }
 
@@ -83,21 +78,22 @@ th {
     font-size: 24px;
   }
 
-  .audit-card {
-    margin-bottom: 16px;
+  .profile-row {
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .audit-page {
+  .profile-page {
     padding: 12px;
   }
 
-  .page-header h1 {
-    font-size: 22px;
+  .profile-row {
+    flex-direction: column;
+    gap: 6px;
   }
 
-  table {
-    min-width: 650px;
+  .value {
+    text-align: left;
   }
 }

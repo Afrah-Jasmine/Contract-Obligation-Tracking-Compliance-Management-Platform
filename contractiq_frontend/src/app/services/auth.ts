@@ -49,14 +49,67 @@ getRole(): string | null {
     return null;
   }
 }
+getUserId(): string | null {
+  const token = this.getToken();
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch {
+    return null;
+  }
+}
+getUserEmail(): string | null {
+  const token = this.getToken();
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+
+    return payload.sub || null;
+  } catch {
+    return null;
+  }
+}
 
   logout(): void {
     localStorage.removeItem('access_token');
   }
 
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem('access_token');
+isLoggedIn(): boolean {
+  const token = this.getToken();
+
+  if (!token) {
+    return false;
   }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+
+    if (!payload.exp) {
+      return true;
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    if (payload.exp <= currentTime) {
+      this.logout();
+      return false;
+    }
+
+    return true;
+  } catch {
+    this.logout();
+    return false;
+  }
+}
 
   getToken(): string | null {
     return localStorage.getItem('access_token');

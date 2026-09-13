@@ -28,11 +28,9 @@
     </a>
   }
 
-  @if (isAdmin()) {
-    <a routerLink="/notifications" routerLinkActive="active">
-      Notifications
-    </a>
-  }
+  <a routerLink="/notifications" routerLinkActive="active">
+    Notifications
+  </a>
 
   @if (isAdmin() || isContractManager() || isComplianceOfficer()) {
     <a routerLink="/reports" routerLinkActive="active">

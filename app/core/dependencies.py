@@ -48,12 +48,14 @@ def get_current_user(
     return user
 
 
-def require_role(required_role: str):
+def require_role(required_roles):
+    if isinstance(required_roles, str):
+        required_roles = [required_roles]
 
     def role_checker(
         current_user: User = Depends(get_current_user)
     ):
-        if current_user.role != required_role:
+        if current_user.role not in required_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions"

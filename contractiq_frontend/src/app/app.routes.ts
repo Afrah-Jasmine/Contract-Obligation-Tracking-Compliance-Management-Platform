@@ -34,7 +34,12 @@ export const routes: Routes = [
       { path: 'compliance', component: Compliance, canActivate: [authGuard] },
       { path: 'notifications', component: Notifications, canActivate: [authGuard] },
       { path: 'reports', component: Reports, canActivate: [authGuard] },
-      { path: 'audit-history', component: AuditHistory, canActivate: [authGuard] }
+      { path: 'audit-history', component: AuditHistory, canActivate: [authGuard] },
+      {
+  path: 'profile',
+  loadComponent: () =>
+    import('./profile/profile').then(m => m.Profile)
+},
     ]
   }
 ];

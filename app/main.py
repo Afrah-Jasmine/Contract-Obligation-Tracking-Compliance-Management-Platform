@@ -8,6 +8,7 @@ from app.routers.obligations import router as obligations_router
 from app.routers import renewals
 from app.routers import compliance
 from app.routers import notifications
+from app.routers import audit
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.reports import router as reports_router
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(notifications.router)
 app.include_router(users_router)
 app.include_router(auth_router)
+app.include_router(audit.router)
 app.include_router(contracts_router)
 app.include_router(obligations_router)
 app.include_router(renewals.router)

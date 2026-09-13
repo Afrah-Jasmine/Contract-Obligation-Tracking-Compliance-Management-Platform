@@ -11,7 +11,7 @@ from reportlab.platypus import (
     Table,
     TableStyle
 )
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import aliased
@@ -133,68 +133,67 @@ def get_dashboard_summary(db: Session):
         "non_compliant_contracts": non_compliant_contracts,
         "high_risk_contracts": high_risk_contracts,
     }
-def get_contract_stats(db: Session):
-    total = (
-        db.query(func.count(Contract.id))
-        .scalar()
-        or 0
+def get_contract_stats(
+    db: Session,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    status: str | None = None,
+    category: str | None = None
+):
+    query = db.query(Contract)
+
+    if start_date:
+        query = query.filter(Contract.end_date >= start_date)
+
+    if end_date:
+        query = query.filter(Contract.start_date <= end_date)
+
+    if status:
+        query = query.filter(Contract.status == status)
+
+    if category:
+        query = query.filter(Contract.category == category)
+
+    contracts = query.all()
+
+    total = len(contracts)
+
+    active = sum(
+        1 for contract in contracts
+        if contract.status == "Active"
     )
 
-    active = (
-        db.query(func.count(Contract.id))
-        .filter(Contract.status == "Active")
-        .scalar()
-        or 0
+    draft = sum(
+        1 for contract in contracts
+        if contract.status == "Draft"
     )
 
-    draft = (
-        db.query(func.count(Contract.id))
-        .filter(Contract.status == "Draft")
-        .scalar()
-        or 0
+    under_review = sum(
+        1 for contract in contracts
+        if contract.status == "Under Review"
     )
 
-    under_review = (
-        db.query(func.count(Contract.id))
-        .filter(Contract.status == "Under Review")
-        .scalar()
-        or 0
+    approved = sum(
+        1 for contract in contracts
+        if contract.status == "Approved"
     )
 
-    approved = (
-        db.query(func.count(Contract.id))
-        .filter(Contract.status == "Approved")
-        .scalar()
-        or 0
+    expired = sum(
+        1 for contract in contracts
+        if contract.status == "Expired"
     )
 
-    expired = (
-        db.query(func.count(Contract.id))
-        .filter(Contract.status == "Expired")
-        .scalar()
-        or 0
+    terminated = sum(
+        1 for contract in contracts
+        if contract.status == "Terminated"
     )
 
-    terminated = (
-        db.query(func.count(Contract.id))
-        .filter(Contract.status == "Terminated")
-        .scalar()
-        or 0
-    )
+    by_category = {}
 
-    category_rows = (
-        db.query(
-            Contract.category,
-            func.count(Contract.id)
+    for contract in contracts:
+        by_category[contract.category] = (
+            by_category.get(contract.category, 0) + 1
         )
-        .group_by(Contract.category)
-        .all()
-    )
-
-    by_category = {
-        category: count
-        for category, count in category_rows
-    }
 
     return {
         "total": total,
@@ -206,51 +205,50 @@ def get_contract_stats(db: Session):
         "terminated": terminated,
         "by_category": by_category,
     }
-def get_obligation_stats(db: Session):
+def get_obligation_stats(
+    db: Session,
+    start_date: date | None = None,
+    end_date: date | None = None
+):
     today = date.today()
 
-    total = (
-        db.query(func.count(Obligation.id))
-        .scalar()
-        or 0
+    query = db.query(Obligation)
+
+    if start_date:
+        query = query.filter(Obligation.due_date >= start_date)
+
+    if end_date:
+        query = query.filter(Obligation.due_date <= end_date)
+
+    obligations = query.all()
+
+    total = len(obligations)
+
+    pending = sum(
+        1 for obligation in obligations
+        if obligation.status == "Pending"
     )
 
-    pending = (
-        db.query(func.count(Obligation.id))
-        .filter(Obligation.status == "Pending")
-        .scalar()
-        or 0
+    in_progress = sum(
+        1 for obligation in obligations
+        if obligation.status == "In Progress"
     )
 
-    in_progress = (
-        db.query(func.count(Obligation.id))
-        .filter(Obligation.status == "In Progress")
-        .scalar()
-        or 0
+    completed = sum(
+        1 for obligation in obligations
+        if obligation.status == "Completed"
     )
 
-    completed = (
-        db.query(func.count(Obligation.id))
-        .filter(Obligation.status == "Completed")
-        .scalar()
-        or 0
+    delayed = sum(
+        1 for obligation in obligations
+        if obligation.status == "Delayed"
     )
 
-    delayed = (
-        db.query(func.count(Obligation.id))
-        .filter(Obligation.status == "Delayed")
-        .scalar()
-        or 0
-    )
-
-    overdue = (
-        db.query(func.count(Obligation.id))
-        .filter(
-            Obligation.due_date < today,
-            Obligation.status != "Completed"
-        )
-        .scalar()
-        or 0
+    overdue = sum(
+        1 for obligation in obligations
+        if obligation.due_date
+        and obligation.due_date < today
+        and obligation.status != "Completed"
     )
 
     return {
@@ -261,52 +259,65 @@ def get_obligation_stats(db: Session):
         "delayed": delayed,
         "overdue": overdue,
     }
-def get_renewal_stats(db: Session):
+def get_renewal_stats(
+    db: Session,
+    start_date: date | None = None,
+    end_date: date | None = None
+):
     today = date.today()
 
-    upcoming = (
-        db.query(func.count(Renewal.id))
-        .filter(Renewal.renewal_status == "Upcoming")
-        .scalar()
-        or 0
+    query = db.query(Renewal)
+
+    if start_date:
+        query = query.filter(Renewal.renewal_date >= start_date)
+
+    if end_date:
+        query = query.filter(Renewal.renewal_date <= end_date)
+
+    renewals = query.all()
+
+    upcoming = sum(
+        1 for renewal in renewals
+        if renewal.renewal_status == "Upcoming"
     )
 
-    in_progress = (
-        db.query(func.count(Renewal.id))
-        .filter(Renewal.renewal_status == "In Progress")
-        .scalar()
-        or 0
+    in_progress = sum(
+        1 for renewal in renewals
+        if renewal.renewal_status == "In Progress"
     )
 
-    renewed = (
-        db.query(func.count(Renewal.id))
-        .filter(Renewal.renewal_status == "Renewed")
-        .scalar()
-        or 0
+    renewed = sum(
+        1 for renewal in renewals
+        if renewal.renewal_status == "Renewed"
     )
 
-    expired = (
-        db.query(func.count(Renewal.id))
-        .filter(Renewal.renewal_status == "Expired")
-        .scalar()
-        or 0
+    expired = sum(
+        1 for renewal in renewals
+        if renewal.renewal_status == "Expired"
     )
 
-    cancelled = (
-        db.query(func.count(Renewal.id))
-        .filter(Renewal.renewal_status == "Cancelled")
-        .scalar()
-        or 0
+    cancelled = sum(
+        1 for renewal in renewals
+        if renewal.renewal_status == "Cancelled"
     )
+
+    approaching_query = db.query(Contract).filter(
+        Contract.end_date >= today,
+        Contract.end_date <= today + timedelta(days=90)
+    )
+
+    if start_date:
+        approaching_query = approaching_query.filter(
+            Contract.end_date >= start_date
+        )
+
+    if end_date:
+        approaching_query = approaching_query.filter(
+            Contract.end_date <= end_date
+        )
 
     approaching_rows = (
-        db.query(Contract)
-        .filter(
-            Contract.end_date >= today,
-            Contract.end_date <= date.fromordinal(
-                today.toordinal() + 90
-            )
-        )
+        approaching_query
         .order_by(Contract.end_date)
         .all()
     )
@@ -331,55 +342,81 @@ def get_renewal_stats(db: Session):
         "cancelled": cancelled,
         "approaching_expiry": approaching_expiry,
     }
-def get_compliance_stats(db: Session):
-    total_evaluated = (
-        db.query(func.count(func.distinct(ComplianceRecord.contract_id)))
-        .scalar()
-        or 0
+def get_compliance_stats(
+    db: Session,
+    start_date: date | None = None,
+    end_date: date | None = None
+):
+    query = db.query(ComplianceRecord)
+
+    if start_date:
+        query = query.filter(
+            ComplianceRecord.evaluated_at >= start_date
+        )
+
+    if end_date:
+        query = query.filter(
+            ComplianceRecord.evaluated_at
+            < end_date + timedelta(days=1)
+        )
+
+    records = query.all()
+
+    total_evaluated = len(
+        set(record.contract_id for record in records)
     )
 
-    compliant = (
-        db.query(func.count(func.distinct(ComplianceRecord.contract_id)))
-        .filter(ComplianceRecord.status == "Compliant")
-        .scalar()
-        or 0
+    compliant = len(
+        set(
+            record.contract_id
+            for record in records
+            if record.status == "Compliant"
+        )
     )
 
-    pending = (
-        db.query(func.count(func.distinct(ComplianceRecord.contract_id)))
-        .filter(ComplianceRecord.status == "Pending")
-        .scalar()
-        or 0
+    pending = len(
+        set(
+            record.contract_id
+            for record in records
+            if record.status == "Pending"
+        )
     )
 
-    delayed = (
-        db.query(func.count(func.distinct(ComplianceRecord.contract_id)))
-        .filter(ComplianceRecord.status == "Delayed")
-        .scalar()
-        or 0
+    delayed = len(
+        set(
+            record.contract_id
+            for record in records
+            if record.status == "Delayed"
+        )
     )
 
-    non_compliant = (
-        db.query(func.count(func.distinct(ComplianceRecord.contract_id)))
-        .filter(ComplianceRecord.status == "Non-Compliant")
-        .scalar()
-        or 0
+    non_compliant = len(
+        set(
+            record.contract_id
+            for record in records
+            if record.status == "Non-Compliant"
+        )
     )
 
-    high_risk = (
-        db.query(func.count(func.distinct(ComplianceRecord.contract_id)))
-        .filter(ComplianceRecord.risk_level == "High")
-        .scalar()
-        or 0
+    high_risk = len(
+        set(
+            record.contract_id
+            for record in records
+            if record.risk_level == "High"
+        )
     )
+
+    scores = [
+        float(record.compliance_score)
+        for record in records
+        if record.compliance_score is not None
+    ]
 
     average_score = (
-        db.query(func.avg(ComplianceRecord.compliance_score))
-        .scalar()
+        round(sum(scores) / len(scores), 2)
+        if scores
+        else None
     )
-
-    if average_score is not None:
-        average_score = round(float(average_score), 2)
 
     return {
         "total_evaluated": total_evaluated,
@@ -525,8 +562,8 @@ def get_renewal_report_data(db: Session):
             "Renewal ID": renewal.id,
             "Contract ID": renewal.contract_id,
             "Renewal Date": renewal.renewal_date.isoformat(),
-            "Previous Expiry": renewal.previous_expiry_date.isoformat(),
-            "New Expiry": renewal.new_expiry_date.isoformat(),
+            "Previous Expiry": renewal.previous_expiry_date.isoformat() if renewal.previous_expiry_date else "",
+            "New Expiry": renewal.new_expiry_date.isoformat() if renewal.new_expiry_date else "",
             "Status": renewal.renewal_status,
         })
 

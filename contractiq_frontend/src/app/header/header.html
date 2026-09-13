@@ -5,9 +5,24 @@
   </div>
 
   <div class="header-user">
-    <span>Welcome</span>
-  </div>
-  <button mat-raised-button color="warn" (click)="logout()">
+    <div class="user-info">
+      <span class="welcome-text">Welcome</span>
+
+      <span class="user-id" *ngIf="userId">
+        User #{{ userId }}
+      </span>
+
+      <span class="user-role" *ngIf="userRole">
+        {{ userRole }}
+      </span>
+    </div>
+
+    <button mat-raised-button (click)="goToProfile()">
+  Profile
+</button>
+
+<button mat-raised-button color="warn" (click)="logout()">
   Logout
 </button>
+  </div>
 </header>

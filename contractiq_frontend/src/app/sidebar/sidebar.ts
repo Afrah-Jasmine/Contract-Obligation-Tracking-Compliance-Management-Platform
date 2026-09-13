@@ -17,19 +17,28 @@ export class Sidebar {
     this.role = this.authService.getRole();
   }
 
+  private normalizedRole(): string {
+    return (this.role || '').trim().toLowerCase();
+  }
+
   isAdmin(): boolean {
-    return this.role === 'Administrator' || this.role === 'Admin';
+    const role = this.normalizedRole();
+    return role === 'administrator' || role === 'admin';
   }
 
   isContractManager(): boolean {
-    return this.role === 'Contract Manager';
+    return this.normalizedRole() === 'contract manager';
   }
 
   isComplianceOfficer(): boolean {
-    return this.role === 'Compliance Officer';
+    return this.normalizedRole() === 'compliance officer';
   }
 
   isViewer(): boolean {
-    return this.role === 'Viewer';
+    return this.normalizedRole() === 'viewer';
+  }
+
+  isEmployee(): boolean {
+    return this.normalizedRole() === 'employee';
   }
 }
