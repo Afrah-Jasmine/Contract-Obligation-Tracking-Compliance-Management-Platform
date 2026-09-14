@@ -88,7 +88,6 @@ def create_user_notification(
             user_id=notification_data.user_id,
             contract_id=notification_data.contract_id,
             obligation_id=notification_data.obligation_id,
-            renewal_id=notification_data.renewal_id,
             notification_type=notification_data.notification_type,
             title=notification_data.title,
             message=notification_data.message,

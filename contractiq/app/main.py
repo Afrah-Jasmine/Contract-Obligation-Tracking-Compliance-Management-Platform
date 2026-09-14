@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, users, contracts, obligations, renewals, compliance, notifications
+from app.api import auth, users, contracts, obligations, renewals, compliance, notifications, reports, audit
 
 app = FastAPI(
     title="ContractIQ API",
@@ -24,6 +24,8 @@ app.include_router(obligations.router)
 app.include_router(renewals.router)
 app.include_router(compliance.router)
 app.include_router(notifications.router)
+app.include_router(reports.router)
+app.include_router(audit.router)
 
 
 @app.get("/", tags=["Health"])

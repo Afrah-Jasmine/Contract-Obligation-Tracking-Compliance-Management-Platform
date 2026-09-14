@@ -18,6 +18,7 @@ from app.schemas.contract import (
 )
 from app.core.deps import get_current_active_user
 from app.core.permissions import require_roles, APPROVAL_ROLES, COMPLIANCE_VIEW_ROLES
+from app.services.audit_service import record_event
 from app.services.notification_service import (
     notify_contract_submitted_for_review,
     notify_contract_approved,
@@ -73,6 +74,8 @@ def create_contract(
             detail="A contract with this contract_number already exists",
         )
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_CREATED", "Contract", contract.id, {"contract_number": contract.contract_number, "title": contract.title})
+    db.commit()
     return contract
 
 
@@ -116,6 +119,8 @@ def update_contract(
 
     db.commit()
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_UPDATED", "Contract", contract.id)
+    db.commit()
     return contract
 
 
@@ -128,9 +133,12 @@ def update_contract_status(
 ):
     contract = _get_contract_or_404(db, contract_id)
     _assert_transition_allowed(contract.status, payload.status)
+    previous = contract.status.value
     contract.status = payload.status
     db.commit()
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_STATUS_CHANGED", "Contract", contract.id, {"from": previous, "to": contract.status.value})
+    db.commit()
     notify_contract_status_change(db, contract, contract.created_by)
     return contract
 
@@ -147,6 +155,8 @@ def submit_for_review(
     contract.reviewed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_SUBMITTED_FOR_REVIEW", "Contract", contract.id)
+    db.commit()
 
     legal_managers = [u.id for u in db.query(User).filter(User.role == UserRole.LEGAL_MANAGER).all()]
     notify_contract_submitted_for_review(db, contract, legal_managers)
@@ -165,6 +175,8 @@ def approve_contract(
     contract.approved_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_APPROVED", "Contract", contract.id)
+    db.commit()
     notify_contract_approved(db, contract, contract.created_by)
     return contract
 
@@ -181,6 +193,8 @@ def activate_contract(
     contract.activated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_ACTIVATED", "Contract", contract.id)
+    db.commit()
     notify_contract_status_change(db, contract, contract.created_by)
     return contract
 
@@ -199,6 +213,8 @@ def assign_contract(
     contract.assigned_to = payload.assigned_to
     db.commit()
     db.refresh(contract)
+    record_event(db, current_user, "CONTRACT_ASSIGNED", "Contract", contract.id, {"assigned_to": payload.assigned_to})
+    db.commit()
     return contract
 
 

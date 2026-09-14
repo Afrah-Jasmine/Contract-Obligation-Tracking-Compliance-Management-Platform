@@ -116,7 +116,7 @@ def get_all_compliance(
 
         results.append({
             "contract_id": contract.id,
-            "contract_number": contract.contract_code,
+            "contract_number": contract.contract_number,
             "compliance_status": compliance["compliance_status"],
             "compliance_score": compliance["compliance_score"]
         })
@@ -201,7 +201,7 @@ def get_non_compliant_contracts(
         if compliance["compliance_status"] == "Non-Compliant":
             results.append({
                 "contract_id": contract.id,
-                "contract_number": contract.contract_code,
+                "contract_number": contract.contract_number,
                 "compliance_status": compliance["compliance_status"],
                 "overdue_obligations": compliance["overdue_obligations"]
             })
@@ -233,7 +233,7 @@ def get_high_risk_contracts(
         if compliance["risk_level"] == "High":
             results.append({
                 "contract_id": contract.id,
-                "contract_number": contract.contract_code,
+                "contract_number": contract.contract_number,
                 "risk_level": compliance["risk_level"],
                 "overdue_obligations": compliance["overdue_obligations"]
             })

@@ -34,6 +34,10 @@ class RenewalStatusUpdate(BaseModel):
     status: RenewalStatus
 
 
+class RenewalComplete(BaseModel):
+    new_expiry_date: date
+
+
 class RenewalResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

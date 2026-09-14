@@ -13,8 +13,10 @@ from app.schemas.renewal import (
     RenewalUpdate,
     RenewalStatusUpdate,
     RenewalResponse,
+    RenewalComplete,
 )
 from app.core.deps import get_current_active_user
+from app.services.audit_service import record_event
 
 router = APIRouter(tags=["Renewals"])
 
@@ -45,23 +47,25 @@ def create_renewal(
     if not contract:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found")
 
-    if payload.assigned_to is not None:
-        assignee = db.query(User).filter(User.id == payload.assigned_to).first()
-        if not assignee:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assigned user not found")
+    assigned_to = payload.assigned_to or current_user.id
+    assignee = db.query(User).filter(User.id == assigned_to, User.is_active == True).first()
+    if not assignee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assigned user not found or inactive")
 
     renewal = Renewal(
         contract_id=payload.contract_id,
         renewal_date=payload.renewal_date,
         previous_expiry_date=payload.previous_expiry_date,
         new_expiry_date=payload.new_expiry_date,
-        assigned_to=payload.assigned_to,
+        assigned_to=assigned_to,
         notes=payload.notes,
         status=RenewalStatus.UPCOMING,
     )
     db.add(renewal)
     db.commit()
     db.refresh(renewal)
+    record_event(db, current_user, "RENEWAL_CREATED", "Renewal", renewal.id, {"contract_id": renewal.contract_id})
+    db.commit()
     return renewal
 
 
@@ -118,6 +122,8 @@ def update_renewal(
 
     db.commit()
     db.refresh(renewal)
+    record_event(db, current_user, "RENEWAL_UPDATED", "Renewal", renewal.id)
+    db.commit()
     return renewal
 
 
@@ -130,20 +136,27 @@ def update_renewal_status(
 ):
     renewal = _get_renewal_or_404(db, renewal_id)
     _assert_transition_allowed(renewal.status, payload.status)
+    previous = renewal.status.value
     renewal.status = payload.status
     db.commit()
     db.refresh(renewal)
+    record_event(db, current_user, "RENEWAL_STATUS_CHANGED", "Renewal", renewal.id, {"from": previous, "to": renewal.status.value})
+    db.commit()
     return renewal
 
 
 @router.post("/renewals/{renewal_id}/renew", response_model=RenewalResponse)
 def complete_renewal(
     renewal_id: int,
+    payload: RenewalComplete,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     renewal = _get_renewal_or_404(db, renewal_id)
     _assert_transition_allowed(renewal.status, RenewalStatus.RENEWED)
+    if payload.new_expiry_date <= renewal.renewal_date or payload.new_expiry_date <= renewal.previous_expiry_date:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="New expiry date must be later than renewal date and previous expiry date")
+    renewal.new_expiry_date = payload.new_expiry_date
     renewal.status = RenewalStatus.RENEWED
     db.commit()
 
@@ -156,4 +169,6 @@ def complete_renewal(
         db.commit()
 
     db.refresh(renewal)
+    record_event(db, current_user, "RENEWAL_COMPLETED", "Renewal", renewal.id, {"new_expiry_date": renewal.new_expiry_date})
+    db.commit()
     return renewal

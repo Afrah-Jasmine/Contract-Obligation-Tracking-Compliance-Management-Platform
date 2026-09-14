@@ -7,6 +7,7 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse, PasswordResetConfirm
 from app.schemas.auth import Token
 from app.core.security import hash_password, verify_password, create_access_token
+from app.services.audit_service import record_event
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -43,6 +44,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
 
     access_token = create_access_token(data={"sub": str(user.id), "role": user.role.value})
+    record_event(db, user, "LOGIN", "User", user.id, {"email": user.email})
+    db.commit()
     return Token(access_token=access_token)
 
 

@@ -16,6 +16,7 @@ from app.schemas.obligation import (
     ObligationListItem,
 )
 from app.core.deps import get_current_active_user
+from app.services.audit_service import record_event
 from app.services.notification_service import notify_obligation_overdue
 
 router = APIRouter(tags=["Obligations"])
@@ -75,6 +76,8 @@ def create_obligation(
     db.add(obligation)
     db.commit()
     db.refresh(obligation)
+    record_event(db, current_user, "OBLIGATION_CREATED", "Obligation", obligation.id, {"contract_id": obligation.contract_id, "title": obligation.title})
+    db.commit()
     return obligation
 
 
@@ -138,6 +141,8 @@ def update_obligation(
 
     db.commit()
     db.refresh(obligation)
+    record_event(db, current_user, "OBLIGATION_UPDATED", "Obligation", obligation.id)
+    db.commit()
     return obligation
 
 
@@ -150,11 +155,14 @@ def update_obligation_status(
 ):
     obligation = _get_obligation_or_404(db, obligation_id)
     _assert_transition_allowed(obligation.status, payload.status)
+    previous = obligation.status.value
     obligation.status = payload.status
     if payload.status == ObligationStatus.COMPLETED:
         obligation.completion_date = date.today()
     db.commit()
     db.refresh(obligation)
+    record_event(db, current_user, "OBLIGATION_STATUS_CHANGED", "Obligation", obligation.id, {"from": previous, "to": obligation.status.value})
+    db.commit()
     return obligation
 
 
@@ -170,4 +178,6 @@ def complete_obligation(
     obligation.completion_date = date.today()  # backend-determined, never client-supplied
     db.commit()
     db.refresh(obligation)
+    record_event(db, current_user, "OBLIGATION_COMPLETED", "Obligation", obligation.id)
+    db.commit()
     return obligation
