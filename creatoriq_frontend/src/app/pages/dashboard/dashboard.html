@@ -39,6 +39,7 @@
 
       </div>
 
+
       <button
         class="refresh-btn"
         (click)="loadDashboard()">
@@ -385,7 +386,10 @@
 
             </div>
 
-            <button class="view-btn">
+            <button
+              class="view-btn"
+              type="button"
+              (click)="viewAllRenewals()">
               View All
             </button>
 
@@ -513,7 +517,10 @@
 
             </div>
 
-            <button class="view-btn">
+            <button
+              class="view-btn"
+              type="button"
+              (click)="viewAllCompliance()">
               View All
             </button>
 
@@ -836,116 +843,7 @@
     </section>
 
 
-    <!-- ==================== QUICK ACTIONS ==================== -->
-    <section class="dashboard-section">
 
-      <div class="section-title">
-
-        <h3>
-          Quick Actions
-        </h3>
-
-        <span>
-          Frequently used features
-        </span>
-
-      </div>
-
-
-      <div class="quick-actions">
-
-
-        <!-- Contracts -->
-        <button class="action-card">
-
-          <span class="action-icon">
-            📄
-          </span>
-
-          <div>
-
-            <strong>
-              Contracts
-            </strong>
-
-            <span>
-              Manage contracts
-            </span>
-
-          </div>
-
-        </button>
-
-
-        <!-- Obligations -->
-        <button class="action-card">
-
-          <span class="action-icon">
-            📌
-          </span>
-
-          <div>
-
-            <strong>
-              Obligations
-            </strong>
-
-            <span>
-              Track obligations
-            </span>
-
-          </div>
-
-        </button>
-
-
-        <!-- Renewals -->
-        <button class="action-card">
-
-          <span class="action-icon">
-            🔄
-          </span>
-
-          <div>
-
-            <strong>
-              Renewals
-            </strong>
-
-            <span>
-              Manage renewals
-            </span>
-
-          </div>
-
-        </button>
-
-
-        <!-- Reports -->
-        <button class="action-card">
-
-          <span class="action-icon">
-            📊
-          </span>
-
-          <div>
-
-            <strong>
-              Reports
-            </strong>
-
-            <span>
-              View analytics and reports
-            </span>
-
-          </div>
-
-        </button>
-
-
-      </div>
-
-    </section>
 
   }
 

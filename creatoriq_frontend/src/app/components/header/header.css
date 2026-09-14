@@ -12,24 +12,14 @@
   z-index: 100;
 }
 
+
+/* =========================================================
+   Brand
+   ========================================================= */
+
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.menu-button {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: #f3f4f6;
-  border-radius: 8px;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.menu-button:hover {
-  background: #e5e7eb;
 }
 
 .brand {
@@ -49,25 +39,21 @@
   color: #6b7280;
 }
 
+
+/* =========================================================
+   Right Side
+   ========================================================= */
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-.notification-button {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: #f3f4f6;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-}
 
-.notification-button:hover {
-  background: #e5e7eb;
-}
+/* =========================================================
+   User Profile
+   ========================================================= */
 
 .user-profile {
   display: flex;
@@ -105,7 +91,9 @@
 }
 
 
-/* Logout Button */
+/* =========================================================
+   Logout Button
+   ========================================================= */
 
 .logout-button {
   border: none;
@@ -128,7 +116,9 @@
 }
 
 
-/* Responsive */
+/* =========================================================
+   Responsive
+   ========================================================= */
 
 @media (max-width: 600px) {
 

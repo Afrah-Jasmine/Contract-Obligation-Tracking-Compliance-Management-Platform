@@ -80,7 +80,7 @@ export class Compliance {
     contractId: number
   ): Observable<ContractCompliance> {
     return this.http.get<ContractCompliance>(
-      `${this.baseUrl}/contracts/${contractId}/compliance`
+      `http://127.0.0.1:8000/contracts/${contractId}/compliance`
     );
   }
 

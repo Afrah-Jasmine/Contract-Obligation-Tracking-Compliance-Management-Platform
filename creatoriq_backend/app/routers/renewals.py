@@ -17,6 +17,7 @@ from app.schemas.renewal import (
 from app.core.dependencies import get_current_user, require_permission
 from app.schemas.permissions import Permission
 from app.services.notification_service import create_renewal_reminder
+from app.services.audit_service import create_audit_log, create_activity
 
 
 router = APIRouter(
@@ -166,7 +167,7 @@ def create_renewal(
     db.add(renewal)
 
     # Make sure renewal.id is available before
-    # creating the notification.
+    # creating notification and audit records.
     db.flush()
 
     # --------------------------------------------------------
@@ -176,6 +177,40 @@ def create_renewal(
     create_renewal_reminder(
         db,
         renewal
+    )
+
+    # --------------------------------------------------------
+    # Create audit log and activity
+    # --------------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="RENEWAL_CREATED",
+        entity_type="Renewal",
+        details={
+            "renewal_id": renewal.id,
+            "contract_id": renewal.contract_id,
+            "renewal_date": str(renewal.renewal_date),
+            "previous_expiry_date": str(
+                renewal.previous_expiry_date
+            ),
+            "new_expiry_date": str(
+                renewal.new_expiry_date
+            ),
+            "assigned_to": renewal.assigned_to,
+            "status": renewal.status,
+        },
+    )
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Renewal Created",
+        description=(
+            f"Renewal created for contract "
+            f"{renewal.contract_id}"
+        ),
     )
 
     db.commit()
@@ -349,6 +384,17 @@ def update_renewal(
     )
 
     # --------------------------------------------------------
+    # Store old values for audit history
+    # --------------------------------------------------------
+
+    old_values = {
+        "renewal_date": str(renewal.renewal_date),
+        "new_expiry_date": str(renewal.new_expiry_date),
+        "assigned_to": renewal.assigned_to,
+        "notes": renewal.notes,
+    }
+
+    # --------------------------------------------------------
     # Validate assigned user
     # --------------------------------------------------------
 
@@ -414,6 +460,40 @@ def update_renewal(
         renewal.notes = renewal_data.notes
 
     renewal.updated_at = datetime.utcnow()
+
+    # --------------------------------------------------------
+    # Create audit log and activity
+    # --------------------------------------------------------
+
+    new_values = {
+        "renewal_date": str(renewal.renewal_date),
+        "new_expiry_date": str(renewal.new_expiry_date),
+        "assigned_to": renewal.assigned_to,
+        "notes": renewal.notes,
+    }
+
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="RENEWAL_UPDATED",
+        entity_type="Renewal",
+        details={
+            "renewal_id": renewal.id,
+            "contract_id": renewal.contract_id,
+            "old_values": old_values,
+            "new_values": new_values,
+        },
+    )
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Renewal Updated",
+        description=(
+            f"Renewal {renewal.id} updated for "
+            f"contract {renewal.contract_id}"
+        ),
+    )
 
     db.commit()
     db.refresh(renewal)
@@ -510,6 +590,33 @@ def update_renewal_status(
     # If manually marked expired, keep the renewal date/history.
     # No contract expiry update is performed.
 
+    # --------------------------------------------------------
+    # Create audit log and activity
+    # --------------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="RENEWAL_STATUS_CHANGED",
+        entity_type="Renewal",
+        details={
+            "renewal_id": renewal.id,
+            "contract_id": renewal.contract_id,
+            "old_status": current_status,
+            "new_status": new_status,
+        },
+    )
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Renewal Status Changed",
+        description=(
+            f"Renewal {renewal.id} status changed "
+            f"from {current_status} to {new_status}"
+        ),
+    )
+
     db.commit()
     db.refresh(renewal)
 
@@ -584,6 +691,18 @@ def complete_renewal(
         )
 
     # --------------------------------------------------------
+    # Store old values for audit history
+    # --------------------------------------------------------
+
+    old_values = {
+        "status": renewal.status,
+        "new_expiry_date": str(renewal.new_expiry_date),
+        "contract_end_date": str(contract.end_date)
+        if contract.end_date is not None
+        else None,
+    }
+
+    # --------------------------------------------------------
     # Update renewal
     # --------------------------------------------------------
 
@@ -602,6 +721,43 @@ def complete_renewal(
 
     # If your contract workflow uses a specific active status,
     # preserve the existing status rather than changing it here.
+
+    # --------------------------------------------------------
+    # Create audit log and activity
+    # --------------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="RENEWAL_COMPLETED",
+        entity_type="Renewal",
+        details={
+            "renewal_id": renewal.id,
+            "contract_id": renewal.contract_id,
+            "old_values": old_values,
+            "new_values": {
+                "status": renewal.status,
+                "new_expiry_date": str(
+                    renewal.new_expiry_date
+                ),
+                "contract_end_date": str(
+                    contract.end_date
+                ),
+            },
+        },
+    )
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Renewal Completed",
+        description=(
+            f"Renewal {renewal.id} completed for "
+            f"contract {renewal.contract_id}; "
+            f"contract expiry updated to "
+            f"{renewal.new_expiry_date}"
+        ),
+    )
 
     db.commit()
     db.refresh(renewal)

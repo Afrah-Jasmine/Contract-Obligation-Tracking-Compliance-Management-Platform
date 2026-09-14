@@ -6,13 +6,31 @@
       <p>Track and monitor contract obligations.</p>
     </div>
 
-    <button
-      class="primary-button"
-      type="button"
-      (click)="loadObligations()">
-      Refresh
-    </button>
+    <div class="header-actions">
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="loadObligations()"
+        [disabled]="loading">
+        Refresh
+      </button>
+
+      @if (canManageObligations()) {
+        <button
+          class="primary-button"
+          type="button"
+          (click)="openCreateForm()">
+          + Create Obligation
+        </button>
+      }
+    </div>
   </div>
+
+  @if (actionMessage) {
+    <div class="success-message">
+      {{ actionMessage }}
+    </div>
+  }
 
   @if (loading) {
     <div class="state-message">
@@ -36,95 +54,628 @@
     </div>
   }
 
-  @if (!loading && !errorMessage && obligations.length === 0) {
-    <div class="state-message">
-      <div class="state-icon">📌</div>
-      <h2>No obligations found</h2>
-      <p>
-        There are currently no obligations available for your account.
-      </p>
-    </div>
-  }
+  @if (!loading && !errorMessage) {
 
-  @if (!loading && !errorMessage && obligations.length > 0) {
-    <div class="table-card">
+    <div class="filter-card">
 
-      <div class="table-header">
-        <div>
-          <h2>Obligation List</h2>
-          <span>{{ obligations.length }} obligations</span>
-        </div>
+      <div class="filter-group search-group">
+        <label for="obligation-search">Search</label>
+
+        <input
+          id="obligation-search"
+          type="text"
+          placeholder="Search by title, type or contract..."
+          [value]="searchTerm"
+          (input)="onSearchChange($any($event.target).value)" />
       </div>
 
-      <div class="table-wrapper">
-        <table>
+      <div class="filter-group">
+        <label for="obligation-status">Status</label>
 
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Contract ID</th>
-              <th>Type</th>
-              <th>Due Date</th>
-              <th>Status</th>
-              <th>Progress</th>
-            </tr>
-          </thead>
+        <select
+          id="obligation-status"
+          [value]="selectedStatus"
+          (change)="onStatusChange($any($event.target).value)">
 
-          <tbody>
-            @for (obligation of obligations; track obligation.id) {
+          @for (status of statusOptions; track status) {
+            <option [value]="status">
+              {{ status }}
+            </option>
+          }
+
+        </select>
+      </div>
+
+      @if (searchTerm || selectedStatus !== 'All') {
+        <button
+          class="secondary-button clear-filter-button"
+          type="button"
+          (click)="clearFilters()">
+          Clear Filters
+        </button>
+      }
+
+    </div>
+
+    @if (obligations.length === 0) {
+
+      <div class="state-message">
+        <div class="state-icon">📌</div>
+        <h2>No obligations found</h2>
+        <p>
+          There are currently no obligations available for your account.
+        </p>
+
+        @if (canManageObligations()) {
+          <button
+            class="primary-button"
+            type="button"
+            (click)="openCreateForm()">
+            Create First Obligation
+          </button>
+        }
+      </div>
+
+    } @else if (filteredObligations.length === 0) {
+
+      <div class="state-message">
+        <div class="state-icon">🔍</div>
+        <h2>No matching obligations</h2>
+        <p>
+          No obligations match your current search or status filter.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="clearFilters()">
+          Clear Filters
+        </button>
+      </div>
+
+    } @else {
+
+      <div class="table-card">
+
+        <div class="table-header">
+          <div>
+            <h2>Obligation List</h2>
+            <span>
+              Showing {{ filteredObligations.length }}
+              of {{ obligations.length }} obligations
+            </span>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
               <tr>
+                <th>Title</th>
+                <th>Contract</th>
+                <th>Type</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-                <td class="obligation-title">
-                  {{ obligation.title }}
-                </td>
+            <tbody>
 
-                <td>
-                  {{ obligation.contract_id }}
-                </td>
+              @for (
+                obligation of filteredObligations;
+                track obligation.id
+              ) {
 
-                <td>
-                  {{ obligation.obligation_type }}
-                </td>
+                <tr>
 
-                <td>
-                  {{ obligation.due_date || '—' }}
-                </td>
+                  <td class="obligation-title">
+                    {{ obligation.title }}
+                  </td>
 
-                <td>
-                  <span
-                    class="status-badge"
-                    [class.status-pending]="obligation.status === 'Pending'"
-                    [class.status-progress]="obligation.status === 'In Progress'"
-                    [class.status-completed]="obligation.status === 'Completed'"
-                    [class.status-delayed]="obligation.status === 'Delayed'"
-                    [class.status-overdue]="obligation.status === 'Overdue'">
-                    {{ obligation.status }}
-                  </span>
-                </td>
+                  <td>
+                    {{ getContractName(obligation.contract_id) }}
+                  </td>
 
-                <td>
-                  <div class="progress-container">
-                    <div class="progress-bar">
-                      <div
-                        class="progress-fill"
-                        [style.width.%]="obligation.progress">
+                  <td>
+                    {{ obligation.obligation_type || '—' }}
+                  </td>
+
+                  <td>
+                    <span
+                      [class.overdue-date]="isOverdue(obligation)">
+                      {{ obligation.due_date || '—' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="status-badge"
+                      [ngClass]="getStatusClass(obligation.status)">
+                      {{ obligation.status }}
+                    </span>
+                  </td>
+
+                  <td>
+
+                    <div class="progress-container">
+
+                      <div class="progress-bar">
+                        <div
+                          class="progress-fill"
+                          [ngClass]="getProgressClass(obligation.progress)"
+                          [style.width.%]="obligation.progress">
+                        </div>
                       </div>
+
+                      <span class="progress-text">
+                        {{ obligation.progress }}%
+                      </span>
+
                     </div>
 
-                    <span class="progress-text">
-                      {{ obligation.progress }}%
-                    </span>
-                  </div>
-                </td>
+                  </td>
 
-              </tr>
-            }
-          </tbody>
+                  <td>
 
-        </table>
+                    <div class="action-buttons">
+
+                      <button
+                        class="action-button view-button"
+                        type="button"
+                        (click)="viewDetails(obligation)">
+                        View
+                      </button>
+
+                      @if (canManageObligations()) {
+                        <button
+                          class="action-button edit-button"
+                          type="button"
+                          (click)="openEditForm(obligation)">
+                          Edit
+                        </button>
+                      }
+
+                      @if (canChangeStatus()) {
+
+                        @for (
+                          status of getAvailableStatuses(obligation.status);
+                          track status
+                        ) {
+
+                          @if (status === 'In Progress') {
+                            <button
+                              class="action-button progress-button"
+                              type="button"
+                              [disabled]="saving"
+                              (click)="updateStatus(obligation, status)">
+                              Start
+                            </button>
+                          }
+
+                          @if (status === 'Completed') {
+                            <button
+                              class="action-button complete-button"
+                              type="button"
+                              [disabled]="saving"
+                              (click)="completeObligation(obligation)">
+                              Complete
+                            </button>
+                          }
+
+                          @if (status === 'Delayed') {
+                            <button
+                              class="action-button delayed-button"
+                              type="button"
+                              [disabled]="saving"
+                              (click)="updateStatus(obligation, status)">
+                              Delay
+                            </button>
+                          }
+
+                          @if (status === 'Overdue') {
+                            <button
+                              class="action-button overdue-button"
+                              type="button"
+                              [disabled]="saving"
+                              (click)="updateStatus(obligation, status)">
+                              Overdue
+                            </button>
+                          }
+
+                        }
+
+                      }
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
       </div>
 
-    </div>
+    }
+
   }
 
 </div>
+
+
+@if (showObligationForm) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeObligationForm()">
+
+    <div
+      class="modal-card"
+      (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>
+            {{
+              editingObligation
+                ? 'Edit Obligation'
+                : 'Create Obligation'
+            }}
+          </h2>
+
+          <p>
+            {{
+              editingObligation
+                ? 'Update the obligation details.'
+                : 'Add a new obligation to a contract.'
+            }}
+          </p>
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          (click)="closeObligationForm()">
+          ×
+        </button>
+
+      </div>
+
+      <form
+        [formGroup]="obligationForm"
+        (ngSubmit)="submitObligationForm()">
+
+        <div class="form-grid">
+
+          @if (!editingObligation) {
+
+            <div class="form-field full-width">
+
+              <label for="contract_id">
+                Contract <span>*</span>
+              </label>
+
+              <select
+                id="contract_id"
+                formControlName="contract_id"
+                [disabled]="loadingContracts">
+
+                <option [ngValue]="0">
+                  {{
+                    loadingContracts
+                      ? 'Loading contracts...'
+                      : 'Select contract'
+                  }}
+                </option>
+
+                @for (contract of contracts; track contract.id) {
+                  <option [ngValue]="contract.id">
+                    {{ contract.contract_number }} -
+                    {{ contract.title }}
+                  </option>
+                }
+
+              </select>
+
+              @if (
+                obligationForm.controls.contract_id.touched &&
+                obligationForm.controls.contract_id.invalid
+              ) {
+                <small class="field-error">
+                  Please select a contract.
+                </small>
+              }
+
+            </div>
+
+          }
+
+          <div class="form-field">
+
+            <label for="title">
+              Title <span>*</span>
+            </label>
+
+            <input
+              id="title"
+              type="text"
+              formControlName="title"
+              placeholder="Enter obligation title" />
+
+            @if (
+              obligationForm.controls.title.touched &&
+              obligationForm.controls.title.invalid
+            ) {
+              <small class="field-error">
+                Obligation title is required.
+              </small>
+            }
+
+          </div>
+
+          <div class="form-field">
+
+            <label for="obligation_type">
+              Obligation Type <span>*</span>
+            </label>
+
+            <input
+              id="obligation_type"
+              type="text"
+              formControlName="obligation_type"
+              placeholder="e.g. Payment, Reporting" />
+
+            @if (
+              obligationForm.controls.obligation_type.touched &&
+              obligationForm.controls.obligation_type.invalid
+            ) {
+              <small class="field-error">
+                Obligation type is required.
+              </small>
+            }
+
+          </div>
+
+          <div class="form-field">
+
+            <label for="due_date">
+              Due Date <span>*</span>
+            </label>
+
+            <input
+              id="due_date"
+              type="date"
+              formControlName="due_date" />
+
+            @if (
+              obligationForm.controls.due_date.touched &&
+              obligationForm.controls.due_date.invalid
+            ) {
+              <small class="field-error">
+                Due date is required.
+              </small>
+            }
+
+          </div>
+
+          <div class="form-field">
+
+            <label for="assigned_to">
+              Assigned User ID <span>*</span>
+            </label>
+
+            <input
+              id="assigned_to"
+              type="number"
+              formControlName="assigned_to"
+              min="1"
+              placeholder="Enter user ID" />
+
+            @if (
+              obligationForm.controls.assigned_to.touched &&
+              obligationForm.controls.assigned_to.invalid
+            ) {
+              <small class="field-error">
+                A valid assigned user ID is required.
+              </small>
+            }
+
+          </div>
+
+          <div class="form-field full-width">
+
+            <label for="description">
+              Description
+            </label>
+
+            <textarea
+              id="description"
+              rows="4"
+              formControlName="description"
+              placeholder="Describe the obligation...">
+            </textarea>
+
+          </div>
+
+        </div>
+
+        @if (errorMessage) {
+          <div class="form-error">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <div class="modal-actions">
+
+          <button
+            class="secondary-button"
+            type="button"
+            [disabled]="saving"
+            (click)="closeObligationForm()">
+            Cancel
+          </button>
+
+          <button
+            class="primary-button"
+            type="submit"
+            [disabled]="saving">
+
+            @if (saving) {
+              Saving...
+            } @else {
+              {{
+                editingObligation
+                  ? 'Update Obligation'
+                  : 'Create Obligation'
+              }}
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+}
+
+
+@if (showDetails && selectedObligation) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeDetails()">
+
+    <div
+      class="modal-card details-card"
+      (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>Obligation Details</h2>
+          <p>{{ selectedObligation.title }}</p>
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          (click)="closeDetails()">
+          ×
+        </button>
+
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+          <span>Contract</span>
+          <strong>
+            {{ getContractName(selectedObligation.contract_id) }}
+          </strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Type</span>
+          <strong>
+            {{ selectedObligation.obligation_type || '—' }}
+          </strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Due Date</span>
+          <strong
+            [class.overdue-date]="isOverdue(selectedObligation)">
+            {{ selectedObligation.due_date || '—' }}
+          </strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Status</span>
+          <strong>
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(selectedObligation.status)">
+              {{ selectedObligation.status }}
+            </span>
+          </strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Progress</span>
+          <strong>
+            {{ selectedObligation.progress }}%
+          </strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Assigned User</span>
+          <strong>
+            {{ selectedObligation.assigned_to }}
+          </strong>
+        </div>
+
+        <div class="detail-item full-width">
+          <span>Description</span>
+          <p>
+            {{
+              selectedObligation.description ||
+              'No description provided.'
+            }}
+          </p>
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+
+        @if (canManageObligations()) {
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="openEditForm(selectedObligation)">
+            Edit
+          </button>
+        }
+
+        @if (
+          canChangeStatus() &&
+          getAvailableStatuses(selectedObligation.status).includes('Completed')
+        ) {
+          <button
+            class="primary-button"
+            type="button"
+            [disabled]="saving"
+            (click)="completeObligation(selectedObligation)">
+            Complete
+          </button>
+        }
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="closeDetails()">
+          Close
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}

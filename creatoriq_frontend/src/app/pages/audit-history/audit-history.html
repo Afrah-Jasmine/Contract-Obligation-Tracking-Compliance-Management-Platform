@@ -1,22 +1,340 @@
 <div class="page-container">
 
+  <!-- Page Header -->
   <div class="page-header">
     <div>
-      <h1>Audit History</h1>
-      <p>View and track system activities and compliance history.</p>
+      <h1>Audit & Activity History</h1>
+      <p>
+        View user activities, system actions, contract changes,
+        approvals, and audit history.
+      </p>
     </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      (click)="refresh()"
+      [disabled]="loading"
+    >
+      ↻ Refresh
+    </button>
   </div>
 
-  <div class="empty-state">
 
-    <div class="empty-icon">📋</div>
+  <!-- Summary Cards -->
+  <div class="summary-grid">
 
-    <h2>Audit History</h2>
+    <div class="summary-card">
+      <div class="summary-icon">📋</div>
+      <div>
+        <span class="summary-label">Total History</span>
+        <strong>{{ totalHistory }}</strong>
+      </div>
+    </div>
 
-    <p>
-      Audit history will be connected to the existing FastAPI
-      audit log functionality.
-    </p>
+    <div class="summary-card">
+      <div class="summary-icon">👤</div>
+      <div>
+        <span class="summary-label">User Activities</span>
+        <strong>{{ totalActivities }}</strong>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon">🔐</div>
+      <div>
+        <span class="summary-label">Audit Logs</span>
+        <strong>{{ totalAuditLogs }}</strong>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Loading -->
+  <div
+    class="state-message loading-message"
+    *ngIf="loading"
+  >
+    <div class="loading-spinner"></div>
+    <p>Loading audit and activity history...</p>
+  </div>
+
+
+  <!-- Error -->
+  <div
+    class="state-message error-message"
+    *ngIf="!loading && errorMessage"
+  >
+    <div class="state-icon">⚠️</div>
+    <h3>Unable to Load History</h3>
+    <p>{{ errorMessage }}</p>
+
+    <button
+      type="button"
+      class="retry-button"
+      (click)="refresh()"
+    >
+      Try Again
+    </button>
+  </div>
+
+
+  <!-- Main Content -->
+  <div
+    class="history-section"
+    *ngIf="!loading && !errorMessage"
+  >
+
+    <!-- Tabs -->
+    <div class="tab-container">
+
+      <button
+        type="button"
+        class="tab-button"
+        [class.active]="activeTab === 'activities'"
+        (click)="setActiveTab('activities')"
+      >
+        <span>👤</span>
+        User Activities
+        <span class="tab-count">
+          {{ totalActivities }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-button"
+        [class.active]="activeTab === 'audit'"
+        (click)="setActiveTab('audit')"
+      >
+        <span>🔐</span>
+        Audit Logs
+        <span class="tab-count">
+          {{ totalAuditLogs }}
+        </span>
+      </button>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- USER ACTIVITIES -->
+    <!-- ====================================================== -->
+
+    <div
+      class="tab-content"
+      *ngIf="activeTab === 'activities'"
+    >
+
+      <div class="section-heading">
+        <div>
+          <h2>User Activity Logs</h2>
+          <p>
+            Track user actions and system activities.
+          </p>
+        </div>
+      </div>
+
+
+      <!-- Empty Activities -->
+      <div
+        class="empty-state"
+        *ngIf="activities.length === 0"
+      >
+        <div class="empty-icon">📋</div>
+        <h3>No activities found</h3>
+        <p>
+          There are currently no user activities to display.
+        </p>
+      </div>
+
+
+      <!-- Activities List -->
+      <div
+        class="activity-list"
+        *ngIf="activities.length > 0"
+      >
+
+        <div
+          class="activity-item"
+          *ngFor="let activity of activities"
+        >
+
+          <div
+            class="activity-indicator"
+            [ngClass]="getActivityClass(activity.activity_type)"
+          >
+            <span>•</span>
+          </div>
+
+          <div class="activity-content">
+
+            <div class="activity-top">
+
+              <div>
+                <h3>{{ activity.activity_type }}</h3>
+
+                <p class="activity-description">
+                  {{ activity.description }}
+                </p>
+              </div>
+
+              <span
+                class="activity-badge"
+                [ngClass]="getActivityClass(activity.activity_type)"
+              >
+                {{ activity.activity_type }}
+              </span>
+
+            </div>
+
+            <div class="activity-meta">
+
+              <span>
+                <strong>User:</strong>
+                {{ activity.user_name || 'Unknown User' }}
+              </span>
+
+              <span>
+                <strong>User ID:</strong>
+                {{ activity.user_id }}
+              </span>
+
+              <span>
+                <strong>Time:</strong>
+                {{ formatDateTime(activity.created_at) }}
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- AUDIT LOGS -->
+    <!-- ====================================================== -->
+
+    <div
+      class="tab-content"
+      *ngIf="activeTab === 'audit'"
+    >
+
+      <div class="section-heading">
+        <div>
+          <h2>Audit Logs</h2>
+          <p>
+            Track system changes, approvals, status changes,
+            and other auditable actions.
+          </p>
+        </div>
+      </div>
+
+
+      <!-- Empty Audit Logs -->
+      <div
+        class="empty-state"
+        *ngIf="auditLogs.length === 0"
+      >
+        <div class="empty-icon">🔐</div>
+        <h3>No audit logs found</h3>
+        <p>
+          There are currently no audit records to display.
+        </p>
+      </div>
+
+
+      <!-- Audit Logs List -->
+      <div
+        class="audit-list"
+        *ngIf="auditLogs.length > 0"
+      >
+
+        <div
+          class="audit-item"
+          *ngFor="let log of auditLogs"
+        >
+
+          <div
+            class="audit-indicator"
+            [ngClass]="getAuditClass(log.action)"
+          >
+            <span>•</span>
+          </div>
+
+          <div class="audit-content">
+
+            <div class="audit-top">
+
+              <div>
+                <h3>{{ log.action }}</h3>
+
+                <div class="audit-entity">
+                  <span class="entity-label">
+                    Entity
+                  </span>
+
+                  <span class="entity-value">
+                    {{ log.entity_type }}
+                  </span>
+                </div>
+              </div>
+
+              <span
+                class="audit-badge"
+                [ngClass]="getAuditClass(log.action)"
+              >
+                {{ log.action }}
+              </span>
+
+            </div>
+
+
+            <div class="audit-meta">
+
+              <span>
+                <strong>User:</strong>
+                {{ log.user_name || 'Unknown User' }}
+              </span>
+
+              <span>
+                <strong>User ID:</strong>
+                {{ log.user_id }}
+              </span>
+
+              <span>
+                <strong>Time:</strong>
+                {{ formatDateTime(log.created_at) }}
+              </span>
+
+            </div>
+
+
+            <!-- Audit Details -->
+            <div
+              class="audit-details"
+              *ngIf="log.details"
+            >
+              <div class="details-heading">
+                Details
+              </div>
+
+              <pre>{{ getAuditDetails(log) }}</pre>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
 
   </div>
 

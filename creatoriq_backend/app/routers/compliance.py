@@ -20,6 +20,7 @@ from app.services.compliance_service import (
     get_non_compliant_contracts,
     get_high_risk_contracts,
     get_compliance_history,
+    save_compliance_history,
 )
 
 
@@ -228,7 +229,22 @@ def get_contract_compliance_history(
         current_user
     )
 
+    # Calculate the current compliance status
+    compliance = calculate_contract_compliance(
+        db,
+        contract_id
+    )
+
+    # Save the evaluation to compliance history
+    save_compliance_history(
+        db,
+        compliance,
+        current_user.id
+    )
+
+    # Return the saved history
     return get_compliance_history(
         db,
         contract_id
     )
+

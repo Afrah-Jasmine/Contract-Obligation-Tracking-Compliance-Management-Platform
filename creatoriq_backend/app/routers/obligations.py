@@ -27,6 +27,11 @@ from app.services.notification_service import (
     create_obligation_overdue_notification,
 )
 
+from app.services.audit_service import (
+    create_audit_log,
+    create_activity,
+)
+
 
 router = APIRouter(
     prefix="/obligations",
@@ -106,6 +111,44 @@ def create_obligation(
     create_obligation_due_notification(
         db,
         obligation
+    )
+
+    # --------------------------------------------------------
+    # Audit and activity logging
+    # --------------------------------------------------------
+
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="OBLIGATION_CREATED",
+        entity_type="Obligation",
+        details={
+            "obligation_id": obligation.id,
+            "contract_id": obligation.contract_id,
+            "contract_number": contract.contract_number,
+            "title": obligation.title,
+            "obligation_type": obligation.obligation_type,
+            "due_date": (
+                obligation.due_date.isoformat()
+                if obligation.due_date
+                else None
+            ),
+            "assigned_to": assigned_user.id,
+            "assigned_user": assigned_user.full_name,
+            "status": obligation.status,
+        },
+    )
+
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Obligation Created",
+        description=(
+            f"Obligation '{obligation.title}' "
+            f"was created for contract "
+            f"{contract.contract_number} by "
+            f"{current_user.full_name}."
+        ),
     )
 
     db.commit()
@@ -312,6 +355,26 @@ def update_obligation(
             )
         )
 
+    # Get related contract for audit information
+    contract = (
+        db.query(Contract)
+        .filter(Contract.id == obligation.contract_id)
+        .first()
+    )
+
+    # Capture previous values
+    old_values = {
+        "title": obligation.title,
+        "description": obligation.description,
+        "obligation_type": obligation.obligation_type,
+        "due_date": (
+            obligation.due_date.isoformat()
+            if obligation.due_date
+            else None
+        ),
+        "assigned_to": obligation.assigned_to,
+    }
+
     # Update only fields provided by the client
     if obligation_data.title is not None:
         obligation.title = obligation_data.title
@@ -343,6 +406,50 @@ def update_obligation(
             )
 
         obligation.assigned_to = obligation_data.assigned_to
+
+    # Capture new values
+    new_values = {
+        "title": obligation.title,
+        "description": obligation.description,
+        "obligation_type": obligation.obligation_type,
+        "due_date": (
+            obligation.due_date.isoformat()
+            if obligation.due_date
+            else None
+        ),
+        "assigned_to": obligation.assigned_to,
+    }
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="OBLIGATION_UPDATED",
+        entity_type="Obligation",
+        details={
+            "obligation_id": obligation.id,
+            "contract_id": obligation.contract_id,
+            "contract_number": (
+                contract.contract_number
+                if contract
+                else None
+            ),
+            "old_values": old_values,
+            "new_values": new_values,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Obligation Updated",
+        description=(
+            f"Obligation '{obligation.title}' "
+            f"was updated by "
+            f"{current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(obligation)
@@ -451,6 +558,46 @@ def update_obligation_status(
             obligation
         )
 
+    # Get related contract
+    contract = (
+        db.query(Contract)
+        .filter(Contract.id == obligation.contract_id)
+        .first()
+    )
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="OBLIGATION_STATUS_CHANGED",
+        entity_type="Obligation",
+        details={
+            "obligation_id": obligation.id,
+            "contract_id": obligation.contract_id,
+            "contract_number": (
+                contract.contract_number
+                if contract
+                else None
+            ),
+            "old_status": current_status,
+            "new_status": new_status,
+            "progress": obligation.progress,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Obligation Status Changed",
+        description=(
+            f"Obligation '{obligation.title}' "
+            f"status changed from {current_status} "
+            f"to {new_status} by "
+            f"{current_user.full_name}."
+        ),
+    )
+
     db.commit()
     db.refresh(obligation)
 
@@ -507,9 +654,59 @@ def complete_obligation(
             )
         )
 
+    old_status = obligation.status
+
     obligation.status = "Completed"
     obligation.progress = 100
     obligation.completion_date = date.today()
+
+    # Get related contract
+    contract = (
+        db.query(Contract)
+        .filter(Contract.id == obligation.contract_id)
+        .first()
+    )
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="OBLIGATION_COMPLETED",
+        entity_type="Obligation",
+        details={
+            "obligation_id": obligation.id,
+            "contract_id": obligation.contract_id,
+            "contract_number": (
+                contract.contract_number
+                if contract
+                else None
+            ),
+            "old_status": old_status,
+            "new_status": "Completed",
+            "completion_date": (
+                obligation.completion_date.isoformat()
+                if obligation.completion_date
+                else None
+            ),
+            "completion_notes": getattr(
+                completion_data,
+                "completion_notes",
+                None
+            ),
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Obligation Completed",
+        description=(
+            f"Obligation '{obligation.title}' "
+            f"was completed by "
+            f"{current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(obligation)

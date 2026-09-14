@@ -29,4 +29,24 @@ export class Notifications {
   getNotifications(): Observable<Notification[]> {
     return this.http.get<Notification[]>(this.baseUrl);
   }
+
+  getNotificationById(id: number): Observable<Notification> {
+    return this.http.get<Notification>(
+      `${this.baseUrl}/${id}`
+    );
+  }
+
+  markNotificationAsRead(id: number): Observable<Notification> {
+    return this.http.patch<Notification>(
+      `${this.baseUrl}/${id}/read`,
+      {}
+    );
+  }
+
+  markAllNotificationsAsRead(): Observable<unknown> {
+    return this.http.patch(
+      `${this.baseUrl}/read-all`,
+      {}
+    );
+  }
 }

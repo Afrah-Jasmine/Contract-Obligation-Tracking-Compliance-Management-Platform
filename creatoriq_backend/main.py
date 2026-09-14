@@ -11,6 +11,7 @@ from app.routers.compliance import (
 )
 from app.routers.notifications import router as notification_router
 from app.routers.reports import router as reports_router
+from app.routers.audit import router as audit_router
 
 
 app = FastAPI()
@@ -40,3 +41,5 @@ app.include_router(contract_compliance_router)
 app.include_router(notification_router)
 
 app.include_router(reports_router)
+
+app.include_router(audit_router)

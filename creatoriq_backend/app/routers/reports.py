@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_permission
 from app.database.database import get_db
 from app.models.user import User
+from app.schemas.permissions import Permission
 
 from app.schemas.report import (
     DashboardSummaryResponse,
@@ -19,6 +20,7 @@ from app.schemas.report import (
     ObligationReportResponse,
     RenewalReportResponse,
     ComplianceReportResponse,
+    AuditReportResponse,
 )
 
 from app.services.report_service import (
@@ -32,6 +34,7 @@ from app.services.report_service import (
     generate_obligation_report,
     generate_renewal_report,
     generate_compliance_report,
+    generate_audit_report,
     generate_pdf_report,
     generate_excel_report,
 )
@@ -262,6 +265,56 @@ def compliance_report(
 
 
 # =========================================================
+# AUDIT REPORT
+# GET /reports/audit
+# =========================================================
+
+@router.get(
+    "/reports/audit",
+    response_model=AuditReportResponse
+)
+def audit_report(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_permission(Permission.VIEW_AUDIT_LOGS)
+    )
+):
+    return generate_audit_report(
+        db,
+        current_user
+    )
+
+
+# =========================================================
+# AUDIT PDF EXPORT
+# GET /reports/audit/pdf
+# =========================================================
+
+@router.get("/reports/audit/pdf")
+def audit_report_pdf(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_permission(Permission.VIEW_AUDIT_LOGS)
+    )
+):
+    pdf_file = generate_pdf_report(
+        db,
+        current_user,
+        "audit"
+    )
+
+    return StreamingResponse(
+        pdf_file,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="audit_report.pdf"'
+            )
+        }
+    )
+
+
+# =========================================================
 # CONTRACT PDF EXPORT
 # GET /reports/contracts/pdf
 # =========================================================
@@ -283,6 +336,38 @@ def contract_report_pdf(
         headers={
             "Content-Disposition": (
                 'attachment; filename="contract_report.pdf"'
+            )
+        }
+    )
+
+
+# =========================================================
+# AUDIT EXCEL EXPORT
+# GET /reports/audit/excel
+# =========================================================
+
+@router.get("/reports/audit/excel")
+def audit_report_excel(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_permission(Permission.VIEW_AUDIT_LOGS)
+    )
+):
+    excel_file = generate_excel_report(
+        db,
+        current_user,
+        "audit"
+    )
+
+    return StreamingResponse(
+        excel_file,
+        media_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="audit_report.xlsx"'
             )
         }
     )

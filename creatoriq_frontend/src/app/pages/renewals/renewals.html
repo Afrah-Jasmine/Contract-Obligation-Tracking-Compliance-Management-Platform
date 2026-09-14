@@ -1,19 +1,41 @@
 <div class="page-container">
 
+  <!-- Page Header -->
   <div class="page-header">
     <div>
       <h1>Renewals</h1>
       <p>Track and manage contract renewals.</p>
     </div>
 
-    <button
-      class="primary-button"
-      type="button"
-      (click)="loadRenewals()">
-      Refresh
-    </button>
+    <div class="header-actions">
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="loadRenewals()"
+        [disabled]="loading">
+        Refresh
+      </button>
+
+      @if (canManageRenewals()) {
+        <button
+          class="primary-button"
+          type="button"
+          (click)="openCreateForm()">
+          + Create Renewal
+        </button>
+      }
+    </div>
   </div>
 
+  <!-- Success Message -->
+  @if (actionMessage) {
+    <div class="success-message">
+      <span class="message-icon">✓</span>
+      <span>{{ actionMessage }}</span>
+    </div>
+  }
+
+  <!-- Loading -->
   @if (loading) {
     <div class="state-message">
       <div class="loading-spinner"></div>
@@ -21,6 +43,7 @@
     </div>
   }
 
+  <!-- Error -->
   @if (!loading && errorMessage) {
     <div class="state-message error-state">
       <div class="state-icon">⚠</div>
@@ -38,94 +61,902 @@
     </div>
   }
 
-  @if (!loading && !errorMessage && renewals.length === 0) {
-    <div class="state-message">
-      <div class="state-icon">🔄</div>
+  @if (!loading && !errorMessage) {
 
-      <h2>No renewals found</h2>
+    <!-- Filters -->
+    <div class="filter-card">
 
-      <p>
-        There are currently no renewals available for your account.
-      </p>
-    </div>
-  }
-
-  @if (!loading && !errorMessage && renewals.length > 0) {
-    <div class="table-card">
-
-      <div class="table-header">
+      <div class="filter-header">
         <div>
           <h2>Renewal List</h2>
-          <span>{{ renewals.length }} renewals</span>
+          <span>
+            {{ filteredRenewals.length }}
+            of
+            {{ renewals.length }}
+            renewals
+          </span>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table>
+      <div class="filter-row">
 
-          <thead>
-            <tr>
-              <th>Contract ID</th>
-              <th>Renewal Date</th>
-              <th>Previous Expiry</th>
-              <th>New Expiry</th>
-              <th>Status</th>
-              <th>Approval</th>
-            </tr>
-          </thead>
+        <!-- Search -->
+        <div class="filter-field search-field">
+          <label for="renewal-search">Search</label>
 
-          <tbody>
+          <input
+            id="renewal-search"
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search by contract, title, ID or status">
+        </div>
 
-            @for (renewal of renewals; track renewal.id) {
-              <tr>
+        <!-- Status -->
+        <div class="filter-field">
+          <label for="renewal-status">Status</label>
 
-                <td class="contract-id">
-                  {{ renewal.contract_id }}
-                </td>
+          <select
+            id="renewal-status"
+            [(ngModel)]="selectedStatus"
+            (ngModelChange)="onStatusChange()">
 
-                <td>
-                  {{ renewal.renewal_date || '—' }}
-                </td>
-
-                <td>
-                  {{ renewal.previous_expiry_date || '—' }}
-                </td>
-
-                <td>
-                  {{ renewal.new_expiry_date || '—' }}
-                </td>
-
-                <td>
-                  <span
-                    class="status-badge"
-                    [class.status-upcoming]="renewal.status === 'Upcoming'"
-                    [class.status-progress]="renewal.status === 'In Progress'"
-                    [class.status-renewed]="renewal.status === 'Renewed'"
-                    [class.status-expired]="renewal.status === 'Expired'"
-                    [class.status-cancelled]="renewal.status === 'Cancelled'">
-                    {{ renewal.status }}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    class="approval-badge"
-                    [class.approval-approved]="renewal.approval_status === 'Approved'"
-                    [class.approval-pending]="renewal.approval_status === 'Pending'"
-                    [class.approval-rejected]="renewal.approval_status === 'Rejected'">
-                    {{ renewal.approval_status || 'Not Required' }}
-                  </span>
-                </td>
-
-              </tr>
+            @for (status of statusOptions; track status) {
+              <option [value]="status">
+                {{ status }}
+              </option>
             }
 
-          </tbody>
+          </select>
+        </div>
 
-        </table>
+        <!-- Date -->
+        <div class="filter-field">
+          <label for="renewal-date">Date Range</label>
+
+          <select
+            id="renewal-date"
+            [(ngModel)]="selectedDateFilter"
+            (ngModelChange)="onDateFilterChange()">
+
+            @for (dateFilter of dateFilterOptions; track dateFilter) {
+              <option [value]="dateFilter">
+                {{ dateFilter }}
+              </option>
+            }
+
+          </select>
+        </div>
+
+        <!-- Clear -->
+        <div class="filter-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="clearFilters()">
+            Clear Filters
+          </button>
+        </div>
+
       </div>
 
     </div>
+
+    <!-- Empty -->
+    @if (renewals.length === 0) {
+      <div class="state-message">
+        <div class="state-icon">🔄</div>
+
+        <h2>No renewals found</h2>
+
+        <p>
+          There are currently no renewals available for your account.
+        </p>
+
+        @if (canManageRenewals()) {
+          <button
+            class="primary-button"
+            type="button"
+            (click)="openCreateForm()">
+            Create Renewal
+          </button>
+        }
+      </div>
+    }
+
+    <!-- No Search Results -->
+    @if (renewals.length > 0 && filteredRenewals.length === 0) {
+      <div class="state-message">
+        <div class="state-icon">🔍</div>
+
+        <h2>No matching renewals</h2>
+
+        <p>
+          No renewals match the selected search or filter criteria.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="clearFilters()">
+          Clear Filters
+        </button>
+      </div>
+    }
+
+    <!-- Renewal Table -->
+    @if (filteredRenewals.length > 0) {
+
+      <div class="table-card">
+
+        <div class="table-header">
+          <div>
+            <h2>Renewal List</h2>
+            <span>
+              Showing {{ filteredRenewals.length }} renewals
+            </span>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Contract</th>
+                <th>Renewal Date</th>
+                <th>Previous Expiry</th>
+                <th>New Expiry</th>
+                <th>Status</th>
+                <th>Attention</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              @for (
+                renewal of filteredRenewals;
+                track renewal.id
+              ) {
+
+                <tr>
+
+                  <!-- Contract -->
+                  <td>
+                    <div class="contract-info">
+                      <strong>
+                        {{ getContractNumber(renewal.contract_id) }}
+                      </strong>
+
+                      <span>
+                        {{ getContractTitle(renewal.contract_id) }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Renewal Date -->
+                  <td>
+                    {{ renewal.renewal_date || '—' }}
+                  </td>
+
+                  <!-- Previous Expiry -->
+                  <td>
+                    {{ renewal.previous_expiry_date || '—' }}
+                  </td>
+
+                  <!-- New Expiry -->
+                  <td>
+                    {{ renewal.new_expiry_date || '—' }}
+                  </td>
+
+                  <!-- Status -->
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.status-upcoming]="
+                        renewal.status === 'Upcoming'
+                      "
+                      [class.status-progress]="
+                        renewal.status === 'In Progress'
+                      "
+                      [class.status-renewed]="
+                        renewal.status === 'Renewed'
+                      "
+                      [class.status-expired]="
+                        renewal.status === 'Expired'
+                      "
+                      [class.status-cancelled]="
+                        renewal.status === 'Cancelled'
+                      ">
+                      {{ renewal.status }}
+                    </span>
+                  </td>
+
+                  <!-- Attention -->
+                  <td>
+
+                    @if (isAttentionRequired(renewal)) {
+                      <span class="attention-badge attention-required">
+                        Attention Required
+                      </span>
+                    } @else if (isUpcoming(renewal)) {
+                      <span class="attention-badge attention-upcoming">
+                        Upcoming
+                      </span>
+                    } @else {
+                      <span class="attention-badge">
+                        —
+                      </span>
+                    }
+
+                  </td>
+
+                  <!-- Actions -->
+                  <td>
+
+                    <div class="action-buttons">
+
+                      <!-- View -->
+                      <button
+                        class="action-button view-action"
+                        type="button"
+                        (click)="viewDetails(renewal)">
+                        View
+                      </button>
+
+                      <!-- Edit -->
+                      @if (
+                        canManageRenewals() &&
+                        renewal.status !== 'Renewed' &&
+                        renewal.status !== 'Cancelled'
+                      ) {
+                        <button
+                          class="action-button edit-action"
+                          type="button"
+                          (click)="openEditForm(renewal)">
+                          Edit
+                        </button>
+                      }
+
+                      <!-- Status Actions -->
+                      @if (
+                        canManageRenewals() &&
+                        getAvailableStatuses(renewal).length > 0
+                      ) {
+
+                        @for (
+                          nextStatus of getAvailableStatuses(renewal);
+                          track nextStatus
+                        ) {
+
+                          <button
+                            class="action-button status-action"
+                            type="button"
+                            (click)="updateStatus(renewal, nextStatus)">
+                            {{ nextStatus }}
+                          </button>
+
+                        }
+
+                      }
+
+                      <!-- Complete Renewal -->
+                      @if (
+                        canManageRenewals() &&
+                        renewal.status === 'In Progress'
+                      ) {
+                        <button
+                          class="action-button renew-action"
+                          type="button"
+                          (click)="openCompleteForm(renewal)">
+                          Complete Renewal
+                        </button>
+                      }
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    }
+
   }
 
 </div>
+
+
+<!-- ========================================================= -->
+<!-- Create / Edit Renewal Modal -->
+<!-- ========================================================= -->
+
+@if (showRenewalForm) {
+
+  <div class="modal-backdrop">
+
+    <div
+      class="modal-container"
+      role="dialog"
+      aria-modal="true">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>
+            {{ editingRenewal ? 'Edit Renewal' : 'Create Renewal' }}
+          </h2>
+
+          <p>
+            {{
+              editingRenewal
+                ? 'Update renewal information.'
+                : 'Create a new contract renewal.'
+            }}
+          </p>
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          (click)="closeRenewalForm()"
+          [disabled]="saving"
+          aria-label="Close">
+          ×
+        </button>
+
+      </div>
+
+      <form
+        [formGroup]="renewalForm"
+        (ngSubmit)="submitRenewalForm()">
+
+        <div class="modal-body">
+
+          @if (errorMessage) {
+            <div class="form-error-message">
+              {{ errorMessage }}
+            </div>
+          }
+
+          <!-- Contract -->
+          <div class="form-field">
+
+            <label for="contract_id">
+              Contract <span class="required">*</span>
+            </label>
+
+            <select
+              id="contract_id"
+              formControlName="contract_id"
+              (change)="onContractChange()">
+
+              <option [ngValue]="null">
+                Select contract
+              </option>
+
+              @for (
+                contract of contracts;
+                track contract.id
+              ) {
+
+                <option [ngValue]="contract.id">
+                  {{ contract.contract_number }}
+                  -
+                  {{ contract.title }}
+                </option>
+
+              }
+
+            </select>
+
+            @if (
+              renewalForm.get('contract_id')?.touched &&
+              renewalForm.get('contract_id')?.invalid
+            ) {
+              <small class="validation-error">
+                Please select a contract.
+              </small>
+            }
+
+          </div>
+
+          <!-- Renewal Date -->
+          <div class="form-row">
+
+            <div class="form-field">
+
+              <label for="renewal_date">
+                Renewal Date <span class="required">*</span>
+              </label>
+
+              <input
+                id="renewal_date"
+                type="date"
+                formControlName="renewal_date">
+
+              @if (
+                renewalForm.get('renewal_date')?.touched &&
+                renewalForm.get('renewal_date')?.invalid
+              ) {
+                <small class="validation-error">
+                  Please enter the renewal date.
+                </small>
+              }
+
+            </div>
+
+            <!-- Previous Expiry -->
+            <div class="form-field">
+
+              <label for="previous_expiry_date">
+                Previous Expiry Date
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="previous_expiry_date"
+                type="date"
+                formControlName="previous_expiry_date">
+
+              <small class="field-hint">
+                This should match the selected contract's end date.
+              </small>
+
+              @if (
+                renewalForm.get('previous_expiry_date')?.touched &&
+                renewalForm.get('previous_expiry_date')?.invalid
+              ) {
+                <small class="validation-error">
+                  Please enter the previous expiry date.
+                </small>
+              }
+
+            </div>
+
+          </div>
+
+          <!-- New Expiry -->
+          <div class="form-row">
+
+            <div class="form-field">
+
+              <label for="new_expiry_date">
+                New Expiry Date
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="new_expiry_date"
+                type="date"
+                formControlName="new_expiry_date">
+
+              @if (
+                renewalForm.get('new_expiry_date')?.touched &&
+                renewalForm.get('new_expiry_date')?.invalid
+              ) {
+                <small class="validation-error">
+                  Please enter the new expiry date.
+                </small>
+              }
+
+            </div>
+
+            <!-- Assigned User -->
+            <div class="form-field">
+
+              <label for="assigned_to">
+                Assigned User ID
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="assigned_to"
+                type="number"
+                formControlName="assigned_to"
+                min="1"
+                placeholder="Enter user ID">
+
+              <small class="field-hint">
+                Enter the ID of the user responsible for the renewal.
+              </small>
+
+              @if (
+                renewalForm.get('assigned_to')?.touched &&
+                renewalForm.get('assigned_to')?.invalid
+              ) {
+                <small class="validation-error">
+                  Please enter a valid assigned user ID.
+                </small>
+              }
+
+            </div>
+
+          </div>
+
+          <!-- Notes -->
+          <div class="form-field">
+
+            <label for="notes">
+              Notes
+            </label>
+
+            <textarea
+              id="notes"
+              formControlName="notes"
+              rows="4"
+              placeholder="Enter renewal notes">
+            </textarea>
+
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="closeRenewalForm()"
+            [disabled]="saving">
+            Cancel
+          </button>
+
+          <button
+            class="primary-button"
+            type="submit"
+            [disabled]="saving">
+
+            @if (saving) {
+              Saving...
+            } @else {
+              {{ editingRenewal ? 'Update Renewal' : 'Create Renewal' }}
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+}
+
+
+<!-- ========================================================= -->
+<!-- Renewal Details Modal -->
+<!-- ========================================================= -->
+
+@if (showDetails && selectedRenewal) {
+
+  <div class="modal-backdrop">
+
+    <div
+      class="modal-container details-modal"
+      role="dialog"
+      aria-modal="true">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>Renewal Details</h2>
+          <p>
+            Renewal #{{ selectedRenewal.id }}
+          </p>
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          (click)="closeDetails()"
+          aria-label="Close">
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div class="details-grid">
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Contract
+            </span>
+
+            <strong>
+              {{ getContractName(selectedRenewal.contract_id) }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Status
+            </span>
+
+            <span
+              class="status-badge"
+              [class.status-upcoming]="
+                selectedRenewal.status === 'Upcoming'
+              "
+              [class.status-progress]="
+                selectedRenewal.status === 'In Progress'
+              "
+              [class.status-renewed]="
+                selectedRenewal.status === 'Renewed'
+              "
+              [class.status-expired]="
+                selectedRenewal.status === 'Expired'
+              "
+              [class.status-cancelled]="
+                selectedRenewal.status === 'Cancelled'
+              ">
+              {{ selectedRenewal.status }}
+            </span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Renewal Date
+            </span>
+
+            <strong>
+              {{ selectedRenewal.renewal_date || '—' }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Previous Expiry
+            </span>
+
+            <strong>
+              {{ selectedRenewal.previous_expiry_date || '—' }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              New Expiry
+            </span>
+
+            <strong>
+              {{ selectedRenewal.new_expiry_date || '—' }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Assigned User ID
+            </span>
+
+            <strong>
+              {{ selectedRenewal.assigned_to }}
+            </strong>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Approval Status
+            </span>
+
+            <span
+              class="approval-badge"
+              [class.approval-approved]="
+                selectedRenewal.approval_status === 'Approved'
+              "
+              [class.approval-pending]="
+                selectedRenewal.approval_status === 'Pending'
+              "
+              [class.approval-rejected]="
+                selectedRenewal.approval_status === 'Rejected'
+              ">
+              {{
+                selectedRenewal.approval_status ||
+                'Not Required'
+              }}
+            </span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">
+              Attention
+            </span>
+
+            @if (isAttentionRequired(selectedRenewal)) {
+              <span class="attention-badge attention-required">
+                Attention Required
+              </span>
+            } @else {
+              <span class="attention-badge">
+                No Immediate Attention
+              </span>
+            }
+          </div>
+
+        </div>
+
+        <div class="notes-section">
+
+          <span class="detail-label">
+            Notes
+          </span>
+
+          <p>
+            {{ selectedRenewal.notes || 'No notes available.' }}
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="closeDetails()">
+          Close
+        </button>
+
+        @if (
+          canManageRenewals() &&
+          selectedRenewal.status === 'In Progress'
+        ) {
+          <button
+            class="primary-button"
+            type="button"
+            (click)="closeDetails(); openCompleteForm(selectedRenewal)">
+            Complete Renewal
+          </button>
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
+
+
+<!-- ========================================================= -->
+<!-- Complete Renewal Modal -->
+<!-- ========================================================= -->
+
+@if (showCompleteForm && selectedRenewal) {
+
+  <div class="modal-backdrop">
+
+    <div
+      class="modal-container"
+      role="dialog"
+      aria-modal="true">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>Complete Renewal</h2>
+
+          <p>
+            Complete renewal #{{ selectedRenewal.id }}
+          </p>
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          (click)="closeCompleteForm()"
+          [disabled]="saving"
+          aria-label="Close">
+          ×
+        </button>
+
+      </div>
+
+      <form
+        [formGroup]="completeForm"
+        (ngSubmit)="completeRenewal()">
+
+        <div class="modal-body">
+
+          @if (errorMessage) {
+            <div class="form-error-message">
+              {{ errorMessage }}
+            </div>
+          }
+
+          <div class="renewal-summary">
+
+            <p>
+              <strong>Contract:</strong>
+              {{ getContractName(selectedRenewal.contract_id) }}
+            </p>
+
+            <p>
+              <strong>Renewal Date:</strong>
+              {{ selectedRenewal.renewal_date }}
+            </p>
+
+            <p>
+              <strong>Current New Expiry:</strong>
+              {{ selectedRenewal.new_expiry_date }}
+            </p>
+
+          </div>
+
+          <div class="form-field">
+
+            <label for="complete_new_expiry_date">
+              New Expiry Date
+              <span class="required">*</span>
+            </label>
+
+            <input
+              id="complete_new_expiry_date"
+              type="date"
+              formControlName="new_expiry_date">
+
+            <small class="field-hint">
+              The new expiry date must be on or after the renewal date.
+            </small>
+
+            @if (
+              completeForm.get('new_expiry_date')?.touched &&
+              completeForm.get('new_expiry_date')?.invalid
+            ) {
+              <small class="validation-error">
+                Please enter the new expiry date.
+              </small>
+            }
+
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="closeCompleteForm()"
+            [disabled]="saving">
+            Cancel
+          </button>
+
+          <button
+            class="primary-button"
+            type="submit"
+            [disabled]="saving">
+
+            @if (saving) {
+              Completing...
+            } @else {
+              Complete Renewal
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+}

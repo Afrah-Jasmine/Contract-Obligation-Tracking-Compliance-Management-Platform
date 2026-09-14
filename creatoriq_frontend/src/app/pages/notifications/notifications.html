@@ -1,19 +1,43 @@
 <div class="page-container">
 
+  <!-- Page Header -->
   <div class="page-header">
     <div>
       <h1>Notifications</h1>
       <p>View and monitor your notifications.</p>
     </div>
 
-    <button
-      class="primary-button"
-      type="button"
-      (click)="loadNotifications()">
-      Refresh
-    </button>
+    <div class="header-actions">
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="loadNotifications()"
+        [disabled]="loading || markingAllRead">
+        Refresh
+      </button>
+
+      <button
+        class="primary-button"
+        type="button"
+        (click)="markAllAsRead()"
+        [disabled]="loading || markingAllRead || unreadCount === 0">
+        @if (markingAllRead) {
+          Marking as read...
+        } @else {
+          Mark all as read
+        }
+      </button>
+    </div>
   </div>
 
+  <!-- Action Message -->
+  @if (actionMessage) {
+    <div class="message success-message">
+      {{ actionMessage }}
+    </div>
+  }
+
+  <!-- Main Loading -->
   @if (loading) {
     <div class="state-message">
       <div class="loading-spinner"></div>
@@ -21,6 +45,7 @@
     </div>
   }
 
+  <!-- Main Error -->
   @if (!loading && errorMessage) {
     <div class="state-message error-state">
       <div class="state-icon">⚠</div>
@@ -38,84 +63,501 @@
     </div>
   }
 
-  @if (!loading && !errorMessage && notifications.length === 0) {
-    <div class="state-message">
-      <div class="state-icon">🔔</div>
+  @if (!loading && !errorMessage) {
 
-      <h2>No notifications</h2>
+    <!-- Notification Summary -->
+    <div class="summary-grid">
 
-      <p>
-        You currently have no notifications.
-      </p>
-    </div>
-  }
-
-  @if (!loading && !errorMessage && notifications.length > 0) {
-    <div class="notification-list">
-
-      <div class="list-header">
-        <div>
-          <h2>Notification List</h2>
-          <span>{{ notifications.length }} notifications</span>
+      <div class="summary-card">
+        <div class="summary-label">Total</div>
+        <div class="summary-value">
+          {{ notifications.length }}
+        </div>
+        <div class="summary-description">
+          Total notifications
         </div>
       </div>
 
-      @for (notification of notifications; track notification.id) {
-        <div
-          class="notification-card"
-          [class.unread]="!notification.read_at">
+      <div class="summary-card unread-card">
+        <div class="summary-label">Unread</div>
+        <div class="summary-value">
+          {{ unreadCount }}
+        </div>
+        <div class="summary-description">
+          Require attention
+        </div>
+      </div>
 
-          <div class="notification-icon">
-            🔔
+      <div class="summary-card read-card">
+        <div class="summary-label">Read</div>
+        <div class="summary-value">
+          {{ readCount }}
+        </div>
+        <div class="summary-description">
+          Already reviewed
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Filters -->
+    @if (notifications.length > 0) {
+      <div class="filter-card">
+
+        <div class="filter-header">
+          <div>
+            <h2>Filter Notifications</h2>
+            <p>Search and filter your notifications.</p>
+          </div>
+        </div>
+
+        <div class="filter-row">
+
+          <div class="filter-field">
+            <label for="notification-search">
+              Search
+            </label>
+
+            <input
+              id="notification-search"
+              type="text"
+              placeholder="Search notifications..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()">
           </div>
 
-          <div class="notification-content">
+          <div class="filter-field">
+            <label for="notification-status">
+              Status
+            </label>
 
-            <div class="notification-top">
-              <h3>{{ notification.title }}</h3>
+            <select
+              id="notification-status"
+              [(ngModel)]="selectedStatus"
+              (ngModelChange)="onStatusChange()">
 
-              <span
-                class="status-badge"
-                [class.status-read]="notification.read_at"
-                [class.status-unread]="!notification.read_at">
-                {{ notification.read_at ? 'Read' : 'Unread' }}
-              </span>
-            </div>
-
-            <p class="notification-message">
-              {{ notification.message }}
-            </p>
-
-            <div class="notification-meta">
-
-              <span>
-                Type: {{ notification.notification_type }}
-              </span>
-
-              @if (notification.contract_id !== null) {
-                <span>
-                  Contract ID: {{ notification.contract_id }}
-                </span>
+              @for (status of statusOptions; track status) {
+                <option [value]="status">
+                  {{ status }}
+                </option>
               }
 
-              @if (notification.obligation_id !== null) {
-                <span>
-                  Obligation ID: {{ notification.obligation_id }}
-                </span>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="notification-type">
+              Type
+            </label>
+
+            <select
+              id="notification-type"
+              [(ngModel)]="selectedType"
+              (ngModelChange)="onTypeChange()">
+
+              <option value="All">All</option>
+
+              @for (type of notificationTypes; track type) {
+                <option [value]="type">
+                  {{ type }}
+                </option>
               }
 
-              <span>
-                {{ notification.created_at }}
-              </span>
+            </select>
+          </div>
 
-            </div>
-
+          <div class="filter-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              (click)="clearFilters()">
+              Clear Filters
+            </button>
           </div>
 
         </div>
-      }
 
-    </div>
+      </div>
+    }
+
+    <!-- No Notifications -->
+    @if (notifications.length === 0) {
+      <div class="state-message">
+        <div class="state-icon">🔔</div>
+
+        <h2>No notifications</h2>
+
+        <p>
+          You currently have no notifications.
+        </p>
+      </div>
+    }
+
+    <!-- No Filter Results -->
+    @if (
+      notifications.length > 0 &&
+      filteredNotifications.length === 0
+    ) {
+      <div class="state-message">
+        <div class="state-icon">⌕</div>
+
+        <h2>No matching notifications</h2>
+
+        <p>
+          No notifications match the selected search or filters.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="clearFilters()">
+          Clear Filters
+        </button>
+      </div>
+    }
+
+    <!-- Notification List -->
+    @if (
+      notifications.length > 0 &&
+      filteredNotifications.length > 0
+    ) {
+
+      <div class="notification-list">
+
+        <div class="list-header">
+          <div>
+            <h2>Notification List</h2>
+
+            <span>
+              Showing {{ filteredNotifications.length }}
+              of {{ notifications.length }} notifications
+            </span>
+          </div>
+
+          <div class="list-counts">
+            <span class="count-unread">
+              {{ unreadCount }} unread
+            </span>
+
+            <span class="count-read">
+              {{ readCount }} read
+            </span>
+          </div>
+        </div>
+
+        @for (
+          notification of filteredNotifications;
+          track notification.id
+        ) {
+
+          <div
+            class="notification-card"
+            [class.unread]="!notification.read_at">
+
+            <!-- Notification Icon -->
+            <div class="notification-icon">
+              {{ getNotificationIcon(notification.notification_type) }}
+            </div>
+
+            <!-- Notification Content -->
+            <div class="notification-content">
+
+              <div class="notification-top">
+
+                <div class="notification-title-area">
+                  <h3>{{ notification.title }}</h3>
+
+                  <span class="type-badge">
+                    {{ notification.notification_type }}
+                  </span>
+                </div>
+
+                <span
+                  class="status-badge"
+                  [class.status-read]="notification.read_at"
+                  [class.status-unread]="!notification.read_at">
+
+                  {{ notification.read_at ? 'Read' : 'Unread' }}
+
+                </span>
+
+              </div>
+
+              <p class="notification-message">
+                {{ notification.message }}
+              </p>
+
+              <div class="notification-meta">
+
+                <span>
+                  Created:
+                  {{ formatDateTime(notification.created_at) }}
+                </span>
+
+                @if (notification.contract_id !== null) {
+                  <span>
+                    Contract ID:
+                    {{ notification.contract_id }}
+                  </span>
+                }
+
+                @if (notification.obligation_id !== null) {
+                  <span>
+                    Obligation ID:
+                    {{ notification.obligation_id }}
+                  </span>
+                }
+
+              </div>
+
+              @if (notification.read_at) {
+                <div class="read-time">
+                  Read:
+                  {{ formatDateTime(notification.read_at) }}
+                </div>
+              }
+
+              <div class="notification-actions">
+
+                <button
+                  class="action-button view-action"
+                  type="button"
+                  (click)="viewDetails(notification)">
+                  View Details
+                </button>
+
+                @if (!notification.read_at) {
+                  <button
+                    class="action-button read-action"
+                    type="button"
+                    (click)="markAsRead(notification)">
+                    Mark as Read
+                  </button>
+                }
+
+              </div>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
   }
 
 </div>
+
+<!-- Notification Details Modal -->
+@if (showDetails) {
+
+  <div
+    class="modal-backdrop"
+    (click)="closeDetails()">
+
+    <div
+      class="modal-container"
+      (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>Notification Details</h2>
+
+          @if (selectedNotification) {
+            <p>
+              Notification #{{ selectedNotification.id }}
+            </p>
+          }
+        </div>
+
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Close"
+          (click)="closeDetails()">
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        @if (loadingDetails) {
+
+          <div class="state-message">
+            <div class="loading-spinner"></div>
+            <p>Loading notification details...</p>
+          </div>
+
+        } @else if (detailsErrorMessage) {
+
+          <div class="message error-message">
+            {{ detailsErrorMessage }}
+          </div>
+
+        } @else if (selectedNotification) {
+
+          <div class="details-title">
+            <h3>
+              {{ selectedNotification.title }}
+            </h3>
+
+            <span
+              class="status-badge"
+              [class.status-read]="selectedNotification.read_at"
+              [class.status-unread]="!selectedNotification.read_at">
+
+              {{
+                selectedNotification.read_at
+                  ? 'Read'
+                  : 'Unread'
+              }}
+
+            </span>
+          </div>
+
+          <div class="details-message">
+            <span class="detail-label">Message</span>
+
+            <p>
+              {{ selectedNotification.message }}
+            </p>
+          </div>
+
+          <div class="details-grid">
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Notification Type
+              </span>
+
+              <strong>
+                {{ selectedNotification.notification_type }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Status
+              </span>
+
+              <span
+                class="status-badge"
+                [class.status-read]="selectedNotification.read_at"
+                [class.status-unread]="!selectedNotification.read_at">
+
+                {{
+                  selectedNotification.read_at
+                    ? 'Read'
+                    : 'Unread'
+                }}
+
+              </span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Contract ID
+              </span>
+
+              <strong>
+                {{
+                  selectedNotification.contract_id !== null
+                    ? selectedNotification.contract_id
+                    : '-'
+                }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Obligation ID
+              </span>
+
+              <strong>
+                {{
+                  selectedNotification.obligation_id !== null
+                    ? selectedNotification.obligation_id
+                    : '-'
+                }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Created
+              </span>
+
+              <strong>
+                {{ formatDateTime(selectedNotification.created_at) }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Scheduled
+              </span>
+
+              <strong>
+                {{ formatDateTime(selectedNotification.scheduled_at) }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Sent
+              </span>
+
+              <strong>
+                {{ formatDateTime(selectedNotification.sent_at) }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">
+                Read
+              </span>
+
+              <strong>
+                {{ formatDateTime(selectedNotification.read_at) }}
+              </strong>
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+      <div class="modal-footer">
+
+        @if (
+          selectedNotification &&
+          !selectedNotification.read_at
+        ) {
+          <button
+            class="primary-button"
+            type="button"
+            (click)="markAsRead(selectedNotification)">
+            Mark as Read
+          </button>
+        }
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="closeDetails()">
+          Close
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}

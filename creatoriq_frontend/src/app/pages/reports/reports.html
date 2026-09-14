@@ -1,195 +1,1491 @@
 <div class="page-container">
 
+  <!-- =======================================================
+       PAGE HEADER
+       ======================================================= -->
+
   <div class="page-header">
+
     <div>
-      <h1>Reports</h1>
-      <p>Generate, view, and export compliance management reports.</p>
+      <h1>Reports & Analytics</h1>
+
+      <p>
+        Review business reports, analytics, compliance metrics,
+        and exportable data.
+      </p>
     </div>
 
     <button
+      mat-flat-button
       class="primary-button"
       type="button"
-      (click)="loadReports()">
+      (click)="loadReports()"
+      [disabled]="loading">
+
       Refresh
     </button>
+
   </div>
 
+
+  <!-- =======================================================
+       LOADING
+       ======================================================= -->
+
   @if (loading) {
+
     <div class="state-message">
+
       <div class="loading-spinner"></div>
-      <p>Loading reports...</p>
+
+      <p>
+        Loading reports and analytics...
+      </p>
+
     </div>
+
   }
 
+
+  <!-- =======================================================
+       ERROR
+       ======================================================= -->
+
   @if (!loading && errorMessage) {
+
     <div class="state-message error-state">
+
       <div class="state-icon">⚠</div>
 
       <h2>Unable to load reports</h2>
 
-      <p>{{ errorMessage }}</p>
+      <p>
+        {{ errorMessage }}
+      </p>
 
       <button
-        class="secondary-button"
+        mat-stroked-button
         type="button"
         (click)="loadReports()">
+
         Try Again
+
       </button>
+
     </div>
+
   }
+
 
   @if (!loading && !errorMessage) {
 
-    <div class="report-grid">
+    <!-- =====================================================
+         FILTERS
+         ===================================================== -->
 
-      <!-- Contracts Report -->
-      <div class="report-card">
+    <section class="filter-section">
 
-        <div class="report-icon">📄</div>
+      <div class="section-heading">
 
-        <div class="report-content">
-          <h2>Contract Report</h2>
+        <div>
+          <h2>Report Filters</h2>
 
-          @if (contractReport) {
+          <p>
+            Filter the on-screen analytics and report tables.
+          </p>
+        </div>
+
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="clearFilters()">
+
+          Clear Filters
+
+        </button>
+
+      </div>
+
+
+      <div class="filter-grid">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Report Type</mat-label>
+
+          <mat-select
+            [(value)]="selectedReportType"
+            (selectionChange)="onReportTypeChange()">
+
+            @for (type of reportTypes; track type) {
+
+              <mat-option [value]="type">
+                {{ type }}
+              </mat-option>
+
+            }
+
+          </mat-select>
+
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+
+          <mat-select
+            [(value)]="selectedStatus"
+            (selectionChange)="onStatusChange()">
+
+            @for (status of statusOptions; track status) {
+
+              <mat-option [value]="status">
+                {{ status }}
+              </mat-option>
+
+            }
+
+          </mat-select>
+
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline">
+          <mat-label>Search</mat-label>
+
+          <input
+            matInput
+            type="text"
+            placeholder="Contract, title, status..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()">
+
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline">
+          <mat-label>From Date</mat-label>
+
+          <input
+            matInput
+            type="date"
+            [(ngModel)]="fromDate"
+            (ngModelChange)="onFromDateChange()">
+
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline">
+          <mat-label>To Date</mat-label>
+
+          <input
+            matInput
+            type="date"
+            [(ngModel)]="toDate"
+            (ngModelChange)="onToDateChange()">
+
+        </mat-form-field>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ANALYTICS OVERVIEW
+         ===================================================== -->
+
+    <section class="analytics-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Analytics Overview</h2>
+
+          <p>
+            Current statistics retrieved from the ContractIQ backend.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="summary-grid">
+
+        <div class="summary-card">
+
+          <div class="summary-icon">📄</div>
+
+          <div>
+            <span class="summary-label">
+              Contracts
+            </span>
+
+            <strong class="summary-value">
+              {{ displayedContractCount }}
+            </strong>
+
+            <span class="summary-description">
+              Filtered records
+            </span>
+          </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+          <div class="summary-icon">📌</div>
+
+          <div>
+            <span class="summary-label">
+              Obligations
+            </span>
+
+            <strong class="summary-value">
+              {{ displayedObligationCount }}
+            </strong>
+
+            <span class="summary-description">
+              Filtered records
+            </span>
+          </div>
+
+        </div>
+
+
+        <div class="summary-card warning-card">
+
+          <div class="summary-icon">🔄</div>
+
+          <div>
+            <span class="summary-label">
+              Renewals
+            </span>
+
+            <strong class="summary-value">
+              {{ displayedRenewalCount }}
+            </strong>
+
+            <span class="summary-description">
+              Filtered records
+            </span>
+          </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+          <div class="summary-icon">✓</div>
+
+          <div>
+            <span class="summary-label">
+              Compliance
+            </span>
+
+            <strong class="summary-value">
+              {{ displayedComplianceCount }}
+            </strong>
+
+            <span class="summary-description">
+              Filtered records
+            </span>
+          </div>
+
+        </div>
+
+
+        @if (contractSummary) {
+
+          <div class="summary-card">
+
+            <div class="summary-icon">●</div>
+
+            <div>
+              <span class="summary-label">
+                Active Contracts
+              </span>
+
+              <strong class="summary-value">
+                {{ contractSummary.active }}
+              </strong>
+
+              <span class="summary-description">
+                Backend total
+              </span>
+            </div>
+
+          </div>
+
+        }
+
+
+        @if (obligationSummary) {
+
+          <div class="summary-card warning-card">
+
+            <div class="summary-icon">!</div>
+
+            <div>
+              <span class="summary-label">
+                Overdue Obligations
+              </span>
+
+              <strong class="summary-value">
+                {{ obligationSummary.overdue }}
+              </strong>
+
+              <span class="summary-description">
+                Require attention
+              </span>
+            </div>
+
+          </div>
+
+        }
+
+
+        @if (renewalSummary) {
+
+          <div class="summary-card">
+
+            <div class="summary-icon">↻</div>
+
+            <div>
+              <span class="summary-label">
+                Upcoming Renewals
+              </span>
+
+              <strong class="summary-value">
+                {{ renewalSummary.upcoming }}
+              </strong>
+
+              <span class="summary-description">
+                Renewal pipeline
+              </span>
+            </div>
+
+          </div>
+
+        }
+
+
+        @if (complianceSummary) {
+
+          <div class="summary-card danger-card">
+
+            <div class="summary-icon">✓</div>
+
+            <div>
+              <span class="summary-label">
+                High Risk
+              </span>
+
+              <strong class="summary-value">
+                {{ complianceSummary.high_risk }}
+              </strong>
+
+              <span class="summary-description">
+                Compliance attention
+              </span>
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CHARTS
+         ===================================================== -->
+
+    <section class="analytics-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Visual Analytics</h2>
+
+          <p>
+            Visual representation of filtered report data.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="chart-grid">
+
+
+        @if (showContracts) {
+
+          <div class="chart-card">
+
+            <div class="chart-header">
+
+              <div>
+                <h3>Contract Status</h3>
+
+                <p>
+                  Distribution of contract statuses.
+                </p>
+              </div>
+
+            </div>
+
+            @if (filteredContracts.length > 0) {
+
+              <div class="chart-container">
+                <canvas id="reportsContractChart"></canvas>
+              </div>
+
+            } @else {
+
+              <div class="chart-empty">
+                No contract data available for the selected filters.
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+
+        @if (showObligations) {
+
+          <div class="chart-card">
+
+            <div class="chart-header">
+
+              <div>
+                <h3>Obligation Status</h3>
+
+                <p>
+                  Current obligation workload and progress.
+                </p>
+              </div>
+
+            </div>
+
+            @if (filteredObligations.length > 0) {
+
+              <div class="chart-container">
+                <canvas id="reportsObligationChart"></canvas>
+              </div>
+
+            } @else {
+
+              <div class="chart-empty">
+                No obligation data available for the selected filters.
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+
+        @if (showRenewals) {
+
+          <div class="chart-card">
+
+            <div class="chart-header">
+
+              <div>
+                <h3>Renewal Status</h3>
+
+                <p>
+                  Renewal pipeline distribution.
+                </p>
+              </div>
+
+            </div>
+
+            @if (filteredRenewals.length > 0) {
+
+              <div class="chart-container">
+                <canvas id="reportsRenewalChart"></canvas>
+              </div>
+
+            } @else {
+
+              <div class="chart-empty">
+                No renewal data available for the selected filters.
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+
+        @if (showCompliance) {
+
+          <div class="chart-card">
+
+            <div class="chart-header">
+
+              <div>
+                <h3>Compliance Status</h3>
+
+                <p>
+                  Compliance status distribution.
+                </p>
+              </div>
+
+            </div>
+
+            @if (filteredCompliance.length > 0) {
+
+              <div class="chart-container">
+                <canvas id="reportsComplianceChart"></canvas>
+              </div>
+
+            } @else {
+
+              <div class="chart-empty">
+                No compliance data available for the selected filters.
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CONTRACT ANALYTICS
+         ===================================================== -->
+
+    @if (showContracts && contractSummary) {
+
+      <section class="analytics-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Contract Analytics</h2>
+
             <p>
-              {{ contractReport.total_records }}
-              contract records available.
+              Contract status and category distribution.
             </p>
-          }
+          </div>
+
+        </div>
+
+
+        <div class="analytics-grid">
+
+          <div class="analytics-card">
+
+            <h3>Contract Status</h3>
+
+            <div class="metric-list">
+
+              <div class="metric-row">
+                <span>Draft</span>
+                <strong>{{ contractSummary.draft }}</strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Under Review</span>
+                <strong>{{ contractSummary.under_review }}</strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Approved</span>
+                <strong>{{ contractSummary.approved }}</strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Active</span>
+                <strong>{{ contractSummary.active }}</strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Expired</span>
+                <strong>{{ contractSummary.expired }}</strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Terminated</span>
+                <strong>{{ contractSummary.terminated }}</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="analytics-card">
+
+            <h3>Contracts by Category</h3>
+
+            @if (
+              contractSummary.contracts_by_category &&
+              (contractSummary.contracts_by_category | keyvalue).length > 0
+            ) {
+
+              <div class="metric-list">
+
+                @for (
+                  category of contractSummary.contracts_by_category | keyvalue;
+                  track category.key
+                ) {
+
+                  <div class="metric-row">
+
+                    <span>
+                      {{ category.key }}
+                    </span>
+
+                    <strong>
+                      {{ category.value }}
+                    </strong>
+
+                  </div>
+
+                }
+
+              </div>
+
+            } @else {
+
+              <div class="empty-inline">
+                No contract category data available.
+              </div>
+
+            }
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         OBLIGATION ANALYTICS
+         ===================================================== -->
+
+    @if (showObligations && obligationSummary) {
+
+      <section class="analytics-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Obligation Analytics</h2>
+
+            <p>
+              Track obligation progress and outstanding work.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="status-grid">
+
+          <div class="status-card">
+            <span>Pending</span>
+            <strong>{{ obligationSummary.pending }}</strong>
+          </div>
+
+          <div class="status-card">
+            <span>In Progress</span>
+            <strong>{{ obligationSummary.in_progress }}</strong>
+          </div>
+
+          <div class="status-card success-status">
+            <span>Completed</span>
+            <strong>{{ obligationSummary.completed }}</strong>
+          </div>
+
+          <div class="status-card warning-status">
+            <span>Delayed</span>
+            <strong>{{ obligationSummary.delayed }}</strong>
+          </div>
+
+          <div class="status-card danger-status">
+            <span>Overdue</span>
+            <strong>{{ obligationSummary.overdue }}</strong>
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         RENEWAL ANALYTICS
+         ===================================================== -->
+
+    @if (showRenewals && renewalSummary) {
+
+      <section class="analytics-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Renewal Analytics</h2>
+
+            <p>
+              Monitor renewal pipeline and contracts requiring attention.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="status-grid">
+
+          <div class="status-card">
+            <span>Upcoming</span>
+            <strong>{{ renewalSummary.upcoming }}</strong>
+          </div>
+
+          <div class="status-card">
+            <span>In Progress</span>
+            <strong>{{ renewalSummary.in_progress }}</strong>
+          </div>
+
+          <div class="status-card success-status">
+            <span>Renewed</span>
+            <strong>{{ renewalSummary.renewed }}</strong>
+          </div>
+
+          <div class="status-card warning-status">
+            <span>Expired</span>
+            <strong>{{ renewalSummary.expired }}</strong>
+          </div>
+
+          <div class="status-card danger-status">
+            <span>Cancelled</span>
+            <strong>{{ renewalSummary.cancelled }}</strong>
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         COMPLIANCE ANALYTICS
+         ===================================================== -->
+
+    @if (showCompliance && complianceSummary) {
+
+      <section class="analytics-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Compliance Analytics</h2>
+
+            <p>
+              Overview of compliance status, risk, and evaluation scores.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="analytics-grid">
+
+          <div class="analytics-card">
+
+            <h3>Compliance Status</h3>
+
+            <div class="metric-list">
+
+              <div class="metric-row">
+                <span>Compliant</span>
+                <strong class="success-text">
+                  {{ complianceSummary.compliant }}
+                </strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Pending</span>
+                <strong>
+                  {{ complianceSummary.pending }}
+                </strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Delayed</span>
+                <strong class="warning-text">
+                  {{ complianceSummary.delayed }}
+                </strong>
+              </div>
+
+              <div class="metric-row">
+                <span>Non-Compliant</span>
+                <strong class="danger-text">
+                  {{ complianceSummary.non_compliant }}
+                </strong>
+              </div>
+
+              <div class="metric-row">
+                <span>High Risk</span>
+                <strong class="danger-text">
+                  {{ complianceSummary.high_risk }}
+                </strong>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="analytics-card score-card">
+
+            <h3>Average Compliance Score</h3>
+
+            <div class="score-value">
+              {{ complianceSummary.average_score | number:'1.0-2' }}
+            </div>
+
+            <p>
+              Average score across
+              {{ complianceSummary.total_evaluated }}
+              evaluated contracts.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         DETAILED CONTRACT REPORT
+         ===================================================== -->
+
+    @if (showContracts) {
+
+      <section class="reports-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Contract Report</h2>
+
+            <p>
+              {{ filteredContracts.length }}
+              records match the current filters.
+            </p>
+          </div>
 
           <div class="report-actions">
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadContractPdf()">
+
               Download PDF
+
             </button>
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadContractExcel()">
+
               Download Excel
+
             </button>
 
           </div>
+
         </div>
 
-      </div>
+
+        @if (filteredContracts.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>Contract</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Assigned User</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  item of filteredContracts;
+                  track item.contract_number
+                ) {
+
+                  <tr>
+
+                    <td>
+                      <strong>{{ item.contract_number }}</strong>
+                    </td>
+
+                    <td>{{ item.title }}</td>
+
+                    <td>{{ item.category }}</td>
+
+                    <td>
+                      <span class="status-badge">
+                        {{ item.status }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.start_date) }}
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.end_date) }}
+                    </td>
+
+                    <td>
+                      {{ item.assigned_user || '-' }}
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No contracts found for the selected filters.
+          </div>
+
+        }
+
+      </section>
+
+    }
 
 
-      <!-- Obligations Report -->
-      <div class="report-card">
+    <!-- =====================================================
+         DETAILED OBLIGATION REPORT
+         ===================================================== -->
 
-        <div class="report-icon">📌</div>
+    @if (showObligations) {
 
-        <div class="report-content">
-          <h2>Obligation Report</h2>
+      <section class="reports-section">
 
-          @if (obligationReport) {
+        <div class="section-heading">
+
+          <div>
+            <h2>Obligation Report</h2>
+
             <p>
-              {{ obligationReport.total_records }}
-              obligation records available.
+              {{ filteredObligations.length }}
+              records match the current filters.
             </p>
-          }
+          </div>
 
           <div class="report-actions">
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadObligationPdf()">
+
               Download PDF
+
             </button>
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadObligationExcel()">
+
               Download Excel
+
             </button>
 
           </div>
+
         </div>
 
-      </div>
+
+        @if (filteredObligations.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>Contract</th>
+                  <th>Obligation</th>
+                  <th>Type</th>
+                  <th>Assigned User</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Completion Date</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  item of filteredObligations;
+                  track item.contract_number + item.title
+                ) {
+
+                  <tr>
+
+                    <td>
+                      <strong>
+                        {{ item.contract_number }}
+                      </strong>
+                    </td>
+
+                    <td>{{ item.title }}</td>
+
+                    <td>{{ item.obligation_type }}</td>
+
+                    <td>
+                      {{ item.assigned_user || '-' }}
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.due_date) }}
+                    </td>
+
+                    <td>
+                      <span class="status-badge">
+                        {{ item.status }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.completion_date) }}
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No obligations found for the selected filters.
+          </div>
+
+        }
+
+      </section>
+
+    }
 
 
-      <!-- Renewals Report -->
-      <div class="report-card">
+    <!-- =====================================================
+         DETAILED RENEWAL REPORT
+         ===================================================== -->
 
-        <div class="report-icon">🔄</div>
+    @if (showRenewals) {
 
-        <div class="report-content">
-          <h2>Renewal Report</h2>
+      <section class="reports-section">
 
-          @if (renewalReport) {
+        <div class="section-heading">
+
+          <div>
+            <h2>Renewal Report</h2>
+
             <p>
-              {{ renewalReport.total_records }}
-              renewal records available.
+              {{ filteredRenewals.length }}
+              records match the current filters.
             </p>
-          }
+          </div>
 
           <div class="report-actions">
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadRenewalPdf()">
+
               Download PDF
+
             </button>
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadRenewalExcel()">
+
               Download Excel
+
             </button>
 
           </div>
+
         </div>
 
-      </div>
+
+        @if (filteredRenewals.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>Contract</th>
+                  <th>Previous Expiry</th>
+                  <th>Renewal Date</th>
+                  <th>New Expiry</th>
+                  <th>Status</th>
+                  <th>Assigned User</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  item of filteredRenewals;
+                  track item.contract_number + item.renewal_date
+                ) {
+
+                  <tr>
+
+                    <td>
+                      <strong>
+                        {{ item.contract_number }}
+                      </strong>
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.previous_expiry_date) }}
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.renewal_date) }}
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.new_expiry_date) }}
+                    </td>
+
+                    <td>
+                      <span class="status-badge">
+                        {{ item.status }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ item.assigned_user || '-' }}
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No renewals found for the selected filters.
+          </div>
+
+        }
+
+      </section>
+
+    }
 
 
-      <!-- Compliance Report -->
-      <div class="report-card">
+    <!-- =====================================================
+         DETAILED COMPLIANCE REPORT
+         ===================================================== -->
 
-        <div class="report-icon">✓</div>
+    @if (showCompliance) {
 
-        <div class="report-content">
-          <h2>Compliance Report</h2>
+      <section class="reports-section">
 
-          @if (complianceReport) {
+        <div class="section-heading">
+
+          <div>
+            <h2>Compliance Report</h2>
+
             <p>
-              {{ complianceReport.total_records }}
-              compliance records available.
+              {{ filteredCompliance.length }}
+              records match the current filters.
             </p>
-          }
+          </div>
 
           <div class="report-actions">
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadCompliancePdf()">
+
               Download PDF
+
             </button>
 
             <button
-              class="secondary-button"
+              mat-stroked-button
               type="button"
               (click)="downloadComplianceExcel()">
+
               Download Excel
+
             </button>
 
           </div>
+
         </div>
 
-      </div>
 
-    </div>
+        @if (filteredCompliance.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>Contract</th>
+                  <th>Compliance Status</th>
+                  <th>Score</th>
+                  <th>Overdue</th>
+                  <th>Risk Level</th>
+                  <th>Evaluation Date</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  item of filteredCompliance;
+                  track item.contract_number
+                ) {
+
+                  <tr>
+
+                    <td>
+                      <strong>
+                        {{ item.contract_number }}
+                      </strong>
+                    </td>
+
+                    <td>
+                      <span class="status-badge">
+                        {{ item.compliance_status }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ item.compliance_score }}%
+                    </td>
+
+                    <td>
+                      {{ item.overdue_obligations }}
+                    </td>
+
+                    <td>
+                      <span class="status-badge">
+                        {{ item.risk_level }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.evaluation_date) }}
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No compliance records found for the selected filters.
+          </div>
+
+        }
+
+      </section>
+
+    }
+
+
+    <!-- =====================================================
+         AUDIT REPORT
+         ===================================================== -->
+
+    @if (showAudit && auditReport) {
+
+      <section class="reports-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Audit Report</h2>
+
+            <p>
+              {{ auditReport.total_records }}
+              audit records available.
+            </p>
+          </div>
+
+          <div class="report-actions">
+
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="downloadAuditPdf()">
+
+              Download PDF
+
+            </button>
+
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="downloadAuditExcel()">
+
+              Download Excel
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        @if (auditReport.data.length > 0) {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Entity</th>
+                  <th>Details</th>
+                  <th>Date</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  item of auditReport.data;
+                  track item.user_id + item.created_at
+                ) {
+
+                  <tr>
+
+                    <td>
+                      {{ item.user_name || ('User #' + item.user_id) }}
+                    </td>
+
+                    <td>
+                      <strong>{{ item.action }}</strong>
+                    </td>
+
+                    <td>
+                      {{ item.entity_type }}
+                    </td>
+
+                    <td class="details-cell">
+                      {{ item.details || '-' }}
+                    </td>
+
+                    <td>
+                      {{ formatDate(item.created_at) }}
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No audit records available.
+          </div>
+
+        }
+
+      </section>
+
+    }
 
   }
 

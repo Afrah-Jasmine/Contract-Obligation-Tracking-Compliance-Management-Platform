@@ -6,6 +6,8 @@ import {
   OnInit
 } from '@angular/core';
 
+import { Router } from '@angular/router';
+
 import {
   Dashboard as DashboardService,
   DashboardSummary,
@@ -65,7 +67,8 @@ export class Dashboard
 
   constructor(
     private dashboardService: DashboardService,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -188,6 +191,20 @@ export class Dashboard
     });
   }
 
+  /*
+   * Navigate to the Renewals page.
+   */
+  viewAllRenewals(): void {
+    this.router.navigate(['/renewals']);
+  }
+
+  /*
+   * Navigate to the Compliance page.
+   */
+  viewAllCompliance(): void {
+    this.router.navigate(['/compliance']);
+  }
+
   private createChartsIfReady(): void {
 
     if (
@@ -289,7 +306,9 @@ export class Dashboard
             ],
 
             borderColor: '#ffffff',
+
             borderWidth: 2
+
           }
 
         ]
@@ -389,7 +408,9 @@ export class Dashboard
             ],
 
             borderColor: '#ffffff',
+
             borderWidth: 1
+
           }
 
         ]
@@ -501,7 +522,9 @@ export class Dashboard
             ],
 
             borderColor: '#ffffff',
+
             borderWidth: 2
+
           }
 
         ]
@@ -610,7 +633,9 @@ export class Dashboard
             ],
 
             borderColor: '#ffffff',
+
             borderWidth: 1
+
           }
 
         ]
@@ -643,6 +668,7 @@ export class Dashboard
           },
 
           y: {
+
             ticks: {
               color: '#4b5563'
             },
@@ -650,6 +676,7 @@ export class Dashboard
             grid: {
               color: '#f1f5f9'
             }
+
           }
 
         },

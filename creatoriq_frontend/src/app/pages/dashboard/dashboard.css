@@ -292,6 +292,11 @@
   cursor: pointer;
 }
 
+.view-btn:hover {
+  background: #f5f8ff;
+  border-color: #2563eb;
+}
+
 
 /* Renewals */
 
@@ -399,83 +404,29 @@
 
 .progress {
   height: 100%;
-  width: 0%;
+  width: 0;
   border-radius: 10px;
+  transition: width 0.4s ease;
 }
 
 .compliant-progress {
-  width: 0%;
+  background: #22c55e;
 }
 
 .pending-progress {
-  width: 0%;
+  background: #f59e0b;
 }
 
 .delayed-progress {
-  width: 0%;
+  background: #f97316;
 }
 
 .non-compliant-progress {
-  width: 0%;
+  background: #ef4444;
 }
 
 .high-risk-progress {
-  width: 0%;
-}
-
-
-/* Quick Actions */
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.action-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
-}
-
-.action-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: #eef4ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.action-card div {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.action-card strong {
-  font-size: 14px;
-  color: #111827;
-}
-
-.action-card span:not(.action-icon) {
-  font-size: 11px;
-  color: #6b7280;
+  background: #dc2626;
 }
 
 
@@ -534,6 +485,8 @@
     flex-direction: column;
   }
 }
+
+
 /* Analytics Charts */
 
 .analytics-section {
@@ -596,4 +549,3 @@
     height: 250px;
   }
 }
-

@@ -28,6 +28,11 @@ from app.services.notification_service import (
     create_contract_approval_notification,
 )
 
+from app.services.audit_service import (
+    create_audit_log,
+    create_activity,
+)
+
 
 router = APIRouter(
     prefix="/contracts",
@@ -83,6 +88,32 @@ def create_contract(
     )
 
     db.add(contract)
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_CREATED",
+        entity_type="Contract",
+        details={
+            "contract_number": contract.contract_number,
+            "title": contract.title,
+            "category": contract.category,
+            "status": contract.status,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Created",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was created by {current_user.full_name}."
+        ),
+    )
+
     db.commit()
     db.refresh(contract)
 
@@ -134,6 +165,23 @@ def update_contract(
             detail=f"Contract with ID {contract_id} not found",
         )
 
+    # Capture previous values for change history
+    old_values = {
+        "title": contract.title,
+        "category": contract.category,
+        "description": contract.description,
+        "start_date": (
+            contract.start_date.isoformat()
+            if contract.start_date
+            else None
+        ),
+        "end_date": (
+            contract.end_date.isoformat()
+            if contract.end_date
+            else None
+        ),
+    }
+
     # Update only fields supplied by the user
     if contract_data.title is not None:
         contract.title = contract_data.title
@@ -151,6 +199,48 @@ def update_contract(
         contract.end_date = contract_data.end_date
 
     contract.updated_at = datetime.utcnow()
+
+    # Capture new values for change history
+    new_values = {
+        "title": contract.title,
+        "category": contract.category,
+        "description": contract.description,
+        "start_date": (
+            contract.start_date.isoformat()
+            if contract.start_date
+            else None
+        ),
+        "end_date": (
+            contract.end_date.isoformat()
+            if contract.end_date
+            else None
+        ),
+    }
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_UPDATED",
+        entity_type="Contract",
+        details={
+            "contract_id": contract.id,
+            "contract_number": contract.contract_number,
+            "old_values": old_values,
+            "new_values": new_values,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Updated",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was updated by {current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(contract)
@@ -261,6 +351,32 @@ def update_contract_status(
     elif new_status == "Approved":
         contract.approved_at = datetime.utcnow()
 
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_STATUS_CHANGED",
+        entity_type="Contract",
+        details={
+            "contract_id": contract.id,
+            "contract_number": contract.contract_number,
+            "old_status": current_status,
+            "new_status": new_status,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Status Changed",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"status changed from {current_status} "
+            f"to {new_status} by {current_user.full_name}."
+        ),
+    )
+
     db.commit()
     db.refresh(contract)
 
@@ -305,6 +421,8 @@ def submit_contract_for_review(
             ),
         )
 
+    old_status = contract.status
+
     contract.status = "Under Review"
     contract.reviewed_at = datetime.utcnow()
     contract.updated_at = datetime.utcnow()
@@ -328,6 +446,37 @@ def submit_contract_for_review(
             contract=contract,
             user_id=legal_manager.id,
         )
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_SUBMITTED_FOR_REVIEW",
+        entity_type="Contract",
+        details={
+            "contract_id": contract.id,
+            "contract_number": contract.contract_number,
+            "old_status": old_status,
+            "new_status": contract.status,
+            "submitted_to": (
+                legal_manager.full_name
+                if legal_manager
+                else None
+            ),
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Submitted",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was submitted for review by "
+            f"{current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(contract)
@@ -386,6 +535,8 @@ def approve_contract(
             ),
         )
 
+    old_status = contract.status
+
     contract.status = "Approved"
     contract.approved_at = datetime.utcnow()
     contract.updated_at = datetime.utcnow()
@@ -407,6 +558,32 @@ def approve_contract(
             f"Contract {contract.contract_number} "
             "has been approved."
         )
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_APPROVED",
+        entity_type="Contract",
+        details={
+            "contract_id": contract.id,
+            "contract_number": contract.contract_number,
+            "old_status": old_status,
+            "new_status": contract.status,
+            "approved_by": current_user.full_name,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Approved",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was approved by {current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(contract)
@@ -451,8 +628,35 @@ def activate_contract(
             ),
         )
 
+    old_status = contract.status
+
     contract.status = "Active"
     contract.updated_at = datetime.utcnow()
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_ACTIVATED",
+        entity_type="Contract",
+        details={
+            "contract_id": contract.id,
+            "contract_number": contract.contract_number,
+            "old_status": old_status,
+            "new_status": contract.status,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Activated",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was activated by {current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(contract)
@@ -513,8 +717,37 @@ def assign_contract(
             detail="Cannot assign contract to an inactive user",
         )
 
+    old_assigned_to = contract.assigned_to
+
     contract.assigned_to = assignment_data.assigned_to
     contract.updated_at = datetime.utcnow()
+
+    # Audit log
+    create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="CONTRACT_ASSIGNED",
+        entity_type="Contract",
+        details={
+            "contract_id": contract.id,
+            "contract_number": contract.contract_number,
+            "old_assigned_to": old_assigned_to,
+            "new_assigned_to": assigned_user.id,
+            "new_assigned_user": assigned_user.full_name,
+        },
+    )
+
+    # User activity
+    create_activity(
+        db=db,
+        user_id=current_user.id,
+        activity_type="Contract Assigned",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was assigned to {assigned_user.full_name} "
+            f"by {current_user.full_name}."
+        ),
+    )
 
     db.commit()
     db.refresh(contract)

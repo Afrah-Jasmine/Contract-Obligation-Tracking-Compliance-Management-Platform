@@ -64,6 +64,21 @@ export interface ComplianceReport {
   data: ComplianceReportItem[];
 }
 
+export interface AuditReportItem {
+  user_id: number;
+  user_name: string | null;
+  action: string;
+  entity_type: string;
+  details: string | null;
+  created_at: string;
+}
+
+export interface AuditReport {
+  report_type: string;
+  total_records: number;
+  data: AuditReportItem[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -128,6 +143,26 @@ export class Reports {
   getComplianceReport(): Observable<ComplianceReport> {
     return this.http.get<ComplianceReport>(
       `${this.baseUrl}/compliance`
+    );
+  }
+
+  getAuditReport(): Observable<AuditReport> {
+    return this.http.get<AuditReport>(
+      `${this.baseUrl}/audit`
+    );
+  }
+
+  downloadAuditPdf(): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/audit/pdf`,
+      { responseType: 'blob' }
+    );
+  }
+
+  downloadAuditExcel(): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/audit/excel`,
+      { responseType: 'blob' }
     );
   }
 

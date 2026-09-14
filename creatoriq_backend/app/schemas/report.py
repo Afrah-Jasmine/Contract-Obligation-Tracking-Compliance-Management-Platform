@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel
@@ -213,3 +213,22 @@ class ComplianceReportResponse(BaseModel):
     report_type: str
     total_records: int
     data: List[ComplianceReportItem]
+
+
+# =========================================================
+# AUDIT REPORT
+# =========================================================
+
+class AuditReportItem(BaseModel):
+    user_id: int
+    user_name: Optional[str] = None
+    action: str
+    entity_type: str
+    details: Optional[str] = None
+    created_at: datetime
+
+
+class AuditReportResponse(BaseModel):
+    report_type: str
+    total_records: int
+    data: List[AuditReportItem]

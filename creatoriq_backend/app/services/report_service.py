@@ -21,6 +21,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.utils import get_column_letter
 
+from app.models.audit_log import AuditLog
 from app.models.contract import Contract
 from app.models.obligation import Obligation
 from app.models.renewal import Renewal
@@ -920,6 +921,49 @@ def generate_compliance_report(
 
 
 # =========================================================
+# AUDIT REPORT
+# =========================================================
+
+def generate_audit_report(
+    db: Session,
+    current_user: User
+):
+    audit_logs = (
+        db.query(
+            AuditLog.user_id,
+            User.full_name.label("user_name"),
+            AuditLog.action,
+            AuditLog.entity_type,
+            AuditLog.details,
+            AuditLog.created_at,
+        )
+        .join(User, AuditLog.user_id == User.id)
+        .order_by(AuditLog.created_at.desc())
+        .all()
+    )
+
+    report_data = []
+
+    for item in audit_logs:
+        report_data.append(
+            {
+                "user_id": item.user_id,
+                "user_name": item.user_name,
+                "action": item.action,
+                "entity_type": item.entity_type,
+                "details": item.details,
+                "created_at": item.created_at,
+            }
+        )
+
+    return {
+        "report_type": "Audit Report",
+        "total_records": len(report_data),
+        "data": report_data,
+    }
+
+
+# =========================================================
 # EXPORT HELPERS
 # =========================================================
 
@@ -969,9 +1013,16 @@ def _get_report_data(
             current_user
         )
 
+    if report_type == "audit":
+
+        return generate_audit_report(
+            db,
+            current_user
+        )
+
     raise ValueError(
         "Invalid report type. "
-        "Use contract, obligation, renewal, or compliance."
+        "Use contract, obligation, renewal, compliance, or audit."
     )
 
 
@@ -1104,9 +1155,38 @@ def _get_report_columns(
             ),
         ]
 
+    if report_type == "audit":
+
+        return [
+            (
+                "user_id",
+                "User ID"
+            ),
+            (
+                "user_name",
+                "User Name"
+            ),
+            (
+                "action",
+                "Action"
+            ),
+            (
+                "entity_type",
+                "Entity Type"
+            ),
+            (
+                "details",
+                "Details"
+            ),
+            (
+                "created_at",
+                "Created At"
+            ),
+        ]
+
     raise ValueError(
         "Invalid report type. "
-        "Use contract, obligation, renewal, or compliance."
+        "Use contract, obligation, renewal, compliance, or audit."
     )
 
 

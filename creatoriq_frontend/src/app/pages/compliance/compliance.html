@@ -1,5 +1,6 @@
 <div class="page-container">
 
+  <!-- Page Header -->
   <div class="page-header">
     <div>
       <h1>Compliance</h1>
@@ -9,11 +10,120 @@
     <button
       class="primary-button"
       type="button"
-      (click)="loadCompliance()">
+      (click)="loadCompliance()"
+      [disabled]="loading || loadingSummary || loadingRiskData">
       Refresh
     </button>
   </div>
 
+  <!-- Summary Error -->
+  @if (summaryErrorMessage) {
+    <div class="message error-message">
+      <span>⚠</span>
+      <span>{{ summaryErrorMessage }}</span>
+    </div>
+  }
+
+  <!-- Compliance Summary -->
+  @if (summary) {
+    <div class="summary-grid">
+
+      <div class="summary-card">
+        <div class="summary-label">Total Contracts</div>
+        <div class="summary-value">{{ summary.total_contracts }}</div>
+        <div class="summary-description">Contracts evaluated</div>
+      </div>
+
+      <div class="summary-card compliant-card">
+        <div class="summary-label">Compliant</div>
+        <div class="summary-value">
+          {{ summary.compliant_contracts }}
+        </div>
+        <div class="summary-description">Fully compliant contracts</div>
+      </div>
+
+      <div class="summary-card pending-card">
+        <div class="summary-label">Pending</div>
+        <div class="summary-value">
+          {{ summary.pending_contracts }}
+        </div>
+        <div class="summary-description">Awaiting completion</div>
+      </div>
+
+      <div class="summary-card delayed-card">
+        <div class="summary-label">Delayed</div>
+        <div class="summary-value">
+          {{ summary.delayed_contracts }}
+        </div>
+        <div class="summary-description">Contracts with delays</div>
+      </div>
+
+      <div class="summary-card non-compliant-card">
+        <div class="summary-label">Non-Compliant</div>
+        <div class="summary-value">
+          {{ summary.non_compliant_contracts }}
+        </div>
+        <div class="summary-description">Require attention</div>
+      </div>
+
+      <div class="summary-card high-risk-card">
+        <div class="summary-label">High Risk</div>
+        <div class="summary-value">
+          {{ summary.high_risk_contracts }}
+        </div>
+        <div class="summary-description">High-risk contracts</div>
+      </div>
+
+    </div>
+  }
+
+  @if (loadingSummary) {
+    <div class="summary-loading">
+      Loading compliance summary...
+    </div>
+  }
+
+  <!-- Risk Information -->
+  @if (!loadingRiskData && !riskDataErrorMessage) {
+    <div class="risk-overview">
+
+      <div class="risk-overview-card">
+        <div class="risk-overview-title">
+          <span class="risk-indicator high"></span>
+          High-Risk Contracts
+        </div>
+
+        <strong>{{ highRiskRecords.length }}</strong>
+
+        <span>
+          Contracts requiring immediate attention
+        </span>
+      </div>
+
+      <div class="risk-overview-card">
+        <div class="risk-overview-title">
+          <span class="risk-indicator warning"></span>
+          Non-Compliant Contracts
+        </div>
+
+        <strong>{{ nonCompliantRecords.length }}</strong>
+
+        <span>
+          Contracts requiring corrective action
+        </span>
+      </div>
+
+    </div>
+  }
+
+  @if (riskDataErrorMessage) {
+    <div class="message error-message">
+      <span>⚠</span>
+      <span>{{ riskDataErrorMessage }}</span>
+    </div>
+  }
+
+  <!-- Loading -->
   @if (loading) {
     <div class="state-message">
       <div class="loading-spinner"></div>
@@ -21,8 +131,10 @@
     </div>
   }
 
+  <!-- Main Error -->
   @if (!loading && errorMessage) {
     <div class="state-message error-state">
+
       <div class="state-icon">⚠</div>
 
       <h2>Unable to load compliance</h2>
@@ -35,108 +147,615 @@
         (click)="loadCompliance()">
         Try Again
       </button>
+
     </div>
   }
 
-  @if (!loading && !errorMessage && complianceRecords.length === 0) {
-    <div class="state-message">
-      <div class="state-icon">✓</div>
-
-      <h2>No compliance records found</h2>
-
-      <p>
-        There are currently no compliance records available.
-      </p>
-    </div>
-  }
-
+  <!-- Filters + Table -->
   @if (!loading && !errorMessage && complianceRecords.length > 0) {
-    <div class="table-card">
 
-      <div class="table-header">
+    <div class="filter-card">
+
+      <div class="filter-header">
         <div>
           <h2>Compliance Overview</h2>
-          <span>{{ complianceRecords.length }} contracts evaluated</span>
+          <span>
+            {{ filteredRecords.length }}
+            of
+            {{ complianceRecords.length }}
+            contracts shown
+          </span>
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table>
+      <div class="filter-row">
 
-          <thead>
-            <tr>
-              <th>Contract Number</th>
-              <th>Compliance Status</th>
-              <th>Compliance Score</th>
-              <th>Overdue Obligations</th>
-              <th>Risk Level</th>
-            </tr>
-          </thead>
+        <div class="filter-field">
+          <label for="compliance-search">
+            Search
+          </label>
 
-          <tbody>
+          <input
+            id="compliance-search"
+            type="text"
+            placeholder="Search by contract number"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()">
+        </div>
 
-            @for (record of complianceRecords; track record.contract_id) {
-              <tr>
+        <div class="filter-field">
+          <label for="compliance-status">
+            Compliance Status
+          </label>
 
-                <td class="contract-number">
-                  {{ record.contract_number }}
-                </td>
+          <select
+            id="compliance-status"
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()">
 
-                <td>
-                  <span
-                    class="status-badge"
-                    [class.status-compliant]="record.compliance_status === 'Compliant'"
-                    [class.status-pending]="record.compliance_status === 'Pending'"
-                    [class.status-delayed]="record.compliance_status === 'Delayed'"
-                    [class.status-non-compliant]="record.compliance_status === 'Non-Compliant'">
-                    {{ record.compliance_status }}
-                  </span>
-                </td>
-
-                <td>
-                  <div class="score-container">
-
-                    <div class="score-bar">
-                      <div
-                        class="score-fill"
-                        [style.width.%]="record.compliance_score">
-                      </div>
-                    </div>
-
-                    <span class="score-value">
-                      {{ record.compliance_score }}%
-                    </span>
-
-                  </div>
-                </td>
-
-                <td>
-                  <span
-                    [class.overdue-warning]="record.overdue_obligations > 0"
-                    [class.overdue-clear]="record.overdue_obligations === 0">
-                    {{ record.overdue_obligations }}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    class="risk-badge"
-                    [class.risk-low]="record.risk_level === 'Low'"
-                    [class.risk-medium]="record.risk_level === 'Medium'"
-                    [class.risk-high]="record.risk_level === 'High'">
-                    {{ record.risk_level }}
-                  </span>
-                </td>
-
-              </tr>
+            @for (status of statusOptions; track status) {
+              <option [value]="status">
+                {{ status }}
+              </option>
             }
 
-          </tbody>
+          </select>
+        </div>
 
-        </table>
+        <div class="filter-field">
+          <label for="compliance-risk">
+            Risk Level
+          </label>
+
+          <select
+            id="compliance-risk"
+            [(ngModel)]="selectedRisk"
+            (change)="onRiskChange()">
+
+            @for (risk of riskOptions; track risk) {
+              <option [value]="risk">
+                {{ risk }}
+              </option>
+            }
+
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="clearFilters()">
+            Clear Filters
+          </button>
+        </div>
+
       </div>
 
     </div>
+
+    <!-- No Filter Results -->
+    @if (filteredRecords.length === 0) {
+
+      <div class="state-message">
+
+        <div class="state-icon">⌕</div>
+
+        <h2>No matching contracts</h2>
+
+        <p>
+          No compliance records match the selected search and filters.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="clearFilters()">
+          Clear Filters
+        </button>
+
+      </div>
+
+    }
+
+    <!-- Compliance Table -->
+    @if (filteredRecords.length > 0) {
+
+      <div class="table-card">
+
+        <div class="table-header">
+          <div>
+            <h2>Compliance Records</h2>
+            <span>
+              Current compliance status for evaluated contracts
+            </span>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Contract Number</th>
+                <th>Compliance Status</th>
+                <th>Compliance Score</th>
+                <th>Overdue Obligations</th>
+                <th>Risk Level</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              @for (
+                record of filteredRecords;
+                track record.contract_id
+              ) {
+
+                <tr>
+
+                  <td class="contract-number">
+                    {{ record.contract_number }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class]="getStatusClass(record.compliance_status)">
+                      {{ record.compliance_status }}
+                    </span>
+                  </td>
+
+                  <td>
+
+                    <div class="score-container">
+
+                      <div class="score-bar">
+                        <div
+                          class="score-fill"
+                          [class]="getScoreClass(record.compliance_score)"
+                          [style.width.%]="record.compliance_score">
+                        </div>
+                      </div>
+
+                      <span class="score-value">
+                        {{ record.compliance_score }}%
+                      </span>
+
+                    </div>
+
+                  </td>
+
+                  <td>
+
+                    <span
+                      [class.overdue-warning]="record.overdue_obligations > 0"
+                      [class.overdue-clear]="record.overdue_obligations === 0">
+
+                      {{ record.overdue_obligations }}
+
+                    </span>
+
+                  </td>
+
+                  <td>
+
+                    <span
+                      class="risk-badge"
+                      [class]="getRiskClass(record.risk_level)">
+                      {{ record.risk_level }}
+                    </span>
+
+                  </td>
+
+                  <td>
+
+                    <div class="action-buttons">
+
+                      <button
+                        class="action-button view-action"
+                        type="button"
+                        (click)="viewDetails(record)">
+                        View Details
+                      </button>
+
+                      <button
+                        class="action-button history-action"
+                        type="button"
+                        (click)="viewHistory(record)">
+                        History
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    }
+
+  }
+
+  <!-- Details Modal -->
+  @if (showDetails) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeDetails()">
+
+      <div
+        class="modal-container details-modal"
+        (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+
+          <div>
+            <h2>Compliance Details</h2>
+
+            @if (selectedContract) {
+              <p>
+                {{ selectedContract.contract_number }}
+              </p>
+            }
+
+          </div>
+
+          <button
+            class="modal-close"
+            type="button"
+            (click)="closeDetails()">
+            ×
+          </button>
+
+        </div>
+
+        <div class="modal-body">
+
+          @if (loadingDetails) {
+
+            <div class="state-message">
+              <div class="loading-spinner"></div>
+              <p>Loading compliance details...</p>
+            </div>
+
+          }
+
+          @if (!loadingDetails && detailsErrorMessage) {
+
+            <div class="message error-message">
+              <span>⚠</span>
+              <span>{{ detailsErrorMessage }}</span>
+            </div>
+
+          }
+
+          @if (
+            !loadingDetails &&
+            !detailsErrorMessage &&
+            contractDetails
+          ) {
+
+            <div class="details-grid">
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Contract
+                </span>
+
+                <strong>
+                  {{ selectedContract?.contract_number }}
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Compliance Status
+                </span>
+
+                <span
+                  class="status-badge"
+                  [class]="
+                    getStatusClass(
+                      contractDetails.compliance_status
+                    )
+                  ">
+                  {{ contractDetails.compliance_status }}
+                </span>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Compliance Score
+                </span>
+
+                <strong>
+                  {{ contractDetails.compliance_score }}%
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Risk Level
+                </span>
+
+                <span
+                  class="risk-badge"
+                  [class]="
+                    getRiskClass(
+                      contractDetails.risk_level
+                    )
+                  ">
+                  {{ contractDetails.risk_level }}
+                </span>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Total Obligations
+                </span>
+
+                <strong>
+                  {{ contractDetails.total_obligations }}
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Completed Obligations
+                </span>
+
+                <strong>
+                  {{ contractDetails.completed_obligations }}
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Pending Obligations
+                </span>
+
+                <strong>
+                  {{ contractDetails.pending_obligations }}
+                </strong>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Overdue Obligations
+                </span>
+
+                <strong
+                  [class.overdue-warning]="
+                    contractDetails.overdue_obligations > 0
+                  "
+                  [class.overdue-clear]="
+                    contractDetails.overdue_obligations === 0
+                  ">
+                  {{ contractDetails.overdue_obligations }}
+                </strong>
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+        <div class="modal-footer">
+
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="closeDetails()">
+            Close
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+  <!-- History Modal -->
+  @if (showHistory) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeHistory()">
+
+      <div
+        class="modal-container history-modal"
+        (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+
+          <div>
+            <h2>Compliance History</h2>
+
+            @if (selectedContract) {
+              <p>
+                {{ selectedContract.contract_number }}
+              </p>
+            }
+
+          </div>
+
+          <button
+            class="modal-close"
+            type="button"
+            (click)="closeHistory()">
+            ×
+          </button>
+
+        </div>
+
+        <div class="modal-body">
+
+          @if (loadingHistory) {
+
+            <div class="state-message">
+              <div class="loading-spinner"></div>
+              <p>Loading compliance history...</p>
+            </div>
+
+          }
+
+          @if (!loadingHistory && historyErrorMessage) {
+
+            <div class="message error-message">
+              <span>⚠</span>
+              <span>{{ historyErrorMessage }}</span>
+            </div>
+
+          }
+
+          @if (
+            !loadingHistory &&
+            !historyErrorMessage &&
+            complianceHistory.length === 0
+          ) {
+
+            <div class="state-message">
+              <div class="state-icon">✓</div>
+
+              <h2>No history available</h2>
+
+              <p>
+                No saved compliance evaluations were found
+                for this contract.
+              </p>
+            </div>
+
+          }
+
+          @if (
+            !loadingHistory &&
+            !historyErrorMessage &&
+            complianceHistory.length > 0
+          ) {
+
+            <div class="history-table-wrapper">
+
+              <table class="history-table">
+
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Score</th>
+                    <th>Total</th>
+                    <th>Completed</th>
+                    <th>Pending</th>
+                    <th>Overdue</th>
+                    <th>Risk</th>
+                    <th>Evaluated By</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  @for (
+                    history of complianceHistory;
+                    track history.id
+                  ) {
+
+                    <tr>
+
+                      <td>
+                        {{ formatDateTime(history.evaluated_at) }}
+                      </td>
+
+                      <td>
+                        <span
+                          class="status-badge"
+                          [class]="
+                            getStatusClass(
+                              history.compliance_status
+                            )
+                          ">
+                          {{ history.compliance_status }}
+                        </span>
+                      </td>
+
+                      <td>
+                        {{ history.compliance_score }}%
+                      </td>
+
+                      <td>
+                        {{ history.total_obligations }}
+                      </td>
+
+                      <td>
+                        {{ history.completed_obligations }}
+                      </td>
+
+                      <td>
+                        {{ history.pending_obligations }}
+                      </td>
+
+                      <td>
+                        {{ history.overdue_obligations }}
+                      </td>
+
+                      <td>
+                        <span
+                          class="risk-badge"
+                          [class]="
+                            getRiskClass(
+                              history.risk_level
+                            )
+                          ">
+                          {{ history.risk_level }}
+                        </span>
+                      </td>
+
+                      <td>
+                        User #{{ history.evaluated_by }}
+                      </td>
+
+                    </tr>
+
+                  }
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          }
+
+        </div>
+
+        <div class="modal-footer">
+
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="closeHistory()">
+            Close
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
   }
 
 </div>
