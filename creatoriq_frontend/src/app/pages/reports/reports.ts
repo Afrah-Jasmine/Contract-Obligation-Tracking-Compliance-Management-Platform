@@ -1,10 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  AfterViewInit,
   ChangeDetectorRef,
   Component,
-  OnDestroy,
   OnInit
 } from '@angular/core';
 
@@ -31,14 +29,10 @@ import {
   ComplianceSummary
 } from '../../services/dashboard';
 
-import { Chart, registerables } from 'chart.js';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-
-Chart.register(...registerables);
 
 type ReportType =
   | 'All'
@@ -62,7 +56,7 @@ type ReportType =
   templateUrl: './reports.html',
   styleUrl: './reports.css'
 })
-export class Reports implements OnInit, AfterViewInit, OnDestroy {
+export class Reports implements OnInit {
 
   // =========================================================
   // Backend reports
@@ -139,9 +133,6 @@ export class Reports implements OnInit, AfterViewInit, OnDestroy {
   loading = false;
   errorMessage = '';
 
-  private charts: Chart[] = [];
-  private viewReady = false;
-
   constructor(
     private reportsService: ReportsService,
     private dashboardService: DashboardService,
@@ -154,18 +145,6 @@ export class Reports implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadReports();
-  }
-
-  ngAfterViewInit(): void {
-    this.viewReady = true;
-
-    setTimeout(() => {
-      this.renderCharts();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.destroyCharts();
   }
 
   // =========================================================
@@ -191,8 +170,6 @@ export class Reports implements OnInit, AfterViewInit, OnDestroy {
     this.filteredObligations = [];
     this.filteredRenewals = [];
     this.filteredCompliance = [];
-
-    this.destroyCharts();
 
     this.cdr.detectChanges();
 
@@ -229,9 +206,6 @@ export class Reports implements OnInit, AfterViewInit, OnDestroy {
 
         this.cdr.detectChanges();
 
-        setTimeout(() => {
-          this.renderCharts();
-        });
       },
 
       error: (error) => {
@@ -264,9 +238,6 @@ export class Reports implements OnInit, AfterViewInit, OnDestroy {
 
     this.cdr.detectChanges();
 
-    setTimeout(() => {
-      this.renderCharts();
-    });
   }
 
   clearFilters(): void {
@@ -526,219 +497,6 @@ export class Reports implements OnInit, AfterViewInit, OnDestroy {
            this.selectedReportType === 'Compliance'
       ? this.filteredCompliance.length
       : 0;
-  }
-
-  get filteredContractStatuses(): Record<string, number> {
-    return this.countBy(
-      this.filteredContracts.map((item) => item.status)
-    );
-  }
-
-  get filteredObligationStatuses(): Record<string, number> {
-    return this.countBy(
-      this.filteredObligations.map((item) => item.status)
-    );
-  }
-
-  get filteredRenewalStatuses(): Record<string, number> {
-    return this.countBy(
-      this.filteredRenewals.map((item) => item.status)
-    );
-  }
-
-  get filteredComplianceStatuses(): Record<string, number> {
-    return this.countBy(
-      this.filteredCompliance.map((item) => item.compliance_status)
-    );
-  }
-
-  private countBy(values: (string | null | undefined)[]): Record<string, number> {
-    const result: Record<string, number> = {};
-
-    values.forEach((value) => {
-      if (!value) {
-        return;
-      }
-
-      result[value] = (result[value] ?? 0) + 1;
-    });
-
-    return result;
-  }
-
-  // =========================================================
-  // Charts
-  // =========================================================
-
-  private renderCharts(): void {
-
-    if (!this.viewReady) {
-      return;
-    }
-
-    this.destroyCharts();
-
-    this.createContractChart();
-    this.createObligationChart();
-    this.createRenewalChart();
-    this.createComplianceChart();
-  }
-
-  private createContractChart(): void {
-
-    const canvas = document.getElementById(
-      'reportsContractChart'
-    ) as HTMLCanvasElement | null;
-
-    if (!canvas) {
-      return;
-    }
-
-    const data = this.filteredContractStatuses;
-
-    this.charts.push(
-      new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(data),
-          datasets: [
-            {
-              data: Object.values(data)
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      })
-    );
-  }
-
-  private createObligationChart(): void {
-
-    const canvas = document.getElementById(
-      'reportsObligationChart'
-    ) as HTMLCanvasElement | null;
-
-    if (!canvas) {
-      return;
-    }
-
-    const data = this.filteredObligationStatuses;
-
-    this.charts.push(
-      new Chart(canvas, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(data),
-          datasets: [
-            {
-              label: 'Obligations',
-              data: Object.values(data)
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      })
-    );
-  }
-
-  private createRenewalChart(): void {
-
-    const canvas = document.getElementById(
-      'reportsRenewalChart'
-    ) as HTMLCanvasElement | null;
-
-    if (!canvas) {
-      return;
-    }
-
-    const data = this.filteredRenewalStatuses;
-
-    this.charts.push(
-      new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(data),
-          datasets: [
-            {
-              data: Object.values(data)
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      })
-    );
-  }
-
-  private createComplianceChart(): void {
-
-    const canvas = document.getElementById(
-      'reportsComplianceChart'
-    ) as HTMLCanvasElement | null;
-
-    if (!canvas) {
-      return;
-    }
-
-    const data = this.filteredComplianceStatuses;
-
-    this.charts.push(
-      new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(data),
-          datasets: [
-            {
-              data: Object.values(data)
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      })
-    );
-  }
-
-  private destroyCharts(): void {
-
-    this.charts.forEach((chart) => {
-      chart.destroy();
-    });
-
-    this.charts = [];
   }
 
   // =========================================================
