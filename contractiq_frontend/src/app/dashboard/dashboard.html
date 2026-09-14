@@ -1,0 +1,869 @@
+<!-- =========================
+     DASHBOARD HEADER
+========================== -->
+
+<header class="dashboard-header">
+
+  <div>
+
+    <div class="breadcrumb">
+      WORKSPACE <span>/</span> DASHBOARD
+    </div>
+
+    <h1>
+      Good afternoon.
+    </h1>
+
+    <p>
+      Here's what's happening across your contracts today.
+    </p>
+
+  </div>
+
+</header>
+
+
+<!-- =========================
+     HERO
+========================== -->
+
+<section class="hero-card">
+
+  <div class="hero-background"></div>
+
+  <div class="hero-content">
+
+    <div class="hero-label">
+      <span class="live-dot"></span>
+      CONTRACT LIFECYCLE
+    </div>
+
+    <h2>
+      Contracts in Motion.<br>
+      <span>Compliance in Control.</span>
+    </h2>
+
+    <p>
+      Track every agreement from draft to renewal,
+      while keeping obligations and compliance under control.
+    </p>
+
+    <button
+      class="hero-button"
+      type="button">
+      EXPLORE CONTRACTS
+      <span>→</span>
+    </button>
+
+  </div>
+
+
+  <!-- CONTRACT FLOW -->
+
+  <div class="lifecycle">
+
+    <div class="flow-line"></div>
+
+    <div class="flow-stage active-stage">
+
+      <div class="flow-circle">
+        <span>01</span>
+      </div>
+
+      <span>DRAFT</span>
+
+    </div>
+
+    <div class="flow-stage">
+
+      <div class="flow-circle">
+        <span>02</span>
+      </div>
+
+      <span>REVIEW</span>
+
+    </div>
+
+    <div class="flow-stage">
+
+      <div class="flow-circle">
+        <span>03</span>
+      </div>
+
+      <span>APPROVED</span>
+
+    </div>
+
+    <div class="flow-stage">
+
+      <div class="flow-circle">
+        <span>04</span>
+      </div>
+
+      <span>ACTIVE</span>
+
+    </div>
+
+    <div class="flow-stage">
+
+      <div class="flow-circle">
+        <span>05</span>
+      </div>
+
+      <span>COMPLIANCE</span>
+
+    </div>
+
+    <div class="flow-stage">
+
+      <div class="flow-circle">
+        <span>06</span>
+      </div>
+
+      <span>RENEWAL</span>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     ALERT
+========================== -->
+
+<section
+  class="alert-banner"
+  [class.critical]="alertLevel === 'critical'"
+  [class.warning]="alertLevel === 'warning'"
+  [class.safe]="alertLevel === 'safe'">
+
+  <div class="alert-left">
+
+    <div class="alert-icon">
+      !
+    </div>
+
+    <div>
+
+      <strong>
+        {{ alertLevel === 'critical'
+          ? 'Action Required'
+          : alertLevel === 'warning'
+          ? 'Attention Required'
+          : 'System Clear' }}
+      </strong>
+
+      <span>
+        {{ alertMessage }}
+      </span>
+
+    </div>
+
+  </div>
+
+  <button
+    class="alert-button"
+    type="button">
+
+    VIEW DETAILS →
+
+  </button>
+
+</section>
+
+
+<!-- =========================
+     LOADING
+========================== -->
+
+@if (loading) {
+
+  <section class="loading-container">
+
+    <div class="loading-spinner"></div>
+
+    <p>
+      Loading ContractIQ dashboard...
+    </p>
+
+  </section>
+
+}
+
+
+<!-- =========================
+     ERROR
+========================== -->
+
+@if (!loading && errorMessage) {
+
+  <section class="dashboard-error">
+
+    <strong>
+      Unable to load dashboard
+    </strong>
+
+    <p>
+      {{ errorMessage }}
+    </p>
+
+    <button
+      type="button"
+      (click)="loadDashboard()">
+
+      Retry
+
+    </button>
+
+  </section>
+
+}
+
+
+<!-- =========================
+     DASHBOARD CONTENT
+========================== -->
+
+@if (!loading && !errorMessage) {
+
+
+  <!-- =========================
+       KPI GRID
+  ========================== -->
+
+  <section class="kpi-grid">
+
+
+    <!-- TOTAL CONTRACTS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          TOTAL CONTRACTS
+        </span>
+
+        <div class="kpi-icon blue">
+          ▣
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ totalContracts }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span class="positive">
+          ● {{ activeContracts }}
+        </span>
+
+        <span>
+          active contracts
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACTIVE CONTRACTS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          ACTIVE CONTRACTS
+        </span>
+
+        <div class="kpi-icon teal">
+          ✓
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ activeContracts }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span>
+          Currently active
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- EXPIRED CONTRACTS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          EXPIRED CONTRACTS
+        </span>
+
+        <div class="kpi-icon orange">
+          !
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ expiredContracts }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span
+          [class.danger]="expiredContracts > 0"
+          [class.positive]="expiredContracts === 0">
+
+          {{ expiredContracts > 0 ? 'Needs attention' : 'None expired' }}
+
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- PENDING OBLIGATIONS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          PENDING OBLIGATIONS
+        </span>
+
+        <div class="kpi-icon purple">
+          ◷
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ pendingObligations }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span>
+          Awaiting completion
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- OVERDUE OBLIGATIONS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          OVERDUE
+        </span>
+
+        <div class="kpi-icon orange">
+          !
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ overdueObligations }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span
+          [class.danger]="overdueObligations > 0"
+          [class.positive]="overdueObligations === 0">
+
+          {{ overdueObligations > 0 ? 'Attention' : 'Clear' }}
+
+        </span>
+
+        <span>
+          obligations
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- UPCOMING RENEWALS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          UPCOMING RENEWALS
+        </span>
+
+        <div class="kpi-icon purple">
+          ↻
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ upcomingRenewals }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span>
+          Next 30 days
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- COMPLIANCE -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          COMPLIANCE
+        </span>
+
+        <div class="kpi-icon teal">
+          %
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ complianceScore }}%
+      </div>
+
+      <div class="kpi-footer">
+
+        <span class="positive">
+          Current score
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- HIGH RISK -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <span class="kpi-label">
+          HIGH RISK
+        </span>
+
+        <div class="kpi-icon red">
+          ◉
+        </div>
+
+      </div>
+
+      <div class="kpi-value">
+        {{ highRiskContracts }}
+      </div>
+
+      <div class="kpi-footer">
+
+        <span
+          [class.danger]="highRiskContracts > 0"
+          [class.positive]="highRiskContracts === 0">
+
+          {{ highRiskContracts > 0
+            ? 'Critical'
+            : 'No critical risk' }}
+
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       ANALYTICS ROW
+  ========================== -->
+
+  <section class="analytics-grid">
+
+
+    <!-- COMPLIANCE -->
+
+    <div class="panel compliance-panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <span class="panel-eyebrow">
+            COMPLIANCE
+          </span>
+
+          <h3>
+            Contract Health
+          </h3>
+
+        </div>
+
+        <span class="period-label">
+          CURRENT
+        </span>
+
+      </div>
+
+
+      <div class="compliance-content">
+
+        <div class="donut-wrapper">
+
+          <canvas #complianceChart></canvas>
+
+          <div class="donut-center">
+
+            <strong>
+              {{ complianceScore }}%
+            </strong>
+
+            <span>
+              COMPLIANT
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="health-summary">
+
+          <div class="health-row">
+
+            <span>
+              <i class="dot healthy"></i>
+              Healthy
+            </span>
+
+            <strong>
+              {{ healthyContracts }}
+            </strong>
+
+          </div>
+
+          <div class="health-row">
+
+            <span>
+              <i class="dot attention"></i>
+              Needs Attention
+            </span>
+
+            <strong>
+              {{ mediumRiskContracts }}
+            </strong>
+
+          </div>
+
+          <div class="health-row">
+
+            <span>
+              <i class="dot risk"></i>
+              At Risk
+            </span>
+
+            <strong>
+              {{ highRiskContracts }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- CURRENT COMPLIANCE -->
+
+    <div class="panel trend-panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <span class="panel-eyebrow">
+            PERFORMANCE
+          </span>
+
+          <h3>
+            Current Compliance Score
+          </h3>
+
+        </div>
+
+        <span class="period-label">
+          CURRENT
+        </span>
+
+      </div>
+
+      <div class="chart-container">
+
+        <canvas #trendChart></canvas>
+
+      </div>
+
+    </div>
+
+
+    <!-- CONTRACT STATUS -->
+
+    <div class="panel status-panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <span class="panel-eyebrow">
+            PORTFOLIO
+          </span>
+
+          <h3>
+            Contract Status
+          </h3>
+
+        </div>
+
+        <span class="period-label">
+          CURRENT
+        </span>
+
+      </div>
+
+      <div class="chart-container">
+
+        <canvas #statusChart></canvas>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       BOTTOM GRID
+  ========================== -->
+
+  <section class="bottom-grid">
+
+
+    <!-- UPCOMING RENEWALS -->
+
+    <div class="panel table-panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <span class="panel-eyebrow">
+            UPCOMING
+          </span>
+
+          <h3>
+            Renewals
+          </h3>
+
+        </div>
+
+        <span class="period-label">
+          NEXT 30 DAYS
+        </span>
+
+      </div>
+
+
+      @if (upcomingRenewalList.length > 0) {
+
+        <div class="renewal-list">
+
+          @for (
+            renewal of upcomingRenewalList.slice(0, 4);
+            track renewal.id
+          ) {
+
+            <div class="renewal-row">
+
+              <div class="renewal-date">
+
+                <strong>
+                  {{ renewal.renewal_date | date:'dd' }}
+                </strong>
+
+                <span>
+                  {{ renewal.renewal_date | date:'MMM' }}
+                </span>
+
+              </div>
+
+              <div class="renewal-info">
+
+                <strong>
+                  Contract #{{ renewal.contract_id }}
+                </strong>
+
+                <span>
+                  Renewal deadline
+                </span>
+
+              </div>
+
+              <div class="renewal-status">
+                UPCOMING
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+      } @else {
+
+        <div class="empty-state">
+
+          <div class="empty-icon">
+            ✓
+          </div>
+
+          <strong>
+            No upcoming renewals
+          </strong>
+
+          <span>
+            No renewals are scheduled within the next 30 days.
+          </span>
+
+        </div>
+
+      }
+
+    </div>
+
+
+    <!-- ACTION REQUIRED -->
+
+    <div class="panel action-panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <span class="panel-eyebrow">
+            ATTENTION
+          </span>
+
+          <h3>
+            Action Required
+          </h3>
+
+        </div>
+
+        <div class="action-count">
+          {{ overdueObligationList.length }}
+        </div>
+
+      </div>
+
+
+      @if (overdueObligationList.length > 0) {
+
+        <div class="action-list">
+
+          @for (
+            obligation of overdueObligationList.slice(0, 4);
+            track obligation.id
+          ) {
+
+            <div class="action-item">
+
+              <div class="action-indicator"></div>
+
+              <div class="action-content">
+
+                <strong>
+                  {{ obligation.title }}
+                </strong>
+
+                <span>
+                  Contract #{{ obligation.contract_id }}
+                </span>
+
+                <small>
+                  Due
+                  {{ obligation.due_date | date:'dd MMM yyyy' }}
+                </small>
+
+              </div>
+
+              <span class="action-arrow">
+                →
+              </span>
+
+            </div>
+
+          }
+
+        </div>
+
+      } @else {
+
+        <div class="empty-state">
+
+          <div class="empty-icon">
+            ✓
+          </div>
+
+          <strong>
+            Everything is on track
+          </strong>
+
+          <span>
+            No overdue obligations require your attention.
+          </span>
+
+        </div>
+
+      }
+
+    </div>
+
+  </section>
+
+}

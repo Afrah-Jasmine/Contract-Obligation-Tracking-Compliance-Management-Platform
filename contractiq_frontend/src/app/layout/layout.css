@@ -1,0 +1,275 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.layout-container {
+  height: 100vh;
+  background: #f5f7fb;
+}
+
+.sidebar {
+  width: 255px;
+  background: #0f172a;
+  color: #ffffff;
+  border-right: none;
+}
+
+.brand {
+  height: 82px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #14b8a6;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.brand-subtitle {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+.navigation {
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nav-item {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 12px;
+  color: #cbd5e1 !important;
+  border-radius: 9px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.nav-item mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff !important;
+}
+
+.nav-item.active {
+  background: rgba(20, 184, 166, 0.16);
+  color: #5eead4 !important;
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 18px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.main-content {
+  background: #f5f7fb;
+}
+
+.header {
+  height: 70px;
+  padding: 0 24px;
+  background: #ffffff;
+  color: #0f172a;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: none;
+}
+
+.header-title {
+  margin-left: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.profile {
+  margin-left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dbeafe;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.profile-name {
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-role {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+
+.page-content {
+  min-height: calc(100vh - 120px);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.footer {
+  min-height: 50px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  color: #64748b;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .profile-info {
+    display: none;
+  }
+
+  .page-content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    width: 210px;
+  }
+
+  .header {
+    padding: 0 12px;
+  }
+
+  .header-title {
+    font-size: 13px;
+  }
+
+  .footer {
+    padding: 10px 14px;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .page-content {
+    padding: 14px;
+  }
+}
+
+/* =========================================================
+   MOBILE RESPONSIVE LAYOUT
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 72px;
+    padding: 20px 8px;
+  }
+
+  .brand-text,
+  .nav-item span,
+  .support-card,
+  .user-details,
+  .profile-menu {
+    display: none;
+  }
+
+  .brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 12px 0;
+  }
+
+  .main-content {
+    margin-left: 72px;
+    width: calc(100% - 72px);
+    padding: 16px;
+  }
+
+  .topbar {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .topbar {
+    padding: 10px 12px;
+  }
+}

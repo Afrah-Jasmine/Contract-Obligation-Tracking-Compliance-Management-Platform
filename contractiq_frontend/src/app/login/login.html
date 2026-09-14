@@ -1,0 +1,477 @@
+<!-- <div class="login-page">
+
+  <div class="login-visual">
+
+    <div class="visual-overlay"></div>
+
+    <div class="visual-content">
+
+      <div class="brand">
+        <div class="brand-mark">◈</div>
+
+        <div>
+          <div class="brand-name">
+            CONTRACT<span>IQ</span>
+          </div>
+
+          <div class="brand-subtitle">
+            CONTRACT INTELLIGENCE
+          </div>
+        </div>
+      </div>
+
+      <div class="visual-main">
+
+        <div class="visual-label">
+          <span class="label-dot"></span>
+          SMART CONTRACT MANAGEMENT
+        </div>
+
+        <h1>
+          Every contract.<br>
+          <span>Every obligation.</span><br>
+          Under control.
+        </h1>
+
+        <p>
+          Manage business agreements, monitor obligations,
+          reduce contract risk and stay ahead of every renewal.
+        </p>
+
+        <div class="feature-row">
+
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Compliance Monitoring</span>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">↻</div>
+            <span>Renewal Tracking</span>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">◉</div>
+            <span>Risk Intelligence</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="visual-footer">
+        Contract Intelligence for a Safer Tomorrow
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="login-section">
+
+    <div class="login-container">
+
+      <div class="mobile-brand">
+        <div class="brand-mark">◈</div>
+
+        <div class="brand-name">
+          CONTRACT<span>IQ</span>
+        </div>
+      </div>
+
+
+      <div class="login-heading">
+
+        <div class="heading-label">
+          SECURE ACCESS
+        </div>
+
+        <h2>Welcome back</h2>
+
+        <p>
+          Sign in to access your ContractIQ workspace.
+        </p>
+
+      </div>
+
+
+      @if (errorMessage) {
+
+        <div class="error-message">
+          <div class="error-icon">!</div>
+
+          <span>
+            {{ errorMessage }}
+          </span>
+        </div>
+
+      }
+
+
+      <div class="form-group">
+
+        <label for="email">
+          Email address
+        </label>
+
+        <div class="input-wrapper">
+
+          <span class="input-icon">&#64;</span>
+
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="name@company.com"
+            autocomplete="email"
+            (keyup.enter)="login()"
+          />
+
+        </div>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <div class="password-header">
+
+          <label for="password">
+            Password
+          </label>
+
+          <span class="forgot-text">
+            Secure login
+          </span>
+
+        </div>
+
+        <div class="input-wrapper">
+
+          <span class="input-icon">⌁</span>
+
+          <input
+            id="password"
+            type="password"
+            [(ngModel)]="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            (keyup.enter)="login()"
+          />
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="login-button"
+        type="button"
+        (click)="login()"
+        [disabled]="loading"
+      >
+
+        @if (loading) {
+
+          <span class="spinner"></span>
+          <span>Signing in...</span>
+
+        } @else {
+
+          <span>Sign in to ContractIQ</span>
+          <span class="button-arrow">→</span>
+
+        }
+
+      </button>
+
+
+      <div class="security-card">
+
+        <div class="security-icon">
+          ✓
+        </div>
+
+        <div>
+          <strong>Protected workspace</strong>
+
+          <span>
+            Your session is secured using authenticated access.
+          </span>
+        </div>
+
+      </div>
+
+
+      <div class="login-footer">
+
+        <span>© 2026 ContractIQ</span>
+
+        <span class="footer-dot">•</span>
+
+        <span>Contract Intelligence Platform</span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div> -->
+
+<div class="login-page">
+
+  <div class="login-visual">
+
+    <div class="visual-overlay"></div>
+
+    <div class="visual-content">
+
+      <div class="brand">
+        <div class="brand-mark">◈</div>
+
+        <div>
+          <div class="brand-name">
+            CONTRACT<span>IQ</span>
+          </div>
+
+          <div class="brand-subtitle">
+            CONTRACT INTELLIGENCE
+          </div>
+        </div>
+      </div>
+
+      <div class="visual-main">
+
+        <div class="visual-label">
+          <span class="label-dot"></span>
+          SMART CONTRACT MANAGEMENT
+        </div>
+
+        <h1>
+          Every contract.<br>
+          <span>Every obligation.</span><br>
+          Under control.
+        </h1>
+
+        <p>
+          Manage business agreements, monitor obligations,
+          reduce contract risk and stay ahead of every renewal.
+        </p>
+
+        <div class="feature-row">
+
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Compliance Monitoring</span>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">↻</div>
+            <span>Renewal Tracking</span>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">◉</div>
+            <span>Risk Intelligence</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="visual-footer">
+        Contract Intelligence for a Safer Tomorrow
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="login-section">
+
+    <div class="login-container">
+
+      <div class="mobile-brand">
+        <div class="brand-mark">◈</div>
+
+        <div class="brand-name">
+          CONTRACT<span>IQ</span>
+        </div>
+      </div>
+
+
+      <div class="login-heading">
+
+        <div class="heading-label">
+          SECURE ACCESS
+        </div>
+
+        <h2>Welcome back</h2>
+
+        <p>
+          Sign in to access your ContractIQ workspace.
+        </p>
+
+      </div>
+
+
+      @if (errorMessage) {
+
+        <div class="error-message">
+          <div class="error-icon">!</div>
+
+          <span>
+            {{ errorMessage }}
+          </span>
+        </div>
+
+      }
+
+
+      <!-- Reactive Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="login()">
+
+        <div class="form-group">
+
+          <label for="email">
+            Email address
+          </label>
+
+          <div class="input-wrapper">
+
+            <span class="input-icon">&#64;</span>
+
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="name@company.com"
+              autocomplete="email"
+            />
+
+          </div>
+
+          @if (email.invalid && email.touched) {
+
+            <div class="field-error">
+
+              @if (email.errors?.['required']) {
+                <span>Email address is required.</span>
+              }
+
+              @if (email.errors?.['email']) {
+                <span>Please enter a valid email address.</span>
+              }
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <div class="form-group">
+
+          <div class="password-header">
+
+            <label for="password">
+              Password
+            </label>
+
+            <span class="forgot-text">
+              Secure login
+            </span>
+
+          </div>
+
+          <div class="input-wrapper">
+
+            <span class="input-icon">⌁</span>
+
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+
+          </div>
+
+          @if (password.invalid && password.touched) {
+
+            <div class="field-error">
+
+              @if (password.errors?.['required']) {
+                <span>Password is required.</span>
+              }
+
+              @if (password.errors?.['minlength']) {
+                <span>Password must be at least 6 characters.</span>
+              }
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <button
+          class="login-button"
+          type="submit"
+          [disabled]="loading"
+        >
+
+          @if (loading) {
+
+            <span class="spinner"></span>
+            <span>Signing in...</span>
+
+          } @else {
+
+            <span>Sign in to ContractIQ</span>
+            <span class="button-arrow">→</span>
+
+          }
+
+        </button>
+
+      </form>
+
+
+      <div class="security-card">
+
+        <div class="security-icon">
+          ✓
+        </div>
+
+        <div>
+          <strong>Protected workspace</strong>
+
+          <span>
+            Your session is secured using authenticated access.
+          </span>
+        </div>
+
+      </div>
+
+
+      <div class="login-footer">
+
+        <span>© 2026 ContractIQ</span>
+
+        <span class="footer-dot">•</span>
+
+        <span>Contract Intelligence Platform</span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

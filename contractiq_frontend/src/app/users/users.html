@@ -1,0 +1,676 @@
+<div class="users-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <h1>User Management</h1>
+
+      <p>
+        Manage ContractIQ users, roles, and account status.
+      </p>
+    </div>
+
+    @if (!showForm && !showPasswordForm) {
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="openAddForm()">
+
+        <mat-icon>person_add</mat-icon>
+
+        Add User
+
+      </button>
+
+    }
+
+  </div>
+
+
+  <!-- ADD / EDIT FORM -->
+  @if (showForm) {
+
+    <div class="form-card">
+
+      <div class="form-header">
+
+        <div>
+
+          <h2>
+            {{ formTitle }}
+          </h2>
+
+          <p>
+
+            @if (editingUser) {
+
+              Update the selected user's information.
+
+            } @else {
+
+              Create a new ContractIQ user account.
+
+            }
+
+          </p>
+
+        </div>
+
+
+        <button
+          mat-icon-button
+          type="button"
+          title="Close"
+          (click)="cancelForm()">
+
+          <mat-icon>close</mat-icon>
+
+        </button>
+
+      </div>
+
+
+      <form
+        [formGroup]="userForm"
+        (ngSubmit)="saveUser()">
+
+        <div class="form-grid">
+
+          <!-- FULL NAME -->
+          <mat-form-field appearance="outline">
+
+            <mat-label>Full Name</mat-label>
+
+            <input
+              matInput
+              formControlName="full_name"
+              placeholder="Enter full name">
+
+            @if (
+              userForm.controls.full_name.touched &&
+              userForm.controls.full_name.hasError('required')
+            ) {
+
+              <mat-error>
+                Full name is required.
+              </mat-error>
+
+            }
+
+          </mat-form-field>
+
+
+          <!-- EMAIL -->
+          <mat-form-field appearance="outline">
+
+            <mat-label>Email</mat-label>
+
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              placeholder="Enter email address">
+
+            @if (
+              userForm.controls.email.touched &&
+              userForm.controls.email.hasError('required')
+            ) {
+
+              <mat-error>
+                Email is required.
+              </mat-error>
+
+            }
+
+            @if (
+              userForm.controls.email.touched &&
+              userForm.controls.email.hasError('email')
+            ) {
+
+              <mat-error>
+                Enter a valid email address.
+              </mat-error>
+
+            }
+
+          </mat-form-field>
+
+
+          <!-- ROLE -->
+          <mat-form-field appearance="outline">
+
+            <mat-label>Role</mat-label>
+
+            <mat-select formControlName="role">
+
+              <mat-option value="ADMINISTRATOR">
+                Administrator
+              </mat-option>
+
+              <mat-option value="LEGAL_MANAGER">
+                Legal Manager
+              </mat-option>
+
+              <mat-option value="COMPLIANCE_OFFICER">
+                Compliance Officer
+              </mat-option>
+
+              <mat-option value="CONTRACT_MANAGER">
+                Contract Manager
+              </mat-option>
+
+              <mat-option value="DEPARTMENT_HEAD">
+                Department Head
+              </mat-option>
+
+              <mat-option value="EMPLOYEE">
+                Employee
+              </mat-option>
+
+            </mat-select>
+
+          </mat-form-field>
+
+
+          <!-- PASSWORD -->
+          <mat-form-field appearance="outline">
+
+            <mat-label>Password</mat-label>
+
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              placeholder="Enter password">
+
+            @if (
+              userForm.controls.password.touched &&
+              userForm.controls.password.hasError('required')
+            ) {
+
+              <mat-error>
+                Password is required.
+              </mat-error>
+
+            }
+
+            @if (
+              userForm.controls.password.touched &&
+              userForm.controls.password.hasError('minlength')
+            ) {
+
+              <mat-error>
+                Password must be at least 6 characters.
+              </mat-error>
+
+            }
+
+          </mat-form-field>
+
+        </div>
+
+
+        <!-- FORM ACTIONS -->
+        <div class="form-actions">
+
+          <button
+            mat-button
+            type="button"
+            (click)="cancelForm()">
+
+            Cancel
+
+          </button>
+
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="saving">
+
+            @if (saving) {
+
+              <mat-spinner diameter="20"></mat-spinner>
+
+            } @else {
+
+              <mat-icon>save</mat-icon>
+
+            }
+
+            @if (editingUser) {
+
+              Save Changes
+
+            } @else {
+
+              Create User
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- CHANGE PASSWORD -->
+  @if (
+    showPasswordForm &&
+    passwordUser
+  ) {
+
+    <div class="form-card">
+
+      <div class="form-header">
+
+        <div>
+
+          <h2>
+            Change Password
+          </h2>
+
+          <p>
+            Change password for
+            <strong>
+              {{ passwordUser.full_name }}
+            </strong>
+          </p>
+
+        </div>
+
+
+        <button
+          mat-icon-button
+          type="button"
+          title="Close"
+          (click)="closePasswordForm()">
+
+          <mat-icon>close</mat-icon>
+
+        </button>
+
+      </div>
+
+
+      <mat-form-field
+        appearance="outline"
+        class="password-field">
+
+        <mat-label>
+          New Password
+        </mat-label>
+
+        <input
+          matInput
+          type="password"
+          [(ngModel)]="newPassword"
+          placeholder="Enter new password">
+
+      </mat-form-field>
+
+
+      <div class="form-actions">
+
+        <button
+          mat-button
+          type="button"
+          (click)="closePasswordForm()">
+
+          Cancel
+
+        </button>
+
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          [disabled]="saving"
+          (click)="changePassword()">
+
+          @if (saving) {
+
+            <mat-spinner diameter="20"></mat-spinner>
+
+          } @else {
+
+            <mat-icon>lock_reset</mat-icon>
+
+          }
+
+          Change Password
+
+        </button>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- SUCCESS MESSAGE -->
+  @if (successMessage) {
+
+    <div class="success-message">
+
+      <mat-icon>
+        check_circle
+      </mat-icon>
+
+      <span>
+        {{ successMessage }}
+      </span>
+
+    </div>
+
+  }
+
+
+  <!-- ERROR MESSAGE -->
+  @if (errorMessage) {
+
+    <div class="error-message">
+
+      <mat-icon>
+        error_outline
+      </mat-icon>
+
+      <span>
+        {{ errorMessage }}
+      </span>
+
+    </div>
+
+  }
+
+
+  <!-- LOADING -->
+  @if (loading) {
+
+    <div class="loading-container">
+
+      <mat-spinner diameter="40"></mat-spinner>
+
+      <p>
+        Loading users...
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- EMPTY STATE -->
+  @if (
+    !loading &&
+    !errorMessage &&
+    users.length === 0
+  ) {
+
+    <div class="empty-state">
+
+      <mat-icon>
+        people_outline
+      </mat-icon>
+
+      <h2>
+        No users found
+      </h2>
+
+      <p>
+        There are currently no users available.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- USERS TABLE -->
+  @if (
+    !loading &&
+    users.length > 0
+  ) {
+
+    <div class="table-card">
+
+      <table
+        mat-table
+        [dataSource]="users"
+        class="users-table">
+
+
+        <!-- ID -->
+        <ng-container matColumnDef="id">
+
+          <th
+            mat-header-cell
+            *matHeaderCellDef>
+
+            ID
+
+          </th>
+
+          <td
+            mat-cell
+            *matCellDef="let user">
+
+            {{ user.id }}
+
+          </td>
+
+        </ng-container>
+
+
+        <!-- NAME -->
+        <ng-container matColumnDef="full_name">
+
+          <th
+            mat-header-cell
+            *matHeaderCellDef>
+
+            Name
+
+          </th>
+
+          <td
+            mat-cell
+            *matCellDef="let user">
+
+            <div class="user-name">
+
+              <div class="user-avatar">
+
+                {{ user.full_name.charAt(0).toUpperCase() }}
+
+              </div>
+
+              <span>
+                {{ user.full_name }}
+              </span>
+
+            </div>
+
+          </td>
+
+        </ng-container>
+
+
+        <!-- EMAIL -->
+        <ng-container matColumnDef="email">
+
+          <th
+            mat-header-cell
+            *matHeaderCellDef>
+
+            Email
+
+          </th>
+
+          <td
+            mat-cell
+            *matCellDef="let user">
+
+            {{ user.email }}
+
+          </td>
+
+        </ng-container>
+
+
+        <!-- ROLE -->
+        <ng-container matColumnDef="role">
+
+          <th
+            mat-header-cell
+            *matHeaderCellDef>
+
+            Role
+
+          </th>
+
+          <td
+            mat-cell
+            *matCellDef="let user">
+
+            <span class="role-badge">
+
+              {{ user.role }}
+
+            </span>
+
+          </td>
+
+        </ng-container>
+
+
+        <!-- STATUS -->
+        <ng-container matColumnDef="status">
+
+          <th
+            mat-header-cell
+            *matHeaderCellDef>
+
+            Status
+
+          </th>
+
+          <td
+            mat-cell
+            *matCellDef="let user">
+
+            @if (user.is_active) {
+
+              <span class="status-badge active">
+                Active
+              </span>
+
+            } @else {
+
+              <span class="status-badge inactive">
+                Inactive
+              </span>
+
+            }
+
+          </td>
+
+        </ng-container>
+
+
+        <!-- ACTIONS -->
+        <ng-container matColumnDef="actions">
+
+          <th
+            mat-header-cell
+            *matHeaderCellDef>
+
+            Actions
+
+          </th>
+
+          <td
+            mat-cell
+            *matCellDef="let user">
+
+
+            <!-- EDIT -->
+            <button
+              mat-icon-button
+              type="button"
+              title="Edit User"
+              (click)="openEditForm(user)">
+
+              <mat-icon>
+                edit
+              </mat-icon>
+
+            </button>
+
+
+            <!-- CHANGE PASSWORD -->
+            <button
+              mat-icon-button
+              type="button"
+              title="Change Password"
+              (click)="openPasswordForm(user)">
+
+              <mat-icon>
+                lock
+              </mat-icon>
+
+            </button>
+
+
+            <!-- DELETE -->
+            <button
+              mat-icon-button
+              type="button"
+              title="Delete User"
+              (click)="deleteUser(user)">
+
+              <mat-icon>
+                delete
+              </mat-icon>
+
+            </button>
+
+          </td>
+
+        </ng-container>
+
+
+        <!-- TABLE HEADER -->
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns">
+        </tr>
+
+
+        <!-- TABLE ROWS -->
+        <tr
+          mat-row
+          *matRowDef="
+            let row;
+            columns: displayedColumns;
+          ">
+        </tr>
+
+      </table>
+
+    </div>
+
+  }
+
+</div>

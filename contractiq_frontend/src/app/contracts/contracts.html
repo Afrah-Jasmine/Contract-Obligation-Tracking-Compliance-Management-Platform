@@ -1,0 +1,151 @@
+<div class="contracts-page">
+
+  <div class="page-header">
+    <div>
+      <h1>Contracts</h1>
+      <p>Manage and monitor all contracts in ContractIQ.</p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      (click)="loadContracts()">
+      Refresh
+    </button>
+  </div>
+
+
+  @if (loading) {
+    <div class="state-card">
+      <div class="loading-spinner"></div>
+      <p>Loading contracts...</p>
+    </div>
+  }
+
+
+  @if (errorMessage && !loading) {
+    <div class="state-card error-state">
+      <h3>Unable to load contracts</h3>
+      <p>{{ errorMessage }}</p>
+
+      <button
+        type="button"
+        class="retry-button"
+        (click)="loadContracts()">
+        Try Again
+      </button>
+    </div>
+  }
+
+
+  @if (!loading && !errorMessage && contracts.length === 0) {
+    <div class="state-card">
+      <h3>No Contracts Found</h3>
+      <p>There are currently no contracts available.</p>
+    </div>
+  }
+
+
+  @if (!loading && !errorMessage && contracts.length > 0) {
+
+    <div class="summary-card">
+      <div>
+        <span class="summary-label">Total Contracts</span>
+        <strong>{{ contracts.length }}</strong>
+      </div>
+    </div>
+
+
+    <div class="table-card">
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Contract Code</th>
+              <th>Title</th>
+              <th>Counterparty</th>
+              <th>Category</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th>Risk</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            @for (contract of contracts; track contract.id) {
+
+              <tr>
+
+                <td>
+                  {{ contract.id }}
+                </td>
+
+                <td>
+                  <strong>{{ contract.contract_code }}</strong>
+                </td>
+
+                <td>
+                  {{ contract.title }}
+                </td>
+
+                <td>
+                  {{ contract.counterparty }}
+                </td>
+
+                <td>
+                  {{ contract.category }}
+                </td>
+
+                <td>
+                  {{ contract.department || '—' }}
+                </td>
+
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.active]="contract.status === 'Active'"
+                    [class.expired]="contract.status === 'Expired'"
+                    [class.draft]="contract.status === 'Draft'"
+                    [class.terminated]="contract.status === 'Terminated'">
+
+                    {{ contract.status }}
+
+                  </span>
+                </td>
+
+                <td>
+                  <span class="risk-badge">
+                    {{ contract.risk_level }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ contract.start_date }}
+                </td>
+
+                <td>
+                  {{ contract.end_date }}
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

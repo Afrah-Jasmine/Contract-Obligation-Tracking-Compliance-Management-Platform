@@ -1,0 +1,251 @@
+<mat-sidenav-container class="layout-container">
+
+  <!-- =========================
+       SIDEBAR
+  ========================== -->
+
+  <mat-sidenav
+    #sidenav
+    mode="side"
+    [opened]="sidebarOpen"
+    class="sidebar">
+
+    <div class="brand">
+      <div class="brand-mark">C</div>
+
+      <div>
+        <div class="brand-name">ContractIQ</div>
+        <div class="brand-subtitle">Contract Management</div>
+      </div>
+    </div>
+
+
+    <nav class="navigation">
+
+      <!-- Dashboard -->
+      <a
+        mat-button
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>dashboard</mat-icon>
+        <span>Dashboard</span>
+      </a>
+
+
+      <!-- Contracts -->
+      <a
+        mat-button
+        routerLink="/contracts"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>description</mat-icon>
+        <span>Contracts</span>
+      </a>
+
+
+      <!-- Obligations -->
+      <a
+        mat-button
+        routerLink="/obligations"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>assignment</mat-icon>
+        <span>Obligations</span>
+      </a>
+
+
+      <!-- Renewals -->
+      <a
+        mat-button
+        routerLink="/renewals"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>autorenew</mat-icon>
+        <span>Renewals</span>
+      </a>
+
+
+      <!-- Compliance -->
+      <a
+        mat-button
+        routerLink="/compliance"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>verified</mat-icon>
+        <span>Compliance</span>
+      </a>
+
+
+      <!-- Notifications -->
+      <a
+        mat-button
+        routerLink="/notifications"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>notifications</mat-icon>
+        <span>Notifications</span>
+      </a>
+
+
+      <!-- Reports -->
+      <a
+        mat-button
+        routerLink="/reports"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>bar_chart</mat-icon>
+        <span>Reports</span>
+      </a>
+
+
+      <!-- Audit History -->
+      <a
+        mat-button
+        routerLink="/audit"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <mat-icon>history</mat-icon>
+        <span>Audit History</span>
+      </a>
+
+      @if (isAdministrator) {
+
+  <a
+    mat-button
+    routerLink="/users"
+    routerLinkActive="active"
+    class="nav-item">
+
+    <mat-icon>people</mat-icon>
+    <span>User Management</span>
+
+  </a>
+
+}
+    </nav>
+
+
+    <div class="sidebar-footer">
+      <span>ContractIQ</span>
+      <span>v1.0</span>
+    </div>
+
+  </mat-sidenav>
+
+
+  <!-- =========================
+       MAIN APPLICATION AREA
+  ========================== -->
+
+  <mat-sidenav-content class="main-content">
+
+
+    <!-- HEADER -->
+
+    <mat-toolbar class="header">
+
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Toggle navigation"
+        (click)="toggleSidebar()">
+
+        <mat-icon>menu</mat-icon>
+
+      </button>
+
+
+      <div class="header-title">
+        Contract Management Platform
+      </div>
+
+
+      <span class="header-spacer"></span>
+
+
+      <!-- Notification button -->
+
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Notifications">
+
+        <mat-icon>notifications_none</mat-icon>
+
+      </button>
+
+
+      <!-- User profile -->
+
+      <div class="profile">
+
+        <div class="profile-avatar">
+          {{ userRole.charAt(0) }}
+        </div>
+
+        <div class="profile-info">
+
+          <span class="profile-name">
+            ContractIQ User
+          </span>
+
+          <span class="profile-role">
+            {{ userRole }}
+          </span>
+
+        </div>
+
+
+        <!-- Logout -->
+
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="Logout"
+          title="Logout"
+          (click)="logout()">
+
+          <mat-icon>logout</mat-icon>
+
+        </button>
+
+      </div>
+
+    </mat-toolbar>
+
+
+    <!-- PAGE CONTENT -->
+
+    <main class="page-content">
+
+      <router-outlet></router-outlet>
+
+    </main>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+      <span>
+        © 2026 ContractIQ
+      </span>
+
+      <span>
+        Contract Obligation Tracking & Compliance Management
+      </span>
+
+    </footer>
+
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

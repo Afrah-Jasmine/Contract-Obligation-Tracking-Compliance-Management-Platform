@@ -70,7 +70,6 @@ def check_report_access(current_user: User):
 # ============================================================
 # DASHBOARD SUMMARY
 # ============================================================
-
 @dashboard_router.get(
     "/summary",
     response_model=DashboardSummary
@@ -79,8 +78,6 @@ def dashboard_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    check_report_access(current_user)
-
     try:
         return get_dashboard_summary(db)
 
@@ -89,7 +86,7 @@ def dashboard_summary(
             status_code=500,
             detail=f"Unable to generate dashboard summary: {str(exc)}"
         )
-
+ 
 
 # ============================================================
 # CONTRACT REPORT
