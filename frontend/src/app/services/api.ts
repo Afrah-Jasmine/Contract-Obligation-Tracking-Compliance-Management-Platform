@@ -119,6 +119,49 @@ export class Api {
     );
   }
 
+  getContracts(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/contracts`,
+      { headers: this.headers() }
+    );
+  }
+
+  createContract(data: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/contracts`,
+      data,
+      { headers: this.headers() }
+    );
+  }
+
+  getObligations(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/obligations`,
+      { headers: this.headers() }
+    );
+  }
+
+  getAuditHistory(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/audit-history`,
+      { headers: this.headers() }
+    );
+  }
+
+  getUpcomingRenewals(days: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/renewals/monitoring/upcoming?days=${days}`,
+      { headers: this.headers() }
+    );
+  }
+
+  getOverdueRenewals(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/renewals/monitoring/overdue`,
+      { headers: this.headers() }
+    );
+  }
+
   downloadReport(
     type: string,
     format: 'pdf' | 'excel'

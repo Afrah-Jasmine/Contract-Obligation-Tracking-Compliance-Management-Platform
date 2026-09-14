@@ -1,7 +1,3 @@
-<h1 style="color: red; font-size: 40px;">
-  REPORTS COMPONENT TEST
-</h1>
-
 <div class="reports-page">
 
   <header class="page-header">
@@ -14,11 +10,11 @@
     <button
       type="button"
       class="refresh-btn"
-      (click)="loadReports()"
-      [disabled]="loading"
+      (click)="loadReports(false)"
+      [disabled]="loading || refreshing"
     >
       <span class="refresh-icon">↻</span>
-      {{ loading ? 'Refreshing...' : 'Refresh Data' }}
+      {{ refreshing ? 'Refreshing...' : 'Refresh Data' }}
     </button>
   </header>
 
@@ -28,16 +24,10 @@
       <p>{{ error }}</p>
     </div>
 
-    <button type="button" (click)="loadReports()">Try Again</button>
+    <button type="button" (click)="loadReports(false)">Try Again</button>
   </div>
 
-  <div *ngIf="loading" class="loading-state">
-    <div class="loading-spinner"></div>
-    <h2>Loading analytics</h2>
-    <p>Fetching the latest ContractIQ report data...</p>
-  </div>
-
-  <ng-container *ngIf="!loading">
+  <ng-container>
 
     <!-- Executive Overview -->
     <section class="overview-section">
@@ -58,14 +48,14 @@
           </div>
 
           <div class="metric">
-            {{ dashboard?.contracts?.total ?? contracts?.total ?? 0 }}
+            {{ contracts?.total ?? 0 }}
           </div>
 
           <div class="metric-label">Total contracts</div>
 
           <div class="card-detail">
             <span class="positive">
-              {{ dashboard?.contracts?.active ?? contracts?.active ?? 0 }}
+              {{ contracts?.active ?? 0 }}
             </span>
             active
           </div>
@@ -78,14 +68,14 @@
           </div>
 
           <div class="metric">
-            {{ dashboard?.obligations?.total ?? obligations?.total ?? 0 }}
+            {{ obligations?.total ?? 0 }}
           </div>
 
           <div class="metric-label">Total obligations</div>
 
           <div class="card-detail">
             <span class="warning-text">
-              {{ dashboard?.obligations?.overdue ?? obligations?.overdue ?? 0 }}
+              {{ obligations?.overdue ?? 0 }}
             </span>
             overdue
           </div>
@@ -98,14 +88,14 @@
           </div>
 
           <div class="metric">
-            {{ dashboard?.renewals?.upcoming ?? renewals?.upcoming ?? 0 }}
+            {{ renewals?.upcoming ?? 0 }}
           </div>
 
           <div class="metric-label">Upcoming renewals</div>
 
           <div class="card-detail">
             <span class="positive">
-              {{ dashboard?.renewals?.renewed ?? renewals?.renewed ?? 0 }}
+              {{ renewals?.renewed ?? 0 }}
             </span>
             renewed
           </div>
@@ -118,14 +108,14 @@
           </div>
 
           <div class="metric">
-            {{ dashboard?.compliance?.average_score ?? compliance?.average_score ?? 0 }}%
+            {{ compliance?.average_score ?? 0 }}%
           </div>
 
           <div class="metric-label">Average compliance score</div>
 
           <div class="card-detail">
             <span class="positive">
-              {{ dashboard?.compliance?.compliant ?? compliance?.compliant ?? 0 }}
+              {{ compliance?.compliant ?? 0 }}
             </span>
             compliant contracts
           </div>

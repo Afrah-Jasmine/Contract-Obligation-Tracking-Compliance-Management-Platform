@@ -16,6 +16,7 @@ from app.schemas.contract import (
 )
 from app.schemas.obligation import ObligationResponse
 from app.utils.authorization import get_current_user
+from app.utils.audit import create_audit_log
 from app.services.notification_service import (
     generate_contract_approval_notification,
     generate_contract_status_notification,
@@ -118,9 +119,31 @@ def create_contract(
     )
 
     db.add(contract)
+    db.flush()
+
+    audit_log = create_audit_log(
+        db=db,
+        user_id=current_user["user_id"],
+        action="CREATE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        old_values=None,
+        new_values={
+            "title": contract.title,
+            "contract_number": contract.contract_number,
+            "category": contract.category,
+            "status": contract.status,
+        },
+    )
+
+    print("AUDIT DEBUG - created_at:", audit_log.created_at)
+    print("AUDIT DEBUG - id:", audit_log.id)
+    print("AUDIT DEBUG - pending:", db.new)
 
     try:
         db.commit()
+        print("AUDIT DEBUG - COMMIT SUCCESS")
+        db.refresh(contract)
         db.refresh(contract)
     except IntegrityError:
         db.rollback()

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { Api } from '../../services/api';
@@ -12,12 +12,10 @@ import { Api } from '../../services/api';
 })
 export class Reports implements OnInit {
   private api = inject(Api);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor() {
-    console.log('🔥🔥🔥 REPORTS COMPONENT LOADED 🔥🔥🔥');
-  }
-
-  loading = true;
+  loading = false;
+  refreshing = false;
   error = '';
   downloading = '';
 
@@ -29,11 +27,18 @@ export class Reports implements OnInit {
   risks: any[] = [];
 
   ngOnInit(): void {
-    this.loadReports();
+    this.loadReports(true);
   }
 
-  loadReports(): void {
-    this.loading = true;
+  loadReports(initialLoad = false): void {
+    console.log('📊 REPORTS: starting load', { initialLoad });
+
+    if (initialLoad) {
+      this.loading = true;
+    } else {
+      this.refreshing = true;
+    }
+
     this.error = '';
 
     forkJoin({
@@ -45,6 +50,8 @@ export class Reports implements OnInit {
       risks: this.api.getRiskReport()
     }).subscribe({
       next: (data) => {
+        console.log('📊 REPORTS: DATA RECEIVED', data);
+
         this.dashboard = data.dashboard;
         this.contracts = data.contracts;
         this.obligations = data.obligations;
@@ -53,12 +60,30 @@ export class Reports implements OnInit {
         this.risks = Array.isArray(data.risks) ? data.risks : [];
 
         this.loading = false;
+        this.refreshing = false;
+
+        console.log('📊 REPORTS VALUES:', {
+          contracts: this.contracts?.total,
+          active: this.contracts?.active,
+          obligations: this.obligations?.total,
+          renewals: this.renewals?.upcoming,
+          compliance: this.compliance?.average_score,
+          risks: this.risks.length
+        });
+
+        this.cdr.detectChanges();
+
+        console.log('📊 REPORTS: change detection completed');
       },
+
       error: (err) => {
-        console.error('Reports loading error:', err);
+        console.error('❌ REPORTS: API ERROR', err);
 
         this.loading = false;
+        this.refreshing = false;
         this.error = this.getErrorMessage(err);
+
+        this.cdr.detectChanges();
       }
     });
   }
@@ -81,11 +106,11 @@ export class Reports implements OnInit {
         window.URL.revokeObjectURL(url);
         this.downloading = '';
       },
-      error: (err) => {
-        console.error('Download error:', err);
 
+      error: (err) => {
+        console.error('❌ REPORT DOWNLOAD ERROR', err);
         this.downloading = '';
-        this.error = `Unable to download the ${type} ${format} report.`;
+        this.error = this.getErrorMessage(err);
       }
     });
   }
@@ -95,14 +120,18 @@ export class Reports implements OnInit {
   }
 
   private getErrorMessage(err: any): string {
-    if (err?.status === 401) {
-      return 'Your session has expired. Please sign in again.';
+    if (err?.error?.detail) {
+      return err.error.detail;
     }
 
-    if (err?.status === 403) {
-      return 'You do not have permission to view these reports.';
+    if (err?.error?.message) {
+      return err.error.message;
     }
 
-    return 'Unable to load reports. Please check the backend connection and try again.';
+    if (err?.message) {
+      return err.message;
+    }
+
+    return 'Unable to load reports. Please try again.';
   }
 }

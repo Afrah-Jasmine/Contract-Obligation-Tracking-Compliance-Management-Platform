@@ -11,6 +11,7 @@ from app.api.renewals import router as renewals_router
 from app.api.renewals import contract_renewals_router
 from app.api.compliance import router as compliance_router
 from app.api.notifications import router as notifications_router
+from app.api.audit_history import router as audit_history_router
 from app.api.reports import router as reports_router
 
 
@@ -42,6 +43,7 @@ app.include_router(renewals_router)
 app.include_router(contract_renewals_router)
 app.include_router(compliance_router)
 app.include_router(notifications_router)
+app.include_router(audit_history_router)
 app.include_router(reports_router)
 
 
