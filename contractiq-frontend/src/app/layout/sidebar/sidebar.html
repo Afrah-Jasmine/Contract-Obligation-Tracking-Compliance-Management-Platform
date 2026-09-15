@@ -1,0 +1,17 @@
+@if (authService.isLoggedIn()) {
+  <aside class="app-sidebar">
+    <div class="nav-section-title">Navigation</div>
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="nav-icon" [ngClass]="item.icon"></span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+}

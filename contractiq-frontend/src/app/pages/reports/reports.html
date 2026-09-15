@@ -1,0 +1,220 @@
+<div class="reports-wrapper">
+  
+  <div class="page-title-section">
+    <div>
+      <h1 class="page-title">Reports & Executive Analytics</h1>
+      <p class="page-subtitle">Business intelligence breakdowns for contract portfolio, obligations, renewals, and compliance</p>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <button class="btn btn-secondary btn-sm" (click)="exportPDF()">
+        📄 Export PDF
+      </button>
+      <button class="btn btn-primary btn-sm" (click)="exportExcel()">
+        📊 Export Excel / CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs Header -->
+  <div class="card-glass tabs-toolbar">
+    <div class="tabs-group">
+      <button class="tab-btn" [class.active]="activeTab === 'CONTRACTS'" (click)="setTab('CONTRACTS')">Contract Analytics</button>
+      <button class="tab-btn" [class.active]="activeTab === 'OBLIGATIONS'" (click)="setTab('OBLIGATIONS')">Obligation Breakdown</button>
+      <button class="tab-btn" [class.active]="activeTab === 'RENEWALS'" (click)="setTab('RENEWALS')">Renewal Forecast</button>
+      <button class="tab-btn" [class.active]="activeTab === 'COMPLIANCE'" (click)="setTab('COMPLIANCE')">Compliance Audit</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-container">
+      <div class="spinner"></div>
+      <p>Compiling reporting metrics from database...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card-glass error-card">
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary btn-sm" (click)="loadActiveReport()">Retry Report</button>
+    </div>
+  }
+
+  <!-- TAB 1: CONTRACTS REPORT -->
+  @if (!loading() && !error() && activeTab === 'CONTRACTS' && contractReport()) {
+    <div class="report-content-grid">
+      <div class="stats-overview">
+        <div class="card-glass stat-box">
+          <span class="label">Total Contracts</span>
+          <span class="val">{{ contractReport()?.total_contracts }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-emerald">Active Contracts</span>
+          <span class="val text-emerald">{{ contractReport()?.active_contracts }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-rose">Expired Contracts</span>
+          <span class="val text-rose">{{ contractReport()?.expired_contracts }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-amber">Pending Approval</span>
+          <span class="val text-amber">{{ contractReport()?.pending_approval }}</span>
+        </div>
+      </div>
+
+      <div class="card-glass table-section">
+        <h3>Contract Status Distribution</h3>
+        <table class="custom-table" style="margin-top:1rem;">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Count</th>
+              <th>Percentage Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of contractReport()?.contracts_by_status || []; track item.status) {
+              <tr>
+                <td><strong>{{ item.status }}</strong></td>
+                <td>{{ item.count }}</td>
+                <td>
+                  <div class="bar-cell">
+                    <div class="progress-track">
+                      <div class="progress-fill" [style.width.%]="((item.count / (contractReport()?.total_contracts || 1)) * 100)"></div>
+                    </div>
+                    <span>{{ (((item.count / (contractReport()?.total_contracts || 1)) * 100) | number:'1.1-1') }}%</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: OBLIGATIONS REPORT -->
+  @if (!loading() && !error() && activeTab === 'OBLIGATIONS' && obligationReport()) {
+    <div class="report-content-grid">
+      <div class="stats-overview">
+        <div class="card-glass stat-box">
+          <span class="label">Total Obligations</span>
+          <span class="val">{{ obligationReport()?.total_obligations }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-amber">Pending</span>
+          <span class="val text-amber">{{ obligationReport()?.pending_obligations }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-emerald">Completed</span>
+          <span class="val text-emerald">{{ obligationReport()?.completed_obligations }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-rose">Overdue</span>
+          <span class="val text-rose">{{ obligationReport()?.overdue_obligations }}</span>
+        </div>
+      </div>
+
+      <div class="card-glass table-section">
+        <h3>Obligation Status Breakdown</h3>
+        <table class="custom-table" style="margin-top:1rem;">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Obligation Count</th>
+              <th>Distribution</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of obligationReport()?.obligations_by_status || []; track item.status) {
+              <tr>
+                <td><strong>{{ item.status }}</strong></td>
+                <td>{{ item.count }}</td>
+                <td>
+                  <div class="bar-cell">
+                    <div class="progress-track">
+                      <div class="progress-fill" [style.width.%]="((item.count / (obligationReport()?.total_obligations || 1)) * 100)"></div>
+                    </div>
+                    <span>{{ (((item.count / (obligationReport()?.total_obligations || 1)) * 100) | number:'1.1-1') }}%</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: RENEWALS REPORT -->
+  @if (!loading() && !error() && activeTab === 'RENEWALS' && renewalReport()) {
+    <div class="report-content-grid">
+      <div class="stats-overview">
+        <div class="card-glass stat-box">
+          <span class="label">Upcoming Renewals</span>
+          <span class="val text-emerald">{{ renewalReport()?.upcoming_renewals }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-rose">Expired Contracts</span>
+          <span class="val text-rose">{{ renewalReport()?.expired_contracts }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-amber">Immediate Attention (30 Days)</span>
+          <span class="val text-amber">{{ renewalReport()?.immediate_attention }}</span>
+        </div>
+      </div>
+
+      <div class="card-glass table-section">
+        <h3>Upcoming Renewal Pipeline</h3>
+        <table class="custom-table" style="margin-top:1rem;">
+          <thead>
+            <tr>
+              <th>Renewal ID</th>
+              <th>Contract ID</th>
+              <th>Renewal Scheduled Date</th>
+              <th>Contract Expiry Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of renewalReport()?.renewals || []; track item.renewal_id) {
+              <tr>
+                <td>#RNW-{{ item.renewal_id }}</td>
+                <td>Contract #{{ item.contract_id }}</td>
+                <td>{{ item.renewal_date | date:'mediumDate' }}</td>
+                <td>{{ item.contract_end_date | date:'mediumDate' }}</td>
+                <td><span class="badge badge-approved">{{ item.status }}</span></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-center">No upcoming renewals found for selected timeframe.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 4: COMPLIANCE REPORT -->
+  @if (!loading() && !error() && activeTab === 'COMPLIANCE' && complianceReport()) {
+    <div class="report-content-grid">
+      <div class="stats-overview">
+        <div class="card-glass stat-box">
+          <span class="label">Overall Score</span>
+          <span class="val text-emerald">{{ complianceReport()?.overall_compliance_percentage }}%</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-emerald">Compliant Contracts</span>
+          <span class="val text-emerald">{{ complianceReport()?.compliant_contracts }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-amber">Partially Compliant</span>
+          <span class="val text-amber">{{ complianceReport()?.partially_compliant_contracts }}</span>
+        </div>
+        <div class="card-glass stat-box">
+          <span class="label text-rose">High Risk Contracts</span>
+          <span class="val text-rose">{{ complianceReport()?.high_risk_contracts }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

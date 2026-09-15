@@ -1,0 +1,115 @@
+<div class="compliance-wrapper">
+  
+  <div class="page-title-section">
+    <div>
+      <h1 class="page-title">Compliance Management</h1>
+      <p class="page-subtitle">Real-time obligation auditing, compliance tracking, and risk assessment</p>
+    </div>
+  </div>
+
+  <!-- Summary Cards Grid -->
+  @if (summary()) {
+    <div class="summary-grid">
+      
+      <div class="card-glass summary-card">
+        <span class="summary-label">Total Audited Contracts</span>
+        <div class="summary-val">{{ summary()?.total_contracts || 0 }}</div>
+      </div>
+
+      <div class="card-glass summary-card border-emerald">
+        <span class="summary-label text-emerald">Compliant Contracts</span>
+        <div class="summary-val text-emerald">{{ summary()?.compliant_contracts || 0 }}</div>
+      </div>
+
+      <div class="card-glass summary-card border-amber">
+        <span class="summary-label text-amber">Partially Compliant</span>
+        <div class="summary-val text-amber">{{ summary()?.partially_compliant_contracts || 0 }}</div>
+      </div>
+
+      <div class="card-glass summary-card border-rose">
+        <span class="summary-label text-rose">High Risk / Non-Compliant</span>
+        <div class="summary-val text-rose">{{ summary()?.high_risk_contracts || 0 }}</div>
+      </div>
+
+    </div>
+  }
+
+  <!-- Filter Bar -->
+  <div class="card-glass filter-toolbar">
+    <div class="filter-buttons">
+      <button class="btn btn-secondary btn-sm" [class.btn-primary]="activeFilter === 'ALL'" (click)="setFilter('ALL')">All Contracts Compliance</button>
+      <button class="btn btn-secondary btn-sm" [class.btn-primary]="activeFilter === 'NON_COMPLIANT'" (click)="setFilter('NON_COMPLIANT')">Non-Compliant Only</button>
+      <button class="btn btn-secondary btn-sm" [class.btn-primary]="activeFilter === 'HIGH_RISK'" (click)="setFilter('HIGH_RISK')">High Risk Only</button>
+    </div>
+  </div>
+
+  <!-- Compliance Data Table -->
+  @if (loading()) {
+    <div class="state-container">
+      <div class="spinner"></div>
+      <p>Performing contract compliance audit calculation...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card-glass error-card">
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary btn-sm" (click)="loadData()">Retry Audit</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Contract Reference</th>
+            <th>Obligation Summary</th>
+            <th>Compliance Score</th>
+            <th>Compliance Status</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of complianceList(); track c.contract_id) {
+            <tr>
+              <td>
+                <span class="contract-ref">{{ getContractTitle(c.contract_id) }}</span>
+              </td>
+              <td>
+                <div class="obligations-breakdown">
+                  <span class="sub-text">Total: {{ c.total_obligations }}</span> | 
+                  <span class="text-emerald">Completed: {{ c.completed_obligations }}</span> | 
+                  <span class="text-rose">Overdue: {{ c.overdue_obligations }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="score-cell">
+                  <div class="progress-track">
+                    <div class="progress-fill" [style.width.%]="c.compliance_percentage"></div>
+                  </div>
+                  <span class="score-val">{{ c.compliance_percentage }}%</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(c.compliance_status)">{{ c.compliance_status }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getRiskBadgeClass(c.risk_level)">{{ c.risk_level }} Risk</span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">
+                <div class="state-container">
+                  <p>No contracts match compliance filter criteria.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

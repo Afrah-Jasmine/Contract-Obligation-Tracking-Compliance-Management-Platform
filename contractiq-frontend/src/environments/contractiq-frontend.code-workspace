@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../contractiq_backend"
+		},
+		{
+			"path": "../../../student"
+		},
+		{
+			"path": "../../../datastructures"
+		}
+	]
+}

@@ -1,0 +1,54 @@
+<div class="auth-card card-glass">
+  <div class="auth-header">
+    <div class="auth-logo">IQ</div>
+    <h2>ContractIQ</h2>
+    <p class="auth-subtitle">Contract Obligation & Compliance Management</p>
+  </div>
+
+  <form (ngSubmit)="login()" class="auth-form">
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input
+        type="email"
+        name="email"
+        class="form-control"
+        [(ngModel)]="email"
+        placeholder="e.g. admin@contractiq.com"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input
+        type="password"
+        name="password"
+        class="form-control"
+        [(ngModel)]="password"
+        placeholder="••••••••"
+        required
+      />
+    </div>
+
+    @if (error) {
+      <div class="alert alert-error">
+        <span>{{ error }}</span>
+      </div>
+    }
+
+    <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+      @if (loading) {
+        <span class="spinner-sm"></span> Logging in...
+      } @else {
+        Sign In
+      }
+    </button>
+
+    <div class="auth-footer-links">
+      <a routerLink="/forgot-password">Forgot Password?</a>
+      <a routerLink="/register">Create Account</a>
+    </div>
+
+  </form>
+</div>

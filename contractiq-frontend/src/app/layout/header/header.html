@@ -1,0 +1,71 @@
+<header class="app-header">
+  <div class="header-brand">
+    <a routerLink="/dashboard" class="brand-logo">
+      <div class="logo-icon">IQ</div>
+      <span class="logo-text">Contract<span class="logo-accent">IQ</span></span>
+    </a>
+  </div>
+
+  @if (authService.isLoggedIn()) {
+    <div class="header-actions">
+      <!-- Notifications Dropdown Trigger -->
+      <div class="notification-wrapper">
+        <button class="icon-btn" (click)="toggleNotifications()" title="Notifications">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+          @if (unreadCount() > 0) {
+            <span class="notification-badge">{{ unreadCount() }}</span>
+          }
+        </button>
+
+        @if (showNotificationsMenu) {
+          <div class="notification-dropdown card-glass">
+            <div class="dropdown-header">
+              <h4>Notifications</h4>
+              @if (unreadCount() > 0) {
+                <button class="text-btn" (click)="markAllAsRead()">Mark all as read</button>
+              }
+            </div>
+            <div class="dropdown-list">
+              @for (item of notifications().slice(0, 5); track item.id) {
+                <div class="notification-item" [class.unread]="item.status === 'Unread'">
+                  <div class="item-title">{{ item.title }}</div>
+                  <div class="item-msg">{{ item.message }}</div>
+                  <div class="item-time">{{ item.created_at | date:'short' }}</div>
+                </div>
+              } @empty {
+                <div class="empty-item">No notifications</div>
+              }
+            </div>
+            <div class="dropdown-footer">
+              <a routerLink="/notifications" (click)="showNotificationsMenu = false">View all notifications</a>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- User Profile Pill -->
+      <div class="user-profile-pill">
+        <div class="user-avatar">
+          {{ (authService.currentUser()?.full_name || 'U').charAt(0) }}
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ authService.currentUser()?.full_name }}</span>
+          <span class="user-role badge badge-approved">{{ authService.getUserRole() || 'Viewer' }}</span>
+        </div>
+      </div>
+
+      <!-- Logout Button -->
+      <button class="btn btn-secondary btn-sm" (click)="logout()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  }
+</header>

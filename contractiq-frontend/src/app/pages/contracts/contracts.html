@@ -1,0 +1,232 @@
+<div class="contracts-wrapper">
+  
+  <div class="page-title-section">
+    <div>
+      <h1 class="page-title">Contract Management</h1>
+      <p class="page-subtitle">Repository, lifecycle status tracking, and approval workflow</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Create New Contract
+    </button>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="card-glass toolbar-card">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="form-control" 
+        placeholder="Search title, number or category..." 
+        [(ngModel)]="searchQuery"
+        (input)="applyFilter()"
+      />
+    </div>
+
+    <div class="filter-box">
+      <label>Status Filter:</label>
+      <select class="form-control" [(ngModel)]="selectedStatus" (change)="applyFilter()">
+        <option value="ALL">All Statuses</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Contracts Table Container -->
+  @if (loading()) {
+    <div class="state-container">
+      <div class="spinner"></div>
+      <p>Loading contracts from database...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card-glass error-card">
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary btn-sm" (click)="loadContracts()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Contract Details</th>
+            <th>Category</th>
+            <th>Effective Dates</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of filteredContracts(); track c.id) {
+            <tr>
+              <td>
+                <div class="contract-title-cell">
+                  <a (click)="viewDetails(c)" class="title-link">{{ c.title }}</a>
+                  <span class="number-tag">{{ c.contract_number }}</span>
+                </div>
+              </td>
+              <td>{{ c.category }}</td>
+              <td>
+                <div class="date-range">
+                  <span>{{ c.start_date | date:'mediumDate' }}</span>
+                  <span class="arrow">→</span>
+                  <span>{{ c.end_date | date:'mediumDate' }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(c.status)">{{ c.status }}</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-secondary btn-sm" (click)="viewDetails(c)">View</button>
+                  
+                  @if (c.status === 'Draft') {
+                    <button class="btn btn-primary btn-sm" (click)="submitForReview(c)">Submit</button>
+                  }
+                  @if (c.status === 'Under Review') {
+                    <button class="btn btn-primary btn-sm" (click)="approveContract(c)">Approve</button>
+                  }
+                  @if (c.status === 'Approved') {
+                    <button class="btn btn-primary btn-sm" (click)="activateContract(c)">Activate</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">
+                <div class="state-container">
+                  <p>No contract records found matching filter criteria.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Create Contract Modal -->
+  @if (showCreateModal) {
+    <div class="modal-overlay" (click)="showCreateModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Create New Contract</h3>
+          <button class="modal-close-btn" (click)="showCreateModal = false">×</button>
+        </div>
+
+        <form (ngSubmit)="submitCreateContract()">
+          
+          <div class="form-group">
+            <label>Contract Title *</label>
+            <input type="text" class="form-control" [(ngModel)]="newContract.title" name="title" required placeholder="e.g. Cloud Infrastructure Service Level Agreement" />
+          </div>
+
+          <div class="form-group">
+            <label>Contract Number *</label>
+            <input type="text" class="form-control" [(ngModel)]="newContract.contract_number" name="contract_number" required />
+          </div>
+
+          <div class="form-group">
+            <label>Category</label>
+            <select class="form-control" [(ngModel)]="newContract.category" name="category">
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="form-control" [(ngModel)]="newContract.description" name="description" rows="3" placeholder="Provide contract summary details..."></textarea>
+          </div>
+
+          <div class="form-row" style="display:flex; gap:1rem;">
+            <div class="form-group" style="flex:1;">
+              <label>Start Date</label>
+              <input type="date" class="form-control" [(ngModel)]="newContract.start_date" name="start_date" required />
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>End Date</label>
+              <input type="date" class="form-control" [(ngModel)]="newContract.end_date" name="end_date" required />
+            </div>
+          </div>
+
+          @if (createError) {
+            <div class="alert alert-error" style="margin-top:1rem;">{{ createError }}</div>
+          }
+
+          <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
+            <button type="button" class="btn btn-secondary" (click)="showCreateModal = false">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="submitting">
+              {{ submitting ? 'Saving...' : 'Create Contract' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- View Contract Details Modal -->
+  @if (showDetailsModal && selectedContract) {
+    <div class="modal-overlay" (click)="showDetailsModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h3>{{ selectedContract.title }}</h3>
+            <span class="number-tag">{{ selectedContract.contract_number }}</span>
+          </div>
+          <button class="modal-close-btn" (click)="showDetailsModal = false">×</button>
+        </div>
+
+        <div class="details-body">
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="badge" [ngClass]="getStatusBadgeClass(selectedContract.status)">{{ selectedContract.status }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Category:</span>
+            <span>{{ selectedContract.category }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Start Date:</span>
+            <span>{{ selectedContract.start_date | date:'mediumDate' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">End Date:</span>
+            <span>{{ selectedContract.end_date | date:'mediumDate' }}</span>
+          </div>
+          @if (selectedContract.description) {
+            <div class="detail-row description">
+              <span class="detail-label">Description:</span>
+              <p>{{ selectedContract.description }}</p>
+            </div>
+          }
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
+          <button class="btn btn-secondary" (click)="showDetailsModal = false">Close</button>
+          @if (selectedContract.status === 'Draft') {
+            <button class="btn btn-primary" (click)="submitForReview(selectedContract)">Submit for Review</button>
+          }
+          @if (selectedContract.status === 'Under Review') {
+            <button class="btn btn-primary" (click)="approveContract(selectedContract)">Approve Contract</button>
+          }
+          @if (selectedContract.status === 'Approved') {
+            <button class="btn btn-primary" (click)="activateContract(selectedContract)">Activate Contract</button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

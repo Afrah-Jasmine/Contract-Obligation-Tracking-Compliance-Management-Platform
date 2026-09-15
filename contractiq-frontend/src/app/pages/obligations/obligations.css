@@ -1,0 +1,83 @@
+.obligations-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.toolbar-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+}
+
+.search-box {
+  flex: 1;
+  max-width: 400px;
+}
+
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-box label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.main-title {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.sub-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.contract-ref {
+  font-size: 0.85rem;
+  color: var(--primary-500);
+}
+
+.progress-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.progress-track {
+  width: 100px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--emerald-500), var(--primary-500));
+  border-radius: var(--radius-full);
+}
+
+.progress-val {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}

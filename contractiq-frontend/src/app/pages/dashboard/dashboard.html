@@ -1,0 +1,162 @@
+<div class="dashboard-wrapper">
+  
+  <div class="page-title-section">
+    <div>
+      <h1 class="page-title">Executive Dashboard</h1>
+      <p class="page-subtitle">Real-time contract lifecycle, obligation tracking, and compliance metrics</p>
+    </div>
+    <button class="btn btn-secondary" (click)="loadDashboard()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+      </svg>
+      Refresh Data
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="state-container">
+      <div class="spinner"></div>
+      <p>Fetching real-time metrics from FastAPI reporting backend...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card-glass error-card">
+      <div class="error-header">
+        <span class="badge badge-expired">API Error</span>
+        <h3>Failed to load dashboard data</h3>
+      </div>
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary btn-sm" (click)="loadDashboard()">Retry Connection</button>
+    </div>
+  }
+
+  @if (!loading() && !error() && dashboardData()) {
+    
+    <!-- Top Summary Metrics Grid -->
+    <div class="metrics-grid">
+      
+      <div class="card-glass metric-card">
+        <div class="metric-icon icon-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="metric-content">
+          <span class="metric-label">Total Contracts</span>
+          <div class="metric-value">{{ dashboardData()?.contracts?.total_contracts || 0 }}</div>
+          <span class="metric-sub text-muted">Across all departments</span>
+        </div>
+      </div>
+
+      <div class="card-glass metric-card">
+        <div class="metric-icon icon-emerald">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="metric-content">
+          <span class="metric-label">Active Contracts</span>
+          <div class="metric-value text-emerald">{{ dashboardData()?.contracts?.active_contracts || 0 }}</div>
+          <span class="metric-sub text-emerald">Currently operational</span>
+        </div>
+      </div>
+
+      <div class="card-glass metric-card">
+        <div class="metric-icon icon-amber">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="metric-content">
+          <span class="metric-label">Pending Obligations</span>
+          <div class="metric-value text-amber">{{ dashboardData()?.obligations?.pending_obligations || 0 }}</div>
+          <span class="metric-sub text-amber">Require action</span>
+        </div>
+      </div>
+
+      <div class="card-glass metric-card">
+        <div class="metric-icon icon-rose">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="metric-content">
+          <span class="metric-label">Overdue Obligations</span>
+          <div class="metric-value text-rose">{{ dashboardData()?.obligations?.overdue_obligations || 0 }}</div>
+          <span class="metric-sub text-rose">Immediate attention required</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Secondary Metrics & Breakdown Grid -->
+    <div class="dashboard-body-grid">
+      
+      <!-- Compliance Rate Summary Card -->
+      <div class="card-glass compliance-summary-card">
+        <h3>Compliance Rate Overview</h3>
+        <div class="compliance-ring-container">
+          <div class="compliance-percentage">
+            {{ dashboardData()?.compliance?.overall_compliance_percentage || 0 }}%
+          </div>
+          <span class="compliance-subtitle">Overall Compliance Score</span>
+        </div>
+
+        <div class="compliance-stats-list">
+          <div class="stat-item">
+            <span class="stat-dot dot-emerald"></span>
+            <span class="stat-name">Compliant Contracts</span>
+            <span class="stat-count">{{ dashboardData()?.compliance?.compliant_contracts || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-dot dot-amber"></span>
+            <span class="stat-name">Partially Compliant</span>
+            <span class="stat-count">{{ dashboardData()?.compliance?.partially_compliant_contracts || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-dot dot-rose"></span>
+            <span class="stat-name">Non-Compliant / High Risk</span>
+            <span class="stat-count">{{ dashboardData()?.compliance?.high_risk_contracts || 0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Modules & Status Distribution -->
+      <div class="card-glass breakdown-card">
+        <h3>Contracts by Status</h3>
+        <div class="status-bars-container">
+          @for (item of dashboardData()?.contracts?.contracts_by_status || []; track item.status) {
+            <div class="status-bar-row">
+              <div class="status-info">
+                <span class="status-name">{{ item.status }}</span>
+                <span class="status-count-badge">{{ item.count }}</span>
+              </div>
+              <div class="progress-track">
+                <div 
+                  class="progress-fill" 
+                  [style.width.%]="((item.count / (dashboardData()?.contracts?.total_contracts || 1)) * 100)"
+                ></div>
+              </div>
+            </div>
+          } @empty {
+            <p class="text-muted text-center" style="padding: 2rem 0;">No status distribution data available</p>
+          }
+        </div>
+
+        <div class="card-footer-actions">
+          <a routerLink="/contracts" class="btn btn-primary btn-sm">Manage Contracts →</a>
+          <a routerLink="/obligations" class="btn btn-secondary btn-sm">View Obligations →</a>
+        </div>
+      </div>
+
+    </div>
+
+  }
+
+</div>

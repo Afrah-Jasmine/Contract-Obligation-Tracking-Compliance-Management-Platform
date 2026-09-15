@@ -1,0 +1,182 @@
+<div class="renewals-wrapper">
+  
+  <div class="page-title-section">
+    <div>
+      <h1 class="page-title">Renewal Management</h1>
+      <p class="page-subtitle">Contract expiration monitoring, extension schedules, and auto-renewals</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Schedule Renewal
+    </button>
+  </div>
+
+  <!-- Navigation Tabs Toolbar -->
+  <div class="card-glass tabs-toolbar">
+    <div class="tabs-group">
+      <button class="tab-btn" [class.active]="activeTab === 'ALL'" (click)="setTab('ALL')">All Renewals</button>
+      <button class="tab-btn" [class.active]="activeTab === 'UPCOMING'" (click)="setTab('UPCOMING')">Upcoming Expired (90 Days)</button>
+      <button class="tab-btn" [class.active]="activeTab === 'EXPIRED'" (click)="setTab('EXPIRED')">Expired Contracts</button>
+    </div>
+  </div>
+
+  <!-- Renewals Data Table -->
+  @if (loading()) {
+    <div class="state-container">
+      <div class="spinner"></div>
+      <p>Loading renewal schedules...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card-glass error-card">
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary btn-sm" (click)="loadData()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Renewal ID</th>
+            <th>Contract Reference</th>
+            <th>Scheduled Renewal Date</th>
+            <th>Previous Expiry</th>
+            <th>New Expiry Target</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of filteredRenewals(); track r.id) {
+            <tr>
+              <td>#RNW-{{ r.id }}</td>
+              <td>
+                <span class="contract-ref">{{ getContractTitle(r.contract_id) }}</span>
+              </td>
+              <td>{{ r.renewal_date | date:'mediumDate' }}</td>
+              <td>{{ r.previous_expiry_date | date:'mediumDate' }}</td>
+              <td>{{ r.new_expiry_date ? (r.new_expiry_date | date:'mediumDate') : 'TBD' }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(r.status)">{{ r.status }}</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  @if (r.status === 'Upcoming') {
+                    <button class="btn btn-secondary btn-sm" (click)="updateStatus(r, 'In Progress')">Start Review</button>
+                  }
+                  @if (r.status === 'In Progress') {
+                    <button class="btn btn-primary btn-sm" (click)="openCompleteModal(r)">Complete Renewal</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">
+                <div class="state-container">
+                  <p>No contract renewals found in this view.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Create Renewal Modal -->
+  @if (showCreateModal) {
+    <div class="modal-overlay" (click)="showCreateModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Schedule Contract Renewal</h3>
+          <button class="modal-close-btn" (click)="showCreateModal = false">×</button>
+        </div>
+
+        <form (ngSubmit)="submitCreateRenewal()">
+
+          <div class="form-group">
+            <label>Select Contract *</label>
+            <select class="form-control" [(ngModel)]="newRenewal.contract_id" name="contract_id" (change)="onContractSelectChange()" required>
+              @for (c of contracts(); track c.id) {
+                <option [value]="c.id">{{ c.title }} ({{ c.contract_number }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row" style="display:flex; gap:1rem;">
+            <div class="form-group" style="flex:1;">
+              <label>Renewal Schedule Date *</label>
+              <input type="date" class="form-control" [(ngModel)]="newRenewal.renewal_date" name="renewal_date" required />
+            </div>
+
+            <div class="form-group" style="flex:1;">
+              <label>Current Expiry Date *</label>
+              <input type="date" class="form-control" [(ngModel)]="newRenewal.previous_expiry_date" name="previous_expiry_date" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Target New Expiry Date</label>
+            <input type="date" class="form-control" [(ngModel)]="newRenewal.new_expiry_date" name="new_expiry_date" />
+          </div>
+
+          <div class="form-group">
+            <label>Renewal Notes</label>
+            <textarea class="form-control" [(ngModel)]="newRenewal.notes" name="notes" rows="3" placeholder="Negotiation terms, price adjustments, or SLA changes..."></textarea>
+          </div>
+
+          @if (createError) {
+            <div class="alert alert-error">{{ createError }}</div>
+          }
+
+          <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
+            <button type="button" class="btn btn-secondary" (click)="showCreateModal = false">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="submitting">
+              {{ submitting ? 'Saving...' : 'Create Renewal Record' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Complete Renewal Modal -->
+  @if (showCompleteModal && selectedRenewal) {
+    <div class="modal-overlay" (click)="showCompleteModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Complete Contract Renewal</h3>
+          <button class="modal-close-btn" (click)="showCompleteModal = false">×</button>
+        </div>
+
+        <div style="margin: 1.5rem 0;">
+          <p>Mark contract as successfully renewed and extend contract duration in backend.</p>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label>Final Renewal Date</label>
+            <input type="date" class="form-control" [(ngModel)]="completeRenewalDate" />
+          </div>
+
+          <div class="form-group">
+            <label>New Extended Expiry Date *</label>
+            <input type="date" class="form-control" [(ngModel)]="completeNewExpiryDate" required />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:1rem;">
+          <button class="btn btn-secondary" (click)="showCompleteModal = false">Cancel</button>
+          <button class="btn btn-primary" (click)="submitCompleteRenewal()">Confirm & Extend Contract</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

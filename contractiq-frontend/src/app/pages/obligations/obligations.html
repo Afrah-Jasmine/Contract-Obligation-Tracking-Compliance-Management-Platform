@@ -1,0 +1,234 @@
+<div class="obligations-wrapper">
+  
+  <div class="page-title-section">
+    <div>
+      <h1 class="page-title">Obligation Tracking</h1>
+      <p class="page-subtitle">Monitor deliverables, compliance milestones, due dates, and task completion</p>
+    </div>
+    <div style="display:flex; gap:1rem;">
+      <button 
+        class="btn" 
+        [ngClass]="showOverdueOnly ? 'btn-danger' : 'btn-secondary'" 
+        (click)="toggleOverdueFilter()"
+      >
+        {{ showOverdueOnly ? '✓ Showing Overdue Only' : 'Filter Overdue Obligations' }}
+      </button>
+
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Obligation
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <div class="card-glass toolbar-card">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="form-control" 
+        placeholder="Search obligation title or type..." 
+        [(ngModel)]="searchQuery"
+        (input)="applyFilter()"
+      />
+    </div>
+
+    <div class="filter-box">
+      <label>Status Filter:</label>
+      <select class="form-control" [(ngModel)]="selectedStatus" (change)="applyFilter()">
+        <option value="ALL">All Statuses</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Obligations Table -->
+  @if (loading()) {
+    <div class="state-container">
+      <div class="spinner"></div>
+      <p>Loading obligation tracking records...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="card-glass error-card">
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary btn-sm" (click)="loadData()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="table-container">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Obligation</th>
+            <th>Contract Reference</th>
+            <th>Type</th>
+            <th>Due Date</th>
+            <th>Progress</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of filteredObligations(); track o.id) {
+            <tr>
+              <td>
+                <div class="title-cell">
+                  <span class="main-title">{{ o.title }}</span>
+                  <span class="sub-text">Assigned to: {{ getUserName(o.assigned_to) }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="contract-ref">{{ getContractTitle(o.contract_id) }}</span>
+              </td>
+              <td>{{ o.obligation_type }}</td>
+              <td>
+                <span [class.text-rose]="o.status === 'Overdue'">
+                  {{ o.due_date | date:'mediumDate' }}
+                </span>
+              </td>
+              <td>
+                <div class="progress-cell" (click)="openProgressModal(o)">
+                  <div class="progress-track">
+                    <div class="progress-fill" [style.width.%]="o.progress"></div>
+                  </div>
+                  <span class="progress-val">{{ o.progress }}%</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(o.status)">{{ o.status }}</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-secondary btn-sm" (click)="openProgressModal(o)">Update Progress</button>
+                  @if (o.status !== 'Completed') {
+                    <button class="btn btn-primary btn-sm" (click)="markCompleted(o)">Complete</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">
+                <div class="state-container">
+                  <p>No obligation records found.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Create Obligation Modal -->
+  @if (showCreateModal) {
+    <div class="modal-overlay" (click)="showCreateModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Create New Obligation</h3>
+          <button class="modal-close-btn" (click)="showCreateModal = false">×</button>
+        </div>
+
+        <form (ngSubmit)="submitCreateObligation()">
+
+          <div class="form-group">
+            <label>Associated Contract *</label>
+            <select class="form-control" [(ngModel)]="newObligation.contract_id" name="contract_id" required>
+              @for (c of contracts(); track c.id) {
+                <option [value]="c.id">{{ c.title }} ({{ c.contract_number }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Obligation Title *</label>
+            <input type="text" class="form-control" [(ngModel)]="newObligation.title" name="title" required placeholder="e.g. Submit Q3 Financial Audit Report" />
+          </div>
+
+          <div class="form-group">
+            <label>Obligation Type</label>
+            <select class="form-control" [(ngModel)]="newObligation.obligation_type" name="obligation_type">
+              @for (t of obligationTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Assigned Assignee</label>
+            <select class="form-control" [(ngModel)]="newObligation.assigned_to" name="assigned_to">
+              @for (u of users(); track u.id) {
+                <option [value]="u.id">{{ u.full_name }} ({{ u.role }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Due Date *</label>
+            <input type="date" class="form-control" [(ngModel)]="newObligation.due_date" name="due_date" required />
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="form-control" [(ngModel)]="newObligation.description" name="description" rows="3" placeholder="Additional deliverable notes..."></textarea>
+          </div>
+
+          @if (createError) {
+            <div class="alert alert-error">{{ createError }}</div>
+          }
+
+          <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
+            <button type="button" class="btn btn-secondary" (click)="showCreateModal = false">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="submitting">
+              {{ submitting ? 'Creating...' : 'Create Obligation' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Update Progress Modal -->
+  @if (showProgressModal && selectedObligation) {
+    <div class="modal-overlay" (click)="showProgressModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Update Completion Progress</h3>
+          <button class="modal-close-btn" (click)="showProgressModal = false">×</button>
+        </div>
+
+        <div style="margin: 1.5rem 0;">
+          <h4>{{ selectedObligation.title }}</h4>
+          <p class="sub-text">Contract: {{ getContractTitle(selectedObligation.contract_id) }}</p>
+          
+          <div class="form-group" style="margin-top: 1.5rem;">
+            <label>Completion Percentage: {{ newProgressValue }}%</label>
+            <input 
+              type="range" 
+              min="0" 
+              max="100" 
+              step="5" 
+              class="form-control" 
+              [(ngModel)]="newProgressValue" 
+            />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:1rem;">
+          <button class="btn btn-secondary" (click)="showProgressModal = false">Cancel</button>
+          <button class="btn btn-primary" (click)="saveProgressUpdate()">Save Progress</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
