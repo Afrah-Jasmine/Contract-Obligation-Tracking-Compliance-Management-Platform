@@ -1,14 +1,38 @@
+import {
+  Component,
+  OnInit
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import {
+  MatTableModule
+} from '@angular/material/table';
+
+import {
+  MatCardModule
+} from '@angular/material/card';
+
+import {
+  MatButtonModule
+} from '@angular/material/button';
+
+import {
+  MatFormFieldModule
+} from '@angular/material/form-field';
+
+import {
+  MatInputModule
+} from '@angular/material/input';
+
+import {
+  MatSelectModule
+} from '@angular/material/select';
+
+import {
+  MatIconModule
+} from '@angular/material/icon';
 
 import {
   Contract,
@@ -17,56 +41,62 @@ import {
   UpdateContract
 } from '../services/contract';
 
+
 @Component({
   selector: 'app-contracts',
   standalone: true,
+
   imports: [
     CommonModule,
     FormsModule,
-    MatButtonModule,
+    MatTableModule,
     MatCardModule,
+    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatIconModule,
-    MatTableModule
+    MatIconModule
   ],
+
   templateUrl: './contracts.html',
   styleUrl: './contracts.less'
 })
 export class Contracts implements OnInit {
 
-  // =========================================================
+  // =====================================================
   // CONTRACT DATA
-  // =========================================================
+  // =====================================================
 
   contracts: Contract[] = [];
+
   filteredContracts: Contract[] = [];
 
-  loading = false;
-  errorMessage = '';
-  isEmpty = false;
 
-
-  // =========================================================
-  // SEARCH / FILTER
-  // =========================================================
+  // =====================================================
+  // FILTERS
+  // =====================================================
 
   searchTerm = '';
+
   selectedCategory = '';
+
   selectedStatus = '';
 
-  categories: string[] = [
-    'Employment Contract',
+
+  // =====================================================
+  // DROPDOWN OPTIONS
+  // =====================================================
+
+  categories = [
     'Vendor Contract',
     'Service Agreement',
+    'Employment Contract',
     'NDA',
     'Lease Agreement',
-    'Partnership Agreement',
-    'Other'
+    'Partnership Agreement'
   ];
 
-  statuses: string[] = [
+  statuses = [
     'Draft',
     'Under Review',
     'Approved',
@@ -76,151 +106,196 @@ export class Contracts implements OnInit {
   ];
 
 
-  // =========================================================
-  // CREATE CONTRACT
-  // =========================================================
+  // =====================================================
+  // LOADING / ERROR
+  // =====================================================
+
+  loading = false;
+
+  errorMessage = '';
+
+
+  // =====================================================
+  // CREATE FORM
+  // =====================================================
 
   showCreateForm = false;
+
   creating = false;
 
   createError = '';
-  createSuccess = '';
 
-  // Top success popup
   createSuccessPopup = false;
 
+  successMessage = '';
+
+  private successToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+
   createContractData: CreateContract = {
+
     contract_number: '',
+
     title: '',
+
     category: '',
+
     description: '',
+
     party_name: '',
+
     start_date: '',
+
     end_date: ''
+
   };
 
 
-  // =========================================================
-  // EDIT CONTRACT
-  // =========================================================
+  // =====================================================
+  // EDIT FORM
+  // =====================================================
 
   showEditForm = false;
+
   editing = false;
 
-  editingContractId: number | null = null;
-
   editError = '';
-  editSuccess = '';
+
+  selectedContract: Contract | null = null;
+
 
   editContractData: UpdateContract = {
+
     title: '',
+
     category: '',
+
     description: '',
+
     party_name: '',
+
     start_date: '',
+
     end_date: ''
+
   };
 
 
-  // =========================================================
-  // VIEW CONTRACT
-  // =========================================================
+  // =====================================================
+  // VIEW MODAL
+  // =====================================================
 
   showViewModal = false;
-  selectedContract: Contract | null = null;
 
   viewLoading = false;
+
   viewError = '';
 
 
-  // =========================================================
+  // =====================================================
   // CONSTRUCTOR
-  // =========================================================
+  // =====================================================
 
   constructor(
     private contractService: ContractService
   ) {}
 
 
-  // =========================================================
+  // =====================================================
   // INIT
-  // =========================================================
+  // =====================================================
 
   ngOnInit(): void {
+
     this.loadContracts();
+
   }
 
 
-  // =========================================================
+  // =====================================================
   // LOAD CONTRACTS
-  // =========================================================
+  // =====================================================
 
   loadContracts(): void {
 
     this.loading = true;
+
     this.errorMessage = '';
 
-    this.contractService.getContracts().subscribe({
+    this.contractService
+      .getContracts()
+      .subscribe({
 
-      next: (data) => {
+        next: (data) => {
 
-        this.contracts = data || [];
+          console.log(
+            'Contracts API data:',
+            data
+          );
 
-        this.filteredContracts = [
-          ...this.contracts
-        ];
+          this.contracts = data || [];
 
-        this.isEmpty =
-          this.contracts.length === 0;
+          this.applyFilters();
 
-        this.loading = false;
+          this.loading = false;
 
-        this.applyFilters();
-      },
+        },
 
-      error: (error) => {
+        error: (error) => {
 
-        console.error(
-          'Error loading contracts:',
-          error
-        );
+          console.error(
+            'Failed to load contracts:',
+            error
+          );
 
-        this.loading = false;
+          this.loading = false;
 
-        this.isEmpty = false;
+          if (error?.status === 401) {
 
-        if (error.status === 401) {
+            this.errorMessage =
+              'Your session has expired. Please login again.';
 
-          this.errorMessage =
-            'Your session has expired. Please login again.';
+          }
+          else if (error?.status === 403) {
 
-        } else if (error.status === 403) {
+            this.errorMessage =
+              'You are not authorized to view contracts.';
 
-          this.errorMessage =
-            'You are not authorized to view contracts.';
+          }
+          else if (error?.status === 0) {
 
-        } else {
+            this.errorMessage =
+              'Unable to connect to the backend server.';
 
-          this.errorMessage =
-            'Unable to load contracts. Please check the backend connection.';
+          }
+          else {
+
+            this.errorMessage =
+              'Unable to load contracts. Please try again.';
+
+          }
+
         }
-      }
-    });
+
+      });
+
   }
 
 
-  // =========================================================
+  // =====================================================
   // SEARCH
-  // =========================================================
+  // =====================================================
 
   onSearch(): void {
+
     this.applyFilters();
+
   }
 
 
-  // =========================================================
-  // FILTER
-  // =========================================================
+  // =====================================================
+  // APPLY FILTERS
+  // =====================================================
 
   applyFilters(): void {
 
@@ -229,116 +304,157 @@ export class Contracts implements OnInit {
         .trim()
         .toLowerCase();
 
+
     this.filteredContracts =
       this.contracts.filter(
         (contract) => {
 
+          const contractNumber =
+            contract.contract_number
+              ?.toLowerCase() || '';
+
+          const title =
+            contract.title
+              ?.toLowerCase() || '';
+
+          const party =
+            contract.party_name
+              ?.toLowerCase() || '';
+
+          const category =
+            contract.category
+              ?.toLowerCase() || '';
+
+          const status =
+            contract.status
+              ?.toLowerCase() || '';
+
+
           const matchesSearch =
             !search ||
-            contract.contract_number
-              ?.toLowerCase()
-              .includes(search) ||
-            contract.title
-              ?.toLowerCase()
-              .includes(search) ||
-            contract.party_name
-              ?.toLowerCase()
-              .includes(search) ||
-            contract.category
-              ?.toLowerCase()
-              .includes(search);
+            contractNumber.includes(search) ||
+            title.includes(search) ||
+            party.includes(search) ||
+            category.includes(search) ||
+            status.includes(search);
+
 
           const matchesCategory =
             !this.selectedCategory ||
             contract.category ===
               this.selectedCategory;
 
+
           const matchesStatus =
             !this.selectedStatus ||
             contract.status ===
               this.selectedStatus;
+
 
           return (
             matchesSearch &&
             matchesCategory &&
             matchesStatus
           );
+
         }
       );
+
   }
 
 
-  // =========================================================
+  // =====================================================
   // CLEAR FILTERS
-  // =========================================================
+  // =====================================================
 
   clearFilters(): void {
 
     this.searchTerm = '';
+
     this.selectedCategory = '';
+
     this.selectedStatus = '';
 
     this.applyFilters();
+
   }
 
 
-  // =========================================================
-  // CREATE FORM
-  // =========================================================
+  // =====================================================
+  // OPEN CREATE FORM
+  // =====================================================
 
   openCreateForm(): void {
 
+    this.closeEditForm();
+
     this.showCreateForm = true;
 
-    // Close edit form
-    this.showEditForm = false;
-
     this.createError = '';
-    this.createSuccess = '';
 
     this.resetCreateForm();
+
   }
 
+
+  // =====================================================
+  // CLOSE CREATE FORM
+  // =====================================================
 
   closeCreateForm(): void {
 
     this.showCreateForm = false;
 
     this.createError = '';
-    this.createSuccess = '';
+
+    this.creating = false;
 
     this.resetCreateForm();
+
   }
 
+
+  // =====================================================
+  // RESET CREATE FORM
+  // =====================================================
 
   resetCreateForm(): void {
 
     this.createContractData = {
 
       contract_number: '',
+
       title: '',
+
       category: '',
+
       description: '',
+
       party_name: '',
+
       start_date: '',
+
       end_date: ''
 
     };
+
   }
 
 
-  // =========================================================
+  // =====================================================
   // CREATE CONTRACT
-  // =========================================================
+  // =====================================================
 
   createContract(): void {
 
     this.createError = '';
-    this.createSuccess = '';
 
-    // -----------------------------------------
+    this.hideSuccessToast();
+
+
+    // ---------------------------------------------
     // VALIDATION
-    // -----------------------------------------
+    // ---------------------------------------------
 
     if (
       !this.createContractData.contract_number.trim() ||
@@ -350,15 +466,16 @@ export class Contracts implements OnInit {
     ) {
 
       this.createError =
-        'Please fill all required fields.';
+        'Please fill in all required fields.';
 
       return;
+
     }
 
 
-    // -----------------------------------------
+    // ---------------------------------------------
     // DATE VALIDATION
-    // -----------------------------------------
+    // ---------------------------------------------
 
     if (
       this.createContractData.end_date <
@@ -366,28 +483,61 @@ export class Contracts implements OnInit {
     ) {
 
       this.createError =
-        'End date cannot be before start date.';
+        'End date cannot be earlier than start date.';
 
       return;
+
     }
 
 
-    // -----------------------------------------
-    // START CREATING
-    // -----------------------------------------
+    // ---------------------------------------------
+    // START LOADING
+    // ---------------------------------------------
 
     this.creating = true;
 
 
-    this.contractService
-      .createContract(
-        this.createContractData
-      )
-      .subscribe({
+    const data: CreateContract = {
 
-        // ---------------------------------------
-        // SUCCESS
-        // ---------------------------------------
+      contract_number:
+        this.createContractData
+          .contract_number
+          .trim(),
+
+      title:
+        this.createContractData
+          .title
+          .trim(),
+
+      category:
+        this.createContractData.category,
+
+      description:
+        this.createContractData
+          .description
+          ?.trim() || '',
+
+      party_name:
+        this.createContractData
+          .party_name
+          .trim(),
+
+      start_date:
+        this.createContractData.start_date,
+
+      end_date:
+        this.createContractData.end_date
+
+    };
+
+
+    // ---------------------------------------------
+    // API CALL
+    // ---------------------------------------------
+
+    this.contractService
+      .createContract(data)
+      .subscribe({
 
         next: (response) => {
 
@@ -400,61 +550,45 @@ export class Contracts implements OnInit {
           this.creating = false;
 
 
-          // Success message
-          this.createSuccess =
-            'Contract created successfully.';
-
-
-          // -------------------------------------
-          // SHOW TOP SUCCESS POPUP
-          // -------------------------------------
-
-          this.createSuccessPopup = true;
-
-
-          // -------------------------------------
-          // CLOSE CREATE FORM
-          // -------------------------------------
+          // ---------------------------------------
+          // CLOSE FORM IMMEDIATELY
+          // ---------------------------------------
 
           this.showCreateForm = false;
 
 
-          // -------------------------------------
+          // ---------------------------------------
           // RESET FORM
-          // -------------------------------------
+          // ---------------------------------------
 
           this.resetCreateForm();
 
+          this.createError = '';
 
-          // -------------------------------------
-          // RELOAD CONTRACT LIST
-          // -------------------------------------
+
+          // ---------------------------------------
+          // SUCCESS TOAST
+          // ---------------------------------------
+
+          this.showSuccessToast(
+            'Contract Created Successfully',
+            'The new contract has been added to ContractIQ.'
+          );
+
+
+          // ---------------------------------------
+          // REFRESH TABLE
+          // ---------------------------------------
 
           this.loadContracts();
 
-
-          // -------------------------------------
-          // HIDE POPUP AFTER 3 SECONDS
-          // -------------------------------------
-
-          setTimeout(() => {
-
-            this.createSuccessPopup = false;
-
-            this.createSuccess = '';
-
-          }, 3000);
         },
 
-
-        // ---------------------------------------
-        // ERROR
-        // ---------------------------------------
 
         error: (error) => {
 
           console.error(
-            'Error creating contract:',
+            'Failed to create contract:',
             error
           );
 
@@ -462,143 +596,86 @@ export class Contracts implements OnInit {
           this.creating = false;
 
 
-          if (error.status === 401) {
+          // ---------------------------------------
+          // KEEP FORM OPEN ON ERROR
+          // ---------------------------------------
 
-            this.createError =
-              'Session expired. Please login again.';
-
-          } else if (error.status === 403) {
-
-            this.createError =
-              'You are not authorized to create contracts.';
-
-          } else if (error.status === 400) {
+          if (error?.status === 400) {
 
             this.createError =
               error.error?.detail ||
-              'Invalid contract details.';
+              'Invalid contract information.';
 
-          } else if (error.status === 409) {
-
-            this.createError =
-              'Contract number already exists.';
-
-          } else {
+          }
+          else if (error?.status === 401) {
 
             this.createError =
+              'Your session has expired. Please login again.';
+
+          }
+          else if (error?.status === 403) {
+
+            this.createError =
+              'You are not authorized to create this contract.';
+
+          }
+          else if (error?.status === 409) {
+
+            this.createError =
+              error.error?.detail ||
+              'A contract with this number already exists.';
+
+          }
+          else if (error?.status === 422) {
+
+            this.createError =
+              'Please check the entered information.';
+
+          }
+          else {
+
+            this.createError =
+              error.error?.detail ||
               'Unable to create contract. Please try again.';
+
           }
+
         }
+
       });
+
   }
 
 
-  // =========================================================
-  // VIEW CONTRACT
-  // =========================================================
+  // =====================================================
+  // EDIT CONTRACT
+  // =====================================================
 
-  viewContract(
-    contractId: number
-  ): void {
+  editContract(id: number): void {
 
-    this.showViewModal = true;
+    this.editError = '';
 
-    this.viewLoading = true;
-
-    this.viewError = '';
-
-    this.selectedContract = null;
-
-
-    this.contractService
-      .getContract(contractId)
-      .subscribe({
-
-        next: (contract) => {
-
-          this.selectedContract =
-            contract;
-
-          this.viewLoading = false;
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Error loading contract:',
-            error
-          );
-
-          this.viewLoading = false;
-
-
-          if (error.status === 401) {
-
-            this.viewError =
-              'Session expired. Please login again.';
-
-          } else if (error.status === 403) {
-
-            this.viewError =
-              'You are not authorized to view this contract.';
-
-          } else if (error.status === 404) {
-
-            this.viewError =
-              'Contract not found.';
-
-          } else {
-
-            this.viewError =
-              'Unable to load contract details.';
-          }
-        }
-      });
-  }
-
-
-  // =========================================================
-  // CLOSE VIEW MODAL
-  // =========================================================
-
-  closeViewModal(): void {
+    this.showCreateForm = false;
 
     this.showViewModal = false;
 
-    this.selectedContract = null;
-
-    this.viewError = '';
-  }
-
-
-  // =========================================================
-  // EDIT CONTRACT
-  // =========================================================
-
-  editContract(
-    contractId: number
-  ): void {
-
-    // Close create form
-    this.showCreateForm = false;
-
-    // Open edit form
-    this.showEditForm = true;
-
-    this.editing = true;
-
-    this.editingContractId =
-      contractId;
-
-    this.editError = '';
-    this.editSuccess = '';
+    this.editing = false;
 
 
     this.contractService
-      .getContract(contractId)
+      .getContract(id)
       .subscribe({
 
         next: (contract) => {
+
+          console.log(
+            'Contract selected for edit:',
+            contract
+          );
+
+
+          this.selectedContract = contract;
+
 
           this.editContractData = {
 
@@ -615,83 +692,89 @@ export class Contracts implements OnInit {
               contract.party_name || '',
 
             start_date:
-              this.formatDate(
-                contract.start_date
-              ),
+              contract.start_date || '',
 
             end_date:
-              this.formatDate(
-                contract.end_date
-              )
+              contract.end_date || ''
+
           };
 
 
-          this.editing = false;
+          this.showEditForm = true;
+
         },
 
 
         error: (error) => {
 
           console.error(
-            'Error loading contract for edit:',
+            'Failed to load contract for edit:',
             error
           );
 
 
-          this.editing = false;
-
-
-          if (error.status === 401) {
+          if (error?.status === 401) {
 
             this.editError =
-              'Session expired. Please login again.';
+              'Your session has expired. Please login again.';
 
-          } else if (error.status === 403) {
+          }
+          else if (error?.status === 403) {
 
             this.editError =
               'You are not authorized to edit this contract.';
 
-          } else if (error.status === 404) {
+          }
+          else if (error?.status === 404) {
 
             this.editError =
               'Contract not found.';
 
-          } else {
+          }
+          else if (error?.status === 0) {
 
             this.editError =
-              'Unable to load contract details for editing.';
+              'Unable to connect to the backend server.';
+
           }
+          else {
+
+            this.editError =
+              'Unable to load contract details.';
+
+          }
+
+          this.showEditForm = true;
+
         }
+
       });
+
   }
 
 
-  // =========================================================
+  // =====================================================
   // UPDATE CONTRACT
-  // =========================================================
+  // =====================================================
 
   updateContract(): void {
 
     this.editError = '';
-    this.editSuccess = '';
 
 
-    // -----------------------------------------
-    // CHECK CONTRACT ID
-    // -----------------------------------------
-
-    if (!this.editingContractId) {
+    if (!this.selectedContract) {
 
       this.editError =
-        'Invalid contract selected.';
+        'No contract selected for editing.';
 
       return;
+
     }
 
 
-    // -----------------------------------------
+    // ---------------------------------------------
     // VALIDATION
-    // -----------------------------------------
+    // ---------------------------------------------
 
     if (
       !this.editContractData.title.trim() ||
@@ -702,15 +785,16 @@ export class Contracts implements OnInit {
     ) {
 
       this.editError =
-        'Please fill all required fields.';
+        'Please fill in all required fields.';
 
       return;
+
     }
 
 
-    // -----------------------------------------
+    // ---------------------------------------------
     // DATE VALIDATION
-    // -----------------------------------------
+    // ---------------------------------------------
 
     if (
       this.editContractData.end_date <
@@ -718,91 +802,112 @@ export class Contracts implements OnInit {
     ) {
 
       this.editError =
-        'End date cannot be before start date.';
+        'End date cannot be earlier than start date.';
 
       return;
+
     }
 
 
     this.editing = true;
 
 
+    const contractId =
+      this.selectedContract.id;
+
+
+    const data: UpdateContract = {
+
+      title:
+        this.editContractData
+          .title
+          .trim(),
+
+      category:
+        this.editContractData.category,
+
+      description:
+        this.editContractData
+          .description
+          ?.trim() || '',
+
+      party_name:
+        this.editContractData
+          .party_name
+          .trim(),
+
+      start_date:
+        this.editContractData.start_date,
+
+      end_date:
+        this.editContractData.end_date
+
+    };
+
+
+    // ---------------------------------------------
+    // API CALL
+    // ---------------------------------------------
+
     this.contractService
       .updateContract(
-        this.editingContractId,
-        this.editContractData
+        contractId,
+        data
       )
       .subscribe({
 
-        // ---------------------------------------
-        // SUCCESS
-        // ---------------------------------------
-
-        next: (updatedContract) => {
+        next: (response) => {
 
           console.log(
             'Contract updated successfully:',
-            updatedContract
+            response
           );
 
 
           this.editing = false;
 
 
-          this.editSuccess =
-            'Contract updated successfully.';
+          // ---------------------------------------
+          // CLOSE EDIT FORM IMMEDIATELY
+          // ---------------------------------------
+
+          this.showEditForm = false;
 
 
-          // -------------------------------------
-          // UPDATE LOCAL CONTRACT LIST
-          // -------------------------------------
+          // ---------------------------------------
+          // RESET EDIT DATA
+          // ---------------------------------------
 
-          const index =
-            this.contracts.findIndex(
-              contract =>
-                contract.id ===
-                updatedContract.id
-            );
+          this.selectedContract = null;
 
+          this.resetEditForm();
 
-          if (index !== -1) {
-
-            this.contracts[index] =
-              updatedContract;
-          }
+          this.editError = '';
 
 
-          // Apply current filters
-          this.applyFilters();
+          // ---------------------------------------
+          // SUCCESS TOAST
+          // ---------------------------------------
+
+          this.showSuccessToast(
+            'Contract Updated Successfully',
+            'The contract information has been updated successfully.'
+          );
 
 
-          // -------------------------------------
-          // CLOSE EDIT FORM
-          // -------------------------------------
+          // ---------------------------------------
+          // REFRESH TABLE
+          // ---------------------------------------
 
-          setTimeout(() => {
+          this.loadContracts();
 
-            this.showEditForm = false;
-
-            this.editSuccess = '';
-
-            this.editingContractId =
-              null;
-
-            this.resetEditForm();
-
-          }, 1200);
         },
 
-
-        // ---------------------------------------
-        // ERROR
-        // ---------------------------------------
 
         error: (error) => {
 
           console.error(
-            'Error updating contract:',
+            'Failed to update contract:',
             error
           );
 
@@ -810,116 +915,304 @@ export class Contracts implements OnInit {
           this.editing = false;
 
 
-          if (error.status === 401) {
+          // ---------------------------------------
+          // KEEP EDIT FORM OPEN ON ERROR
+          // ---------------------------------------------
+
+          if (error?.status === 401) {
 
             this.editError =
-              'Session expired. Please login again.';
+              'Your session has expired. Please login again.';
 
-          } else if (error.status === 403) {
+          }
+          else if (error?.status === 403) {
 
             this.editError =
               'You are not authorized to update this contract.';
 
-          } else if (error.status === 404) {
+          }
+          else if (error?.status === 404) {
 
             this.editError =
               'Contract not found.';
 
-          } else if (error.status === 400) {
+          }
+          else if (error?.status === 409) {
 
             this.editError =
               error.error?.detail ||
-              'Invalid contract details.';
+              'This contract information conflicts with an existing record.';
 
-          } else {
+          }
+          else if (error?.status === 422) {
 
             this.editError =
-              'Unable to update contract. Please try again.';
+              'Please check the entered information.';
+
           }
+          else if (error?.status === 0) {
+
+            this.editError =
+              'Unable to connect to the backend server.';
+
+          }
+          else {
+
+            this.editError =
+              error.error?.detail ||
+              'Unable to update contract. Please try again.';
+
+          }
+
         }
+
       });
+
   }
 
 
-  // =========================================================
-  // CLOSE EDIT FORM
-  // =========================================================
-
-  closeEditForm(): void {
-
-    this.showEditForm = false;
-
-    this.editingContractId = null;
-
-    this.editError = '';
-    this.editSuccess = '';
-
-    this.resetEditForm();
-  }
-
-
-  // =========================================================
+  // =====================================================
   // RESET EDIT FORM
-  // =========================================================
+  // =====================================================
 
   resetEditForm(): void {
 
     this.editContractData = {
 
       title: '',
+
       category: '',
+
       description: '',
+
       party_name: '',
+
       start_date: '',
+
       end_date: ''
 
     };
+
   }
 
 
-  // =========================================================
-  // DATE FORMAT
-  // =========================================================
+  // =====================================================
+  // CLOSE EDIT FORM
+  // =====================================================
 
-  private formatDate(
-    date: string | null
-  ): string {
+  closeEditForm(): void {
 
-    if (!date) {
-      return '';
+    this.showEditForm = false;
+
+    this.editing = false;
+
+    this.editError = '';
+
+    this.selectedContract = null;
+
+    this.resetEditForm();
+
+  }
+
+
+  // =====================================================
+  // VIEW CONTRACT
+  // =====================================================
+
+  viewContract(id: number): void {
+
+    this.showViewModal = true;
+
+    this.viewLoading = true;
+
+    this.viewError = '';
+
+    this.selectedContract = null;
+
+
+    this.contractService
+      .getContract(id)
+      .subscribe({
+
+        next: (contract) => {
+
+          console.log(
+            'Contract details:',
+            contract
+          );
+
+
+          this.selectedContract = contract;
+
+          this.viewLoading = false;
+
+        },
+
+
+        error: (error) => {
+
+          console.error(
+            'Failed to load contract details:',
+            error
+          );
+
+
+          this.viewLoading = false;
+
+
+          if (error?.status === 401) {
+
+            this.viewError =
+              'Your session has expired. Please login again.';
+
+          }
+          else if (error?.status === 403) {
+
+            this.viewError =
+              'You are not authorized to view this contract.';
+
+          }
+          else if (error?.status === 404) {
+
+            this.viewError =
+              'Contract not found.';
+
+          }
+          else if (error?.status === 0) {
+
+            this.viewError =
+              'Unable to connect to the backend server.';
+
+          }
+          else {
+
+            this.viewError =
+              'Unable to load contract details. Please try again.';
+
+          }
+
+        }
+
+      });
+
+  }
+
+
+  // =====================================================
+  // CLOSE VIEW MODAL
+  // =====================================================
+
+  closeViewModal(): void {
+
+    this.showViewModal = false;
+
+    this.viewLoading = false;
+
+    this.viewError = '';
+
+    this.selectedContract = null;
+
+  }
+
+
+  // =====================================================
+  // SUCCESS TOAST
+  // =====================================================
+
+  showSuccessToast(
+    title: string,
+    message: string
+  ): void {
+
+    // Clear previous timer
+    if (this.successToastTimer) {
+
+      clearTimeout(
+        this.successToastTimer
+      );
+
+      this.successToastTimer = null;
+
     }
 
-    return date.substring(0, 10);
+
+    this.successMessage =
+      `${title}|${message}`;
+
+
+    this.createSuccessPopup = true;
+
+
+    // Auto hide after 3 seconds
+    this.successToastTimer =
+      setTimeout(() => {
+
+        this.createSuccessPopup = false;
+
+        this.successMessage = '';
+
+        this.successToastTimer = null;
+
+      }, 3000);
+
   }
 
 
-  // =========================================================
-  // STATUS CSS
-  // =========================================================
+  // =====================================================
+  // HIDE SUCCESS TOAST
+  // =====================================================
+
+  hideSuccessToast(): void {
+
+    this.createSuccessPopup = false;
+
+    this.successMessage = '';
+
+
+    if (this.successToastTimer) {
+
+      clearTimeout(
+        this.successToastTimer
+      );
+
+      this.successToastTimer = null;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // STATUS CLASS
+  // =====================================================
 
   getStatusClass(status: string): string {
-  switch (status) {
-    case 'Active':
-      return 'active';
 
-    case 'Draft':
-      return 'draft';
+    switch (status) {
 
-    case 'Under Review':
-      return 'under-review';
+      case 'Active':
+        return 'active';
 
-    case 'Approved':
-      return 'approved';
+      case 'Draft':
+        return 'draft';
 
-    case 'Expired':
-      return 'expired';
+      case 'Under Review':
+        return 'under-review';
 
-    case 'Terminated':
-      return 'terminated';
+      case 'Approved':
+        return 'approved';
 
-    default:
-      return 'default';
+      case 'Expired':
+        return 'expired';
+
+      case 'Terminated':
+        return 'terminated';
+
+      default:
+        return 'default';
+
+    }
+
   }
-}
 
 }

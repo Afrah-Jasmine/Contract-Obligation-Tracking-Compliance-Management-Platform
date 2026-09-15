@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+
 import {
   ChangeDetectorRef,
   Component,
@@ -32,9 +33,18 @@ import {
 
 export class Compliance implements OnInit {
 
+  // =====================================================
+  // DATA
+  // =====================================================
+
   summary: ComplianceSummary | null = null;
 
   riskData: ComplianceRisk[] = [];
+
+
+  // =====================================================
+  // STATE
+  // =====================================================
 
   loading = true;
 
@@ -43,15 +53,19 @@ export class Compliance implements OnInit {
   isEmpty = false;
 
 
+  // =====================================================
+  // CONSTRUCTOR
+  // =====================================================
+
   constructor(
     private complianceService: ComplianceService,
     private cdr: ChangeDetectorRef
   ) {}
 
 
-  // =========================
+  // =====================================================
   // INITIALIZE
-  // =========================
+  // =====================================================
 
   ngOnInit(): void {
 
@@ -60,9 +74,9 @@ export class Compliance implements OnInit {
   }
 
 
-  // =========================
+  // =====================================================
   // LOAD COMPLIANCE DATA
-  // =========================
+  // =====================================================
 
   loadComplianceData(): void {
 
@@ -80,32 +94,70 @@ export class Compliance implements OnInit {
         next: (data: ComplianceSummary) => {
 
           console.log(
-            'Compliance summary:',
+            'Compliance summary from backend:',
             data
           );
 
 
+          // =================================================
+          // STORE EXACT BACKEND RESPONSE
+          // =================================================
+          // IMPORTANT:
+          // No frontend calculation is done here.
+          //
+          // average_score comes directly from:
+          // /reports/compliance/summary
+          // =================================================
+
           this.summary = data;
+
+
+          console.log(
+            'Backend Compliance Score:',
+            this.summary?.average_score
+          );
+
+
+          // =================================================
+          // LOADING COMPLETE
+          // =================================================
 
           this.loading = false;
 
 
-          if (!data || data.total === 0) {
+          // =================================================
+          // EMPTY CHECK
+          // =================================================
+
+          if (
+            !data ||
+            Number(data.total || 0) === 0
+          ) {
 
             this.isEmpty = true;
 
           }
 
 
-          // Force UI update
+          // =================================================
+          // UPDATE UI
+          // =================================================
+
           this.cdr.detectChanges();
 
 
-          // Load risk data
+          // =================================================
+          // LOAD RISK DATA
+          // =================================================
+
           this.loadRiskData();
 
         },
 
+
+        // ===================================================
+        // ERROR
+        // ===================================================
 
         error: (error: any) => {
 
@@ -117,29 +169,46 @@ export class Compliance implements OnInit {
 
           this.loading = false;
 
-          this.cdr.detectChanges();
 
+          // -----------------------------------------------
+          // 401 - UNAUTHORIZED
+          // -----------------------------------------------
 
-          if (error.status === 401) {
+          if (error?.status === 401) {
 
             this.errorMessage =
               'Your session has expired. Please login again.';
 
           }
 
-          else if (error.status === 403) {
+
+          // -----------------------------------------------
+          // 403 - FORBIDDEN
+          // -----------------------------------------------
+
+          else if (error?.status === 403) {
 
             this.errorMessage =
               'You are not authorized to view compliance data.';
 
           }
 
-          else if (error.status === 0) {
+
+          // -----------------------------------------------
+          // 0 - BACKEND NOT CONNECTED
+          // -----------------------------------------------
+
+          else if (error?.status === 0) {
 
             this.errorMessage =
               'Unable to connect to the backend server.';
 
           }
+
+
+          // -----------------------------------------------
+          // OTHER ERRORS
+          // -----------------------------------------------
 
           else {
 
@@ -149,7 +218,6 @@ export class Compliance implements OnInit {
           }
 
 
-          // Update UI after setting error message
           this.cdr.detectChanges();
 
         }
@@ -159,9 +227,9 @@ export class Compliance implements OnInit {
   }
 
 
-  // =========================
+  // =====================================================
   // LOAD RISK DATA
-  // =========================
+  // =====================================================
 
   loadRiskData(): void {
 
@@ -177,10 +245,10 @@ export class Compliance implements OnInit {
           );
 
 
-          this.riskData = data || [];
+          this.riskData =
+            data || [];
 
 
-          // Force UI update
           this.cdr.detectChanges();
 
         },
@@ -194,8 +262,8 @@ export class Compliance implements OnInit {
           );
 
 
-          // Risk data failure should not
-          // hide the compliance summary.
+          // Risk failure should NOT
+          // remove compliance summary.
 
           this.riskData = [];
 
@@ -209,9 +277,9 @@ export class Compliance implements OnInit {
   }
 
 
-  // =========================
+  // =====================================================
   // SCORE CLASS
-  // =========================
+  // =====================================================
 
   getScoreClass(score: number): string {
 
@@ -234,9 +302,52 @@ export class Compliance implements OnInit {
   }
 
 
-  // =========================
+  // =====================================================
+  // SCORE DISPLAY
+  // =====================================================
+
+  getComplianceScore(): number {
+
+    if (!this.summary) {
+
+      return 0;
+
+    }
+
+
+    // ===================================================
+    // IMPORTANT:
+    // Return EXACT BACKEND average_score
+    // ===================================================
+
+    return Number(
+      this.summary.average_score || 0
+    );
+
+  }
+
+
+  // =====================================================
+  // SCORE WIDTH
+  // =====================================================
+
+  getComplianceWidth(): string {
+
+    const score =
+      this.getComplianceScore();
+
+
+    return `${Math.min(
+      Math.max(score, 0),
+      100
+    )}%`;
+
+  }
+
+
+  // =====================================================
   // RISK CLASS
-  // =========================
+  // =====================================================
 
   getRiskClass(risk: string): string {
 
@@ -266,9 +377,9 @@ export class Compliance implements OnInit {
   }
 
 
-  // =========================
+  // =====================================================
   // RETRY
-  // =========================
+  // =====================================================
 
   retry(): void {
 

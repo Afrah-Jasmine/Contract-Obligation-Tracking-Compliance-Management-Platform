@@ -3,23 +3,24 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 
-// =========================
+// =====================================================
 // BACKEND RESPONSE
-// =========================
+// =====================================================
 
 interface BackendComplianceSummary {
   total_contracts: number;
-  compliant_contracts: number;
-  pending_contracts: number;
-  delayed_contracts: number;
-  non_compliant_contracts: number;
-  high_risk_contracts: number;
+  compliant: number;
+  pending: number;
+  delayed: number;
+  non_compliant: number;
+  high_risk: number;
+  average_score: number;
 }
 
 
-// =========================
+// =====================================================
 // FRONTEND SUMMARY
-// =========================
+// =====================================================
 
 export interface ComplianceSummary {
   total: number;
@@ -32,9 +33,9 @@ export interface ComplianceSummary {
 }
 
 
-// =========================
+// =====================================================
 // ALL COMPLIANCE RESPONSE
-// =========================
+// =====================================================
 
 export interface ComplianceRecord {
   contract_id: number;
@@ -44,9 +45,9 @@ export interface ComplianceRecord {
 }
 
 
-// =========================
+// =====================================================
 // RISK RESPONSE
-// =========================
+// =====================================================
 
 export interface ComplianceRisk {
   contract_id: number;
@@ -57,9 +58,9 @@ export interface ComplianceRisk {
 }
 
 
-// =========================
+// =====================================================
 // SERVICE
-// =========================
+// =====================================================
 
 @Injectable({
   providedIn: 'root'
@@ -74,35 +75,40 @@ export class ComplianceService {
   ) {}
 
 
-  // =========================
+  // ===================================================
   // GET COMPLIANCE SUMMARY
-  // =========================
+  // ===================================================
 
   getComplianceSummary(): Observable<ComplianceSummary> {
 
     return this.http
       .get<BackendComplianceSummary>(
-        `${this.apiUrl}/compliance/summary`
+        `${this.apiUrl}/reports/compliance/summary`
       )
       .pipe(
 
         map((data) => ({
 
-          total: data.total_contracts,
+          total:
+            data.total_contracts,
 
-          compliant: data.compliant_contracts,
+          compliant:
+            data.compliant,
 
-          pending: data.pending_contracts,
+          pending:
+            data.pending,
 
-          delayed: data.delayed_contracts,
+          delayed:
+            data.delayed,
 
-          non_compliant: data.non_compliant_contracts,
+          non_compliant:
+            data.non_compliant,
 
-          high_risk: data.high_risk_contracts,
+          high_risk:
+            data.high_risk,
 
-          // Average score is not provided
-          // by /compliance/summary.
-          average_score: 0
+          average_score:
+            data.average_score
 
         }))
 
@@ -111,11 +117,12 @@ export class ComplianceService {
   }
 
 
-  // =========================
+  // ===================================================
   // GET ALL COMPLIANCE
-  // =========================
+  // ===================================================
 
-  getAllCompliance(): Observable<ComplianceRecord[]> {
+  getAllCompliance():
+    Observable<ComplianceRecord[]> {
 
     return this.http.get<ComplianceRecord[]>(
       `${this.apiUrl}/compliance`
@@ -124,11 +131,12 @@ export class ComplianceService {
   }
 
 
-  // =========================
-  // GET HIGH RISK
-  // =========================
+  // ===================================================
+  // GET HIGH RISK CONTRACTS
+  // ===================================================
 
-  getRiskReport(): Observable<ComplianceRisk[]> {
+  getRiskReport():
+    Observable<ComplianceRisk[]> {
 
     return this.http.get<ComplianceRisk[]>(
       `${this.apiUrl}/compliance/high-risk`

@@ -1,14 +1,19 @@
 from datetime import date, timedelta
 from io import BytesIO
+
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.utils import get_column_letter
+
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import (
+    getSampleStyleSheet,
+    ParagraphStyle,
+)
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -17,11 +22,11 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
-from sqlalchemy.orm import Session
 
 from app.models.contract import Contract
 from app.models.obligation import Obligation
 from app.models.renewal import Renewal
+
 from app.services.compliance_service import calculate_compliance
 
 
@@ -61,6 +66,7 @@ def get_dashboard_summary(db: Session):
         Contract.status == "Terminated"
     ).count()
 
+
     # -----------------------------------------------------
     # Obligation Statistics
     # -----------------------------------------------------
@@ -88,6 +94,7 @@ def get_dashboard_summary(db: Session):
         Obligation.status != "Completed"
     ).count()
 
+
     # -----------------------------------------------------
     # Renewal Statistics
     # -----------------------------------------------------
@@ -112,9 +119,10 @@ def get_dashboard_summary(db: Session):
         Renewal.status == "Cancelled"
     ).count()
 
-    # -----------------------------------------------------
-    # Compliance Statistics
-    # -----------------------------------------------------
+
+    # =====================================================
+    # COMPLIANCE STATISTICS
+    # =====================================================
 
     contracts = db.query(Contract).all()
 
@@ -124,7 +132,13 @@ def get_dashboard_summary(db: Session):
     non_compliant = 0
     high_risk = 0
 
-    total_score = 0
+    # -----------------------------------------------------
+    # Overall score is calculated from ALL obligations
+    # -----------------------------------------------------
+
+    total_obligations_for_score = 0
+    completed_obligations_for_score = 0
+
 
     for contract in contracts:
 
@@ -133,68 +147,136 @@ def get_dashboard_summary(db: Session):
             db
         )
 
-        compliance_status = compliance["compliance_status"]
+        compliance_status = compliance[
+            "compliance_status"
+        ]
 
-        total_score += compliance["compliance_score"]
+
+        # -------------------------------------------------
+        # Compliance Status Count
+        # -------------------------------------------------
 
         if compliance_status == "Compliant":
+
             compliant += 1
 
         elif compliance_status == "Pending":
+
             pending += 1
 
         elif compliance_status == "Delayed":
+
             delayed += 1
 
         elif compliance_status == "Non-Compliant":
+
             non_compliant += 1
 
         elif compliance_status == "High Risk":
+
             high_risk += 1
 
-    if contracts:
+
+        # -------------------------------------------------
+        # Overall Compliance Score Data
+        # -------------------------------------------------
+
+        total_obligations_for_score += (
+            compliance["total_obligations"]
+        )
+
+        completed_obligations_for_score += (
+            compliance["completed_obligations"]
+        )
+
+
+    # -----------------------------------------------------
+    # Calculate Overall Compliance Score
+    # -----------------------------------------------------
+
+    if total_obligations_for_score > 0:
+
         average_score = round(
-            total_score / len(contracts),
+            (
+                completed_obligations_for_score
+                / total_obligations_for_score
+            ) * 100,
             2
         )
+
     else:
+
         average_score = 0
 
+
+    # =====================================================
+    # RETURN DASHBOARD DATA
+    # =====================================================
+
     return {
+
         "contracts": {
+
             "total": total_contracts,
+
             "active": active_contracts,
+
             "draft": draft_contracts,
+
             "under_review": under_review_contracts,
+
             "approved": approved_contracts,
+
             "expired": expired_contracts,
+
             "terminated": terminated_contracts
         },
 
+
         "obligations": {
+
             "total": total_obligations,
+
             "pending": pending_obligations,
+
             "in_progress": in_progress_obligations,
+
             "completed": completed_obligations,
+
             "delayed": delayed_obligations,
+
             "overdue": overdue_obligations
         },
 
+
         "renewals": {
+
             "upcoming": upcoming_renewals,
+
             "in_progress": in_progress_renewals,
+
             "renewed": renewed_renewals,
+
             "expired": expired_renewals,
+
             "cancelled": cancelled_renewals
         },
 
+
         "compliance": {
+
             "total": len(contracts),
+
             "compliant": compliant,
+
             "pending": pending,
+
             "delayed": delayed,
+
             "non_compliant": non_compliant,
+
             "high_risk": high_risk,
+
             "average_score": average_score
         }
     }
@@ -211,11 +293,17 @@ def get_contract_summary(
 
     query = db.query(Contract)
 
-    # Optional status filter
+
+    # -----------------------------------------------------
+    # Optional Status Filter
+    # -----------------------------------------------------
+
     if status:
+
         query = query.filter(
             Contract.status == status
         )
+
 
     # -----------------------------------------------------
     # Basic Statistics
@@ -235,6 +323,7 @@ def get_contract_summary(
         Contract.status == "Under Review"
     ).count()
 
+
     # -----------------------------------------------------
     # Group by Status
     # -----------------------------------------------------
@@ -252,6 +341,7 @@ def get_contract_summary(
         status_name: count
         for status_name, count in status_results
     }
+
 
     # -----------------------------------------------------
     # Group by Category
@@ -271,13 +361,23 @@ def get_contract_summary(
         for category, count in category_results
     }
 
+
     return {
+
         "total_contracts": total_contracts,
+
         "active_contracts": active_contracts,
+
         "expired_contracts": expired_contracts,
-        "pending_approval_contracts": pending_approval_contracts,
-        "contracts_by_status": contracts_by_status,
-        "contracts_by_category": contracts_by_category
+
+        "pending_approval_contracts":
+            pending_approval_contracts,
+
+        "contracts_by_status":
+            contracts_by_status,
+
+        "contracts_by_category":
+            contracts_by_category
     }
 
 
@@ -292,11 +392,17 @@ def get_obligation_summary(
 
     query = db.query(Obligation)
 
-    # Optional status filter
+
+    # -----------------------------------------------------
+    # Optional Status Filter
+    # -----------------------------------------------------
+
     if status:
+
         query = query.filter(
             Obligation.status == status
         )
+
 
     # -----------------------------------------------------
     # Basic Statistics
@@ -325,6 +431,7 @@ def get_obligation_summary(
         Obligation.status != "Completed"
     ).count()
 
+
     # -----------------------------------------------------
     # Group by Status
     # -----------------------------------------------------
@@ -343,14 +450,29 @@ def get_obligation_summary(
         for status_name, count in status_results
     }
 
+
     return {
-        "total_obligations": total_obligations,
-        "pending_obligations": pending_obligations,
-        "completed_obligations": completed_obligations,
-        "overdue_obligations": overdue_obligations,
-        "in_progress_obligations": in_progress_obligations,
-        "delayed_obligations": delayed_obligations,
-        "obligations_by_status": obligations_by_status
+
+        "total_obligations":
+            total_obligations,
+
+        "pending_obligations":
+            pending_obligations,
+
+        "completed_obligations":
+            completed_obligations,
+
+        "overdue_obligations":
+            overdue_obligations,
+
+        "in_progress_obligations":
+            in_progress_obligations,
+
+        "delayed_obligations":
+            delayed_obligations,
+
+        "obligations_by_status":
+            obligations_by_status
     }
 
 
@@ -366,19 +488,23 @@ def get_renewal_summary(
 
     query = db.query(Renewal)
 
+
     # -----------------------------------------------------
     # Date Range Filter
     # -----------------------------------------------------
 
     if start_date:
+
         query = query.filter(
             Renewal.renewal_date >= start_date
         )
 
     if end_date:
+
         query = query.filter(
             Renewal.renewal_date <= end_date
         )
+
 
     # -----------------------------------------------------
     # Renewal Statistics
@@ -406,6 +532,7 @@ def get_renewal_summary(
 
     renewals_in_date_range = query.count()
 
+
     # -----------------------------------------------------
     # Upcoming Contract Expiry
     # -----------------------------------------------------
@@ -421,9 +548,11 @@ def get_renewal_summary(
         Contract.end_date
     ).all()
 
+
     upcoming_contracts = []
 
     immediate_attention = []
+
 
     for contract in contracts:
 
@@ -431,32 +560,61 @@ def get_renewal_summary(
             contract.end_date - today
         ).days
 
+
         renewal_data = {
-            "contract_id": contract.id,
-            "contract_number": contract.contract_number,
-            "expiry_date": contract.end_date,
-            "days_remaining": days_remaining
+
+            "contract_id":
+                contract.id,
+
+            "contract_number":
+                contract.contract_number,
+
+            "expiry_date":
+                contract.end_date,
+
+            "days_remaining":
+                days_remaining
         }
+
 
         upcoming_contracts.append(
             renewal_data
         )
 
+
         # Contracts expiring within 30 days
         if days_remaining <= 30:
+
             immediate_attention.append(
                 renewal_data
             )
 
+
     return {
-        "upcoming": upcoming,
-        "in_progress": in_progress,
-        "renewed": renewed,
-        "expired": expired,
-        "cancelled": cancelled,
-        "upcoming_contracts": upcoming_contracts,
-        "immediate_attention": immediate_attention,
-        "renewals_in_date_range": renewals_in_date_range
+
+        "upcoming":
+            upcoming,
+
+        "in_progress":
+            in_progress,
+
+        "renewed":
+            renewed,
+
+        "expired":
+            expired,
+
+        "cancelled":
+            cancelled,
+
+        "upcoming_contracts":
+            upcoming_contracts,
+
+        "immediate_attention":
+            immediate_attention,
+
+        "renewals_in_date_range":
+            renewals_in_date_range
     }
 
 
@@ -472,13 +630,25 @@ def get_compliance_summary_report(
 
     total_contracts = len(contracts)
 
+
     compliant = 0
     pending = 0
     delayed = 0
     non_compliant = 0
     high_risk = 0
 
-    total_score = 0
+
+    # -----------------------------------------------------
+    # Overall Compliance Score
+    # -----------------------------------------------------
+
+    total_obligations_for_score = 0
+    completed_obligations_for_score = 0
+
+
+    # =====================================================
+    # PROCESS CONTRACTS
+    # =====================================================
 
     for contract in contracts:
 
@@ -487,33 +657,61 @@ def get_compliance_summary_report(
             db
         )
 
+
         compliance_status = compliance[
             "compliance_status"
         ]
 
-        total_score += compliance[
-            "compliance_score"
-        ]
+
+        # -------------------------------------------------
+        # Compliance Status
+        # -------------------------------------------------
 
         if compliance_status == "Compliant":
+
             compliant += 1
 
         elif compliance_status == "Pending":
+
             pending += 1
 
         elif compliance_status == "Delayed":
+
             delayed += 1
 
         elif compliance_status == "Non-Compliant":
+
             non_compliant += 1
 
         elif compliance_status == "High Risk":
+
             high_risk += 1
 
-    if total_contracts > 0:
+
+        # -------------------------------------------------
+        # Add Obligation Data
+        # -------------------------------------------------
+
+        total_obligations_for_score += (
+            compliance["total_obligations"]
+        )
+
+        completed_obligations_for_score += (
+            compliance["completed_obligations"]
+        )
+
+
+    # =====================================================
+    # CALCULATE OVERALL SCORE
+    # =====================================================
+
+    if total_obligations_for_score > 0:
 
         average_score = round(
-            total_score / total_contracts,
+            (
+                completed_obligations_for_score
+                / total_obligations_for_score
+            ) * 100,
             2
         )
 
@@ -521,14 +719,33 @@ def get_compliance_summary_report(
 
         average_score = 0
 
+
+    # =====================================================
+    # RETURN COMPLIANCE REPORT
+    # =====================================================
+
     return {
-        "total_contracts": total_contracts,
-        "compliant": compliant,
-        "pending": pending,
-        "delayed": delayed,
-        "non_compliant": non_compliant,
-        "high_risk": high_risk,
-        "average_score": average_score
+
+        "total_contracts":
+            total_contracts,
+
+        "compliant":
+            compliant,
+
+        "pending":
+            pending,
+
+        "delayed":
+            delayed,
+
+        "non_compliant":
+            non_compliant,
+
+        "high_risk":
+            high_risk,
+
+        "average_score":
+            average_score
     }
 
 
@@ -536,11 +753,14 @@ def get_compliance_summary_report(
 # RISK ANALYSIS
 # =========================================================
 
-def get_risk_report(db: Session):
+def get_risk_report(
+    db: Session
+):
 
     contracts = db.query(Contract).all()
 
     results = []
+
 
     for contract in contracts:
 
@@ -549,9 +769,11 @@ def get_risk_report(db: Session):
             db
         )
 
+
         risk_level = compliance[
             "risk_level"
         ]
+
 
         if risk_level in [
             "Medium",
@@ -559,69 +781,117 @@ def get_risk_report(db: Session):
         ]:
 
             results.append({
-                "contract_id": contract.id,
-                "contract_number": contract.contract_number,
-                "risk_level": risk_level,
-                "overdue_obligations": compliance[
-                    "overdue_obligations"
-                ],
-                "compliance_score": compliance[
-                    "compliance_score"
-                ]
+
+                "contract_id":
+                    contract.id,
+
+                "contract_number":
+                    contract.contract_number,
+
+                "risk_level":
+                    risk_level,
+
+                "overdue_obligations":
+                    compliance[
+                        "overdue_obligations"
+                    ],
+
+                "compliance_score":
+                    compliance[
+                        "compliance_score"
+                    ]
             })
 
+
     return results
+
 
 # =========================================================
 # PDF REPORT GENERATION
 # =========================================================
 
-def _create_pdf(title: str, summary_data: dict, columns: list[str]):
+def _create_pdf(
+    title: str,
+    summary_data: dict,
+    columns: list[str]
+):
     """
-    Creates a professional PDF report from summary data.
+    Creates a professional PDF report
+    from summary data.
     """
 
     buffer = BytesIO()
 
+
     document = SimpleDocTemplate(
+
         buffer,
+
         pagesize=A4,
+
         rightMargin=18 * mm,
+
         leftMargin=18 * mm,
+
         topMargin=18 * mm,
+
         bottomMargin=18 * mm,
     )
 
+
     styles = getSampleStyleSheet()
 
+
     title_style = ParagraphStyle(
+
         "ReportTitle",
+
         parent=styles["Title"],
+
         alignment=TA_CENTER,
+
         fontSize=20,
+
         leading=24,
+
         spaceAfter=8,
     )
 
+
     subtitle_style = ParagraphStyle(
+
         "ReportSubtitle",
+
         parent=styles["Normal"],
+
         alignment=TA_CENTER,
+
         fontSize=9,
+
         textColor=colors.grey,
+
         spaceAfter=18,
     )
 
+
     heading_style = ParagraphStyle(
+
         "SectionHeading",
+
         parent=styles["Heading2"],
+
         fontSize=13,
+
         leading=16,
+
         spaceBefore=8,
+
         spaceAfter=8,
     )
 
+
     story = []
+
 
     # -----------------------------------------------------
     # Header
@@ -634,6 +904,7 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
         )
     )
 
+
     story.append(
         Paragraph(
             title,
@@ -641,12 +912,17 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
         )
     )
 
+
     story.append(
         Paragraph(
-            f"Generated on: {date.today().strftime('%d %B %Y')}",
+            (
+                f"Generated on: "
+                f"{date.today().strftime('%d %B %Y')}"
+            ),
             subtitle_style
         )
     )
+
 
     # -----------------------------------------------------
     # Summary Table
@@ -656,50 +932,67 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
         ["Metric", "Value"]
     ]
 
+
     for key, value in summary_data.items():
 
-        # Skip nested dictionaries/lists
         if isinstance(value, (dict, list)):
+
             continue
 
-        formatted_key = key.replace("_", " ").title()
+
+        formatted_key = (
+            key.replace("_", " ").title()
+        )
+
 
         table_data.append([
             formatted_key,
             str(value)
         ])
 
+
     table = Table(
+
         table_data,
-        colWidths=[105 * mm, 55 * mm]
+
+        colWidths=[
+            105 * mm,
+            55 * mm
+        ]
     )
+
 
     table.setStyle(
         TableStyle([
+
             (
                 "BACKGROUND",
                 (0, 0),
                 (-1, 0),
                 colors.HexColor("#2563EB")
             ),
+
             (
                 "TEXTCOLOR",
                 (0, 0),
                 (-1, 0),
                 colors.white
             ),
+
             (
                 "FONTNAME",
                 (0, 0),
                 (-1, 0),
                 "Helvetica-Bold"
             ),
+
             (
                 "ALIGN",
                 (1, 1),
                 (1, -1),
                 "CENTER"
             ),
+
             (
                 "GRID",
                 (0, 0),
@@ -707,30 +1000,35 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
                 0.5,
                 colors.HexColor("#CBD5E1")
             ),
+
             (
                 "BACKGROUND",
                 (0, 1),
                 (-1, -1),
                 colors.HexColor("#F8FAFC")
             ),
+
             (
                 "FONTNAME",
                 (0, 1),
                 (-1, -1),
                 "Helvetica"
             ),
+
             (
                 "FONTSIZE",
                 (0, 0),
                 (-1, -1),
                 9
             ),
+
             (
                 "TOPPADDING",
                 (0, 0),
                 (-1, -1),
                 8
             ),
+
             (
                 "BOTTOMPADDING",
                 (0, 0),
@@ -740,7 +1038,9 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
         ])
     )
 
+
     story.append(table)
+
 
     # -----------------------------------------------------
     # Detailed Sections
@@ -749,55 +1049,81 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
     for key, value in summary_data.items():
 
         if not isinstance(value, dict):
+
             continue
+
 
         story.append(
             Spacer(1, 12)
         )
 
+
         story.append(
             Paragraph(
-                key.replace("_", " ").title(),
+
+                key.replace(
+                    "_",
+                    " "
+                ).title(),
+
                 heading_style
             )
         )
+
 
         nested_data = [
             ["Item", "Count"]
         ]
 
+
         for nested_key, nested_value in value.items():
 
             nested_data.append([
-                nested_key.replace("_", " ").title(),
+
+                nested_key.replace(
+                    "_",
+                    " "
+                ).title(),
+
                 str(nested_value)
             ])
 
+
         nested_table = Table(
+
             nested_data,
-            colWidths=[105 * mm, 55 * mm]
+
+            colWidths=[
+                105 * mm,
+                55 * mm
+            ]
         )
+
 
         nested_table.setStyle(
             TableStyle([
+
                 (
                     "BACKGROUND",
                     (0, 0),
                     (-1, 0),
                     colors.HexColor("#475569")
                 ),
+
                 (
                     "TEXTCOLOR",
                     (0, 0),
                     (-1, 0),
                     colors.white
                 ),
+
                 (
                     "FONTNAME",
                     (0, 0),
                     (-1, 0),
                     "Helvetica-Bold"
                 ),
+
                 (
                     "GRID",
                     (0, 0),
@@ -805,18 +1131,21 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
                     0.5,
                     colors.HexColor("#CBD5E1")
                 ),
+
                 (
                     "FONTSIZE",
                     (0, 0),
                     (-1, -1),
                     9
                 ),
+
                 (
                     "TOPPADDING",
                     (0, 0),
                     (-1, -1),
                     7
                 ),
+
                 (
                     "BOTTOMPADDING",
                     (0, 0),
@@ -826,9 +1155,14 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
             ])
         )
 
-        story.append(nested_table)
+
+        story.append(
+            nested_table
+        )
+
 
     document.build(story)
+
 
     buffer.seek(0)
 
@@ -839,14 +1173,23 @@ def _create_pdf(title: str, summary_data: dict, columns: list[str]):
 # CONTRACT PDF
 # =========================================================
 
-def generate_contract_pdf(db: Session):
+def generate_contract_pdf(
+    db: Session
+):
 
     data = get_contract_summary(db)
 
+
     return _create_pdf(
+
         title="Contract Analytics Report",
+
         summary_data=data,
-        columns=["Metric", "Value"]
+
+        columns=[
+            "Metric",
+            "Value"
+        ]
     )
 
 
@@ -854,14 +1197,23 @@ def generate_contract_pdf(db: Session):
 # OBLIGATION PDF
 # =========================================================
 
-def generate_obligation_pdf(db: Session):
+def generate_obligation_pdf(
+    db: Session
+):
 
     data = get_obligation_summary(db)
 
+
     return _create_pdf(
+
         title="Obligation Analytics Report",
+
         summary_data=data,
-        columns=["Metric", "Value"]
+
+        columns=[
+            "Metric",
+            "Value"
+        ]
     )
 
 
@@ -869,14 +1221,23 @@ def generate_obligation_pdf(db: Session):
 # RENEWAL PDF
 # =========================================================
 
-def generate_renewal_pdf(db: Session):
+def generate_renewal_pdf(
+    db: Session
+):
 
     data = get_renewal_summary(db)
 
+
     return _create_pdf(
+
         title="Renewal Analytics Report",
+
         summary_data=data,
-        columns=["Metric", "Value"]
+
+        columns=[
+            "Metric",
+            "Value"
+        ]
     )
 
 
@@ -884,15 +1245,25 @@ def generate_renewal_pdf(db: Session):
 # COMPLIANCE PDF
 # =========================================================
 
-def generate_compliance_pdf(db: Session):
+def generate_compliance_pdf(
+    db: Session
+):
 
     data = get_compliance_summary_report(db)
 
+
     return _create_pdf(
+
         title="Compliance Analytics Report",
+
         summary_data=data,
-        columns=["Metric", "Value"]
+
+        columns=[
+            "Metric",
+            "Value"
+        ]
     )
+
 
 # =========================================================
 # EXCEL REPORT GENERATION
@@ -907,53 +1278,73 @@ def _create_excel(
     """
 
     workbook = Workbook()
+
     worksheet = workbook.active
+
     worksheet.title = "Report"
+
 
     # -----------------------------------------------------
     # Title
     # -----------------------------------------------------
 
     worksheet["A1"] = "ContractIQ"
+
     worksheet["A1"].font = Font(
         bold=True,
         size=20
     )
 
+
     worksheet["A2"] = title
+
     worksheet["A2"].font = Font(
         bold=True,
         size=14
     )
 
+
     worksheet["A3"] = (
-        f"Generated on: {date.today().strftime('%d %B %Y')}"
+        f"Generated on: "
+        f"{date.today().strftime('%d %B %Y')}"
     )
+
 
     # -----------------------------------------------------
     # Header
     # -----------------------------------------------------
 
     worksheet["A5"] = "Metric"
+
     worksheet["B5"] = "Value"
 
+
     header_fill = PatternFill(
+
         fill_type="solid",
+
         fgColor="2563EB"
     )
 
+
     header_font = Font(
+
         bold=True,
+
         color="FFFFFF"
     )
+
 
     for cell in worksheet[5]:
 
         cell.fill = header_fill
+
         cell.font = header_font
+
         cell.alignment = Alignment(
             horizontal="center"
         )
+
 
     # -----------------------------------------------------
     # Summary Data
@@ -961,24 +1352,42 @@ def _create_excel(
 
     row = 6
 
+
     for key, value in summary_data.items():
 
-        if isinstance(value, (dict, list)):
+        if isinstance(
+            value,
+            (dict, list)
+        ):
+
             continue
 
-        worksheet.cell(
-            row=row,
-            column=1,
-            value=key.replace("_", " ").title()
-        )
 
         worksheet.cell(
+
             row=row,
+
+            column=1,
+
+            value=key.replace(
+                "_",
+                " "
+            ).title()
+        )
+
+
+        worksheet.cell(
+
+            row=row,
+
             column=2,
+
             value=value
         )
 
+
         row += 1
+
 
     # -----------------------------------------------------
     # Nested Data
@@ -986,87 +1395,135 @@ def _create_excel(
 
     for key, value in summary_data.items():
 
-        if not isinstance(value, dict):
+        if not isinstance(
+            value,
+            dict
+        ):
+
             continue
+
 
         row += 2
 
+
         worksheet.cell(
+
             row=row,
+
             column=1,
-            value=key.replace("_", " ").title()
+
+            value=key.replace(
+                "_",
+                " "
+            ).title()
         )
+
 
         worksheet.cell(
             row=row,
             column=1
         ).font = Font(
+
             bold=True,
+
             size=12
         )
 
+
         row += 1
 
+
         worksheet.cell(
+
             row=row,
+
             column=1,
+
             value="Item"
         )
 
+
         worksheet.cell(
+
             row=row,
+
             column=2,
+
             value="Count"
         )
+
 
         for col in range(1, 3):
 
             cell = worksheet.cell(
+
                 row=row,
+
                 column=col
             )
 
+
             cell.fill = PatternFill(
+
                 fill_type="solid",
+
                 fgColor="475569"
             )
 
+
             cell.font = Font(
+
                 bold=True,
+
                 color="FFFFFF"
             )
 
+
             cell.alignment = Alignment(
+
                 horizontal="center"
             )
 
+
         row += 1
+
 
         for nested_key, nested_value in value.items():
 
             worksheet.cell(
+
                 row=row,
+
                 column=1,
+
                 value=nested_key.replace(
                     "_",
                     " "
                 ).title()
             )
 
+
             worksheet.cell(
+
                 row=row,
+
                 column=2,
+
                 value=nested_value
             )
 
+
             row += 1
+
 
     # -----------------------------------------------------
     # Column Width
     # -----------------------------------------------------
 
     worksheet.column_dimensions["A"].width = 32
+
     worksheet.column_dimensions["B"].width = 22
+
 
     # -----------------------------------------------------
     # Freeze Header
@@ -1074,15 +1531,19 @@ def _create_excel(
 
     worksheet.freeze_panes = "A6"
 
+
     # -----------------------------------------------------
     # Save to Memory
     # -----------------------------------------------------
 
     buffer = BytesIO()
 
+
     workbook.save(buffer)
 
+
     buffer.seek(0)
+
 
     return buffer
 
@@ -1091,12 +1552,17 @@ def _create_excel(
 # CONTRACT EXCEL
 # =========================================================
 
-def generate_contract_excel(db: Session):
+def generate_contract_excel(
+    db: Session
+):
 
     data = get_contract_summary(db)
 
+
     return _create_excel(
+
         title="Contract Analytics Report",
+
         summary_data=data
     )
 
@@ -1105,12 +1571,17 @@ def generate_contract_excel(db: Session):
 # OBLIGATION EXCEL
 # =========================================================
 
-def generate_obligation_excel(db: Session):
+def generate_obligation_excel(
+    db: Session
+):
 
     data = get_obligation_summary(db)
 
+
     return _create_excel(
+
         title="Obligation Analytics Report",
+
         summary_data=data
     )
 
@@ -1119,12 +1590,17 @@ def generate_obligation_excel(db: Session):
 # RENEWAL EXCEL
 # =========================================================
 
-def generate_renewal_excel(db: Session):
+def generate_renewal_excel(
+    db: Session
+):
 
     data = get_renewal_summary(db)
 
+
     return _create_excel(
+
         title="Renewal Analytics Report",
+
         summary_data=data
     )
 
@@ -1133,11 +1609,16 @@ def generate_renewal_excel(db: Session):
 # COMPLIANCE EXCEL
 # =========================================================
 
-def generate_compliance_excel(db: Session):
+def generate_compliance_excel(
+    db: Session
+):
 
     data = get_compliance_summary_report(db)
 
+
     return _create_excel(
+
         title="Compliance Analytics Report",
+
         summary_data=data
     )

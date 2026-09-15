@@ -7,9 +7,17 @@
   <div class="page-header">
 
     <div class="page-title">
-      <h1>Obligations</h1>
-      <p>Track and manage contract obligations</p>
+
+      <h1>
+        Obligations
+      </h1>
+
+      <p>
+        Track and manage contract obligations
+      </p>
+
     </div>
+
 
     <button
       mat-raised-button
@@ -17,9 +25,13 @@
       class="create-button"
       (click)="openCreateForm()">
 
-      <mat-icon>add</mat-icon>
+      <mat-icon>
+        add
+      </mat-icon>
 
-      <span>Create Obligation</span>
+      <span>
+        Create Obligation
+      </span>
 
     </button>
 
@@ -39,12 +51,17 @@
       <div class="create-header">
 
         <div>
-          <h2>Create Obligation</h2>
+
+          <h2>
+            Create Obligation
+          </h2>
 
           <p>
             Add a new obligation to a contract
           </p>
+
         </div>
+
 
         <button
           mat-icon-button
@@ -52,7 +69,9 @@
           aria-label="Close"
           (click)="closeCreateForm()">
 
-          <mat-icon>close</mat-icon>
+          <mat-icon>
+            close
+          </mat-icon>
 
         </button>
 
@@ -102,11 +121,10 @@
 
 
       <!-- ========================================= -->
-      <!-- FORM -->
+      <!-- CREATE FORM -->
       <!-- ========================================= -->
 
       <div class="create-form">
-
 
         <!-- CONTRACT -->
 
@@ -261,7 +279,7 @@
 
 
       <!-- ========================================= -->
-      <!-- FORM ACTIONS -->
+      <!-- CREATE FORM ACTIONS -->
       <!-- ========================================= -->
 
       <div class="form-actions">
@@ -323,7 +341,6 @@
 
     <div class="filters">
 
-
       <!-- SEARCH -->
 
       <mat-form-field
@@ -343,7 +360,7 @@
           type="text"
           [(ngModel)]="searchText"
           (ngModelChange)="applyFilters()"
-          placeholder="Title, type or status"
+          placeholder="Title, type, status or ID"
         />
 
       </mat-form-field>
@@ -539,7 +556,6 @@
 
     <mat-card class="table-card">
 
-
       <!-- TABLE HEADER -->
 
       <div class="table-header">
@@ -619,8 +635,9 @@
 
               <tr>
 
-
+                <!-- ================================= -->
                 <!-- OBLIGATION -->
+                <!-- ================================= -->
 
                 <td>
 
@@ -643,7 +660,9 @@
                 </td>
 
 
+                <!-- ================================= -->
                 <!-- CONTRACT -->
+                <!-- ================================= -->
 
                 <td>
 
@@ -654,7 +673,9 @@
                 </td>
 
 
+                <!-- ================================= -->
                 <!-- TYPE -->
+                <!-- ================================= -->
 
                 <td>
 
@@ -665,7 +686,9 @@
                 </td>
 
 
+                <!-- ================================= -->
                 <!-- DUE DATE -->
+                <!-- ================================= -->
 
                 <td>
 
@@ -693,7 +716,9 @@
                 </td>
 
 
+                <!-- ================================= -->
                 <!-- ASSIGNED TO -->
+                <!-- ================================= -->
 
                 <td>
 
@@ -704,7 +729,9 @@
                 </td>
 
 
+                <!-- ================================= -->
                 <!-- STATUS -->
+                <!-- ================================= -->
 
                 <td>
 
@@ -723,17 +750,23 @@
                 </td>
 
 
+                <!-- ================================= -->
                 <!-- ACTIONS -->
+                <!-- ================================= -->
 
                 <td>
 
                   <div class="actions">
 
+                    <!-- VIEW -->
+
                     <button
                       mat-icon-button
                       type="button"
+                      class="view-action"
                       aria-label="View Obligation"
-                      matTooltip="View Obligation">
+                      matTooltip="View Obligation"
+                      (click)="viewObligation(obligation)">
 
                       <mat-icon>
                         visibility
@@ -742,11 +775,15 @@
                     </button>
 
 
+                    <!-- EDIT -->
+
                     <button
                       mat-icon-button
                       type="button"
+                      class="edit-action"
                       aria-label="Edit Obligation"
-                      matTooltip="Edit Obligation">
+                      matTooltip="Edit Obligation"
+                      (click)="editObligation(obligation)">
 
                       <mat-icon>
                         edit
@@ -785,11 +822,14 @@
 
         <span class="result-count">
 
-          1 – {{ filteredObligations.length }}
+          1 –
+          {{ filteredObligations.length }}
 
-          of {{ filteredObligations.length }}
+          of
+          {{ filteredObligations.length }}
 
         </span>
+
 
         <button
           mat-icon-button
@@ -801,6 +841,7 @@
           </mat-icon>
 
         </button>
+
 
         <button
           mat-icon-button
@@ -816,6 +857,599 @@
       </div>
 
     </mat-card>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- VIEW OBLIGATION MODAL -->
+  <!-- ===================================================== -->
+
+  @if (
+    showViewModal &&
+    selectedObligation
+  ) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeViewModal()">
+
+      <div
+        class="obligation-modal view-modal"
+        (click)="$event.stopPropagation()">
+
+
+        <!-- ========================================= -->
+        <!-- MODAL HEADER -->
+        <!-- ========================================= -->
+
+        <div class="modal-header">
+
+          <div>
+
+            <h2>
+              Obligation Details
+            </h2>
+
+            <p>
+              View complete obligation information
+            </p>
+
+          </div>
+
+
+          <button
+            mat-icon-button
+            type="button"
+            aria-label="Close"
+            (click)="closeViewModal()">
+
+            <mat-icon>
+              close
+            </mat-icon>
+
+          </button>
+
+        </div>
+
+
+        <!-- ========================================= -->
+        <!-- MODAL CONTENT -->
+        <!-- ========================================= -->
+
+        <div class="modal-content">
+
+
+          <!-- TITLE -->
+
+          <div class="detail-section">
+
+            <span class="detail-label">
+              Obligation Title
+            </span>
+
+            <span class="detail-value title-value">
+              {{ selectedObligation.title }}
+            </span>
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="detail-section description-detail">
+
+            <span class="detail-label">
+              Description
+            </span>
+
+            <span class="detail-value">
+
+              @if (selectedObligation.description) {
+
+                {{ selectedObligation.description }}
+
+              } @else {
+
+                No description provided.
+
+              }
+
+            </span>
+
+          </div>
+
+
+          <!-- DETAILS GRID -->
+
+          <div class="details-grid">
+
+
+            <!-- CONTRACT -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Contract
+              </span>
+
+              <span class="detail-value">
+                #{{ selectedObligation.contract_id }}
+              </span>
+
+            </div>
+
+
+            <!-- TYPE -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Obligation Type
+              </span>
+
+              <span class="detail-value">
+                {{ selectedObligation.obligation_type }}
+              </span>
+
+            </div>
+
+
+            <!-- DUE DATE -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Due Date
+              </span>
+
+              <span
+                class="detail-value"
+                [class.overdue-text]="
+                  isOverdue(selectedObligation)
+                ">
+
+                {{
+                  selectedObligation.due_date
+                    | date:'dd MMM yyyy'
+                }}
+
+              </span>
+
+            </div>
+
+
+            <!-- ASSIGNED USER -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Assigned To
+              </span>
+
+              <span class="detail-value">
+                User #{{ selectedObligation.assigned_to }}
+              </span>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Status
+              </span>
+
+              <span
+                class="status-badge"
+                [ngClass]="
+                  getStatusClass(
+                    selectedObligation.status
+                  )
+                ">
+
+                {{ selectedObligation.status }}
+
+              </span>
+
+            </div>
+
+
+            <!-- COMPLETION DATE -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Completion Date
+              </span>
+
+              <span class="detail-value">
+
+                @if (
+                  selectedObligation.completion_date
+                ) {
+
+                  {{
+                    selectedObligation.completion_date
+                      | date:'dd MMM yyyy'
+                  }}
+
+                } @else {
+
+                  Not completed
+
+                }
+
+              </span>
+
+            </div>
+
+
+            <!-- CREATED -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Created At
+              </span>
+
+              <span class="detail-value">
+
+                {{
+                  selectedObligation.created_at
+                    | date:'dd MMM yyyy, hh:mm a'
+                }}
+
+              </span>
+
+            </div>
+
+
+            <!-- UPDATED -->
+
+            <div class="detail-section">
+
+              <span class="detail-label">
+                Last Updated
+              </span>
+
+              <span class="detail-value">
+
+                {{
+                  selectedObligation.updated_at
+                    | date:'dd MMM yyyy, hh:mm a'
+                }}
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ========================================= -->
+        <!-- MODAL FOOTER -->
+        <!-- ========================================= -->
+
+        <div class="modal-footer">
+
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="closeViewModal()">
+
+            Close
+
+          </button>
+
+
+          <button
+            mat-raised-button
+            type="button"
+            class="modal-edit-button"
+            (click)="
+              closeViewModal();
+              editObligation(selectedObligation)
+            ">
+
+            <mat-icon>
+              edit
+            </mat-icon>
+
+            <span>
+              Edit Obligation
+            </span>
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- EDIT OBLIGATION MODAL -->
+  <!-- ===================================================== -->
+
+  @if (
+    showEditModal &&
+    selectedObligation
+  ) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeEditModal()">
+
+      <div
+        class="obligation-modal edit-modal"
+        (click)="$event.stopPropagation()">
+
+
+        <!-- ========================================= -->
+        <!-- EDIT MODAL HEADER -->
+        <!-- ========================================= -->
+
+        <div class="modal-header">
+
+          <div>
+
+            <h2>
+              Edit Obligation
+            </h2>
+
+            <p>
+              Update obligation information
+            </p>
+
+          </div>
+
+
+          <button
+            mat-icon-button
+            type="button"
+            aria-label="Close"
+            [disabled]="editing"
+            (click)="closeEditModal()">
+
+            <mat-icon>
+              close
+            </mat-icon>
+
+          </button>
+
+        </div>
+
+
+        <!-- ========================================= -->
+        <!-- EDIT SUCCESS -->
+        <!-- ========================================= -->
+
+        @if (editSuccess) {
+
+          <div class="success-message modal-message">
+
+            <mat-icon>
+              check_circle
+            </mat-icon>
+
+            <span>
+              {{ editSuccess }}
+            </span>
+
+          </div>
+
+        }
+
+
+        <!-- ========================================= -->
+        <!-- EDIT ERROR -->
+        <!-- ========================================= -->
+
+        @if (editError) {
+
+          <div class="form-error modal-message">
+
+            <mat-icon>
+              error_outline
+            </mat-icon>
+
+            <span>
+              {{ editError }}
+            </span>
+
+          </div>
+
+        }
+
+
+        <!-- ========================================= -->
+        <!-- EDIT FORM -->
+        <!-- ========================================= -->
+
+        <div class="edit-form">
+
+
+          <!-- TITLE -->
+
+          <mat-form-field
+            appearance="outline"
+            class="form-field">
+
+            <mat-label>
+              Obligation Title
+            </mat-label>
+
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="editObligationData.title"
+              placeholder="Enter obligation title"
+            />
+
+          </mat-form-field>
+
+
+          <!-- TYPE -->
+
+          <mat-form-field
+            appearance="outline"
+            class="form-field">
+
+            <mat-label>
+              Obligation Type
+            </mat-label>
+
+            <mat-select
+              [(ngModel)]="
+                editObligationData.obligation_type
+              "
+              panelClass="obligation-type-panel">
+
+              @for (
+                type of obligationTypes;
+                track type
+              ) {
+
+                <mat-option
+                  [value]="type">
+
+                  {{ type }}
+
+                </mat-option>
+
+              }
+
+            </mat-select>
+
+          </mat-form-field>
+
+
+          <!-- DUE DATE -->
+
+          <mat-form-field
+            appearance="outline"
+            class="form-field">
+
+            <mat-label>
+              Due Date
+            </mat-label>
+
+            <input
+              matInput
+              type="date"
+              [(ngModel)]="editObligationData.due_date"
+            />
+
+          </mat-form-field>
+
+
+          <!-- ASSIGNED USER -->
+
+          <mat-form-field
+            appearance="outline"
+            class="form-field">
+
+            <mat-label>
+              Assigned User ID
+            </mat-label>
+
+            <input
+              matInput
+              type="number"
+              [(ngModel)]="
+                editObligationData.assigned_to
+              "
+              placeholder="Enter user ID"
+            />
+
+          </mat-form-field>
+
+
+          <!-- DESCRIPTION -->
+
+          <mat-form-field
+            appearance="outline"
+            class="form-field full-width">
+
+            <mat-label>
+              Description
+            </mat-label>
+
+            <textarea
+              matInput
+              rows="4"
+              [(ngModel)]="
+                editObligationData.description
+              "
+              placeholder="Enter obligation description">
+            </textarea>
+
+          </mat-form-field>
+
+        </div>
+
+
+        <!-- ========================================= -->
+        <!-- EDIT MODAL FOOTER -->
+        <!-- ========================================= -->
+
+        <div class="modal-footer">
+
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="editing"
+            (click)="closeEditModal()">
+
+            Cancel
+
+          </button>
+
+
+          <button
+            mat-raised-button
+            type="button"
+            class="submit-button"
+            [disabled]="editing"
+            (click)="updateObligation()">
+
+            @if (editing) {
+
+              <mat-icon>
+                hourglass_empty
+              </mat-icon>
+
+              <span>
+                Saving...
+              </span>
+
+            } @else {
+
+              <mat-icon>
+                save
+              </mat-icon>
+
+              <span>
+                Save Changes
+              </span>
+
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
 
   }
 
