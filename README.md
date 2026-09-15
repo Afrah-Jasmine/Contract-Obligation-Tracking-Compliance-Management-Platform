@@ -1,203 +1,19 @@
-# ContractIQ — Complete Sprint 14–15 Implementation
-
-This repository contains the ContractIQ FastAPI/PostgreSQL backend plus the Angular 18 frontend required for the supplied Sprint 14, 14A, 14B and Sprint 14–15 tasks.
-
-## Main deliverable
-
-The Angular application in `frontend/` is integrated with the existing FastAPI APIs. It includes authentication, protected routing, role-aware navigation, dashboard analytics, contracts, obligations, renewals, compliance, notifications, reports, audit/activity, profile and administrator user management.
-
-See [`docs/SPRINT14_15_COMPLETION_CHECKLIST.md`](docs/SPRINT14_15_COMPLETION_CHECKLIST.md) for the task-by-task completion map and verification notes.
-
-## Quick start
-
-### Backend
-
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn app.main:app --reload
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm ci
-npm start
-```
-
-Open `http://localhost:4200`. The frontend uses `http://localhost:8000` as the default API base.
-
-## GitHub
-
-Push this implementation to the repository supplied by the mentor. Do not commit `.env` or credentials.
-
-<<<<<<< HEAD
-# ContractIQ — Contract Obligation Tracking & Compliance Management Platform
-
-FastAPI + PostgreSQL backend implementing Sprints 3–12 of the ContractIQ
-project: database design, authentication, RBAC, contract lifecycle,
-obligation tracking, renewal management, compliance monitoring, and
-notifications.
-
-## 1. Project Structure
-
-```
-app/
-├── main.py                # FastAPI app + router registration
-├── config.py               # Settings (reads .env)
-├── database.py              # SQLAlchemy engine/session/Base
-├── core/
-│   ├── security.py          # password hashing, JWT create/decode
-│   ├── deps.py               # get_current_user / get_current_active_user
-│   └── permissions.py         # require_roles() RBAC dependency (Sprint 6)
-├── models/                  # SQLAlchemy models (Sprint 3/4)
-│   ├── user.py, contract.py, contract_version.py, obligation.py,
-│   ├── renewal.py, notification.py, compliance.py, report.py,
-│   └── audit_log.py, activity.py
-├── schemas/                 # Pydantic request/response schemas
-├── api/                     # Routers: auth, users, contracts, obligations,
-│                             # renewals, compliance, notifications
-└── services/
-    ├── email_service.py       # SMTP sending (Sprint 12)
-    ├── notification_service.py # Central notification creation (Sprint 12)
-    └── compliance_service.py   # Compliance scoring + risk rules (Sprint 11)
-
-alembic/                    # Migration environment (autogenerate-ready)
-docs/DATABASE_DESIGN.md       # Sprint 3 deliverable: schema + ER diagram
-requirements.txt
-.env.example
-```
-
-## 2. Local Setup
-
-```bash
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-cp .env.example .env
-# then edit .env: set DATABASE_URL, SECRET_KEY, SMTP_* values
-```
-
-Make sure PostgreSQL is running and the database exists:
-
-```sql
-CREATE DATABASE contractiq_db;
-```
-
-## 3. Database Migrations (Sprint 4)
-
-The Alembic environment (`alembic/env.py`) is already wired to
-`app.database.Base.metadata` and to `DATABASE_URL` from `.env`, so
-autogenerate will pick up every model in `app/models/`.
-
-```bash
-alembic revision --autogenerate -m "initial schema"
-alembic upgrade head
-```
-
-Verify the tables in pgAdmin: `contractiq_db → Schemas → public → Tables`.
-You should see all 10 tables: `users`, `contracts`, `contract_versions`,
-`obligations`, `renewals`, `notifications`, `reports`, `audit_logs`,
-`activities`, `compliance_records`.
-
-Whenever you change a model, repeat:
-```bash
-alembic revision --autogenerate -m "describe your change"
-alembic upgrade head
-```
-
-## 4. Running the API
-
-```bash
-uvicorn app.main:app --reload
-```
-
-Open Swagger UI: **http://127.0.0.1:8000/docs**
-
-## 5. Sprint-by-Sprint Testing Guide
-
-### Sprint 5/6 — Auth & RBAC
-1. `POST /auth/register` — create users with different `role` values
-   (`Administrator`, `Legal Manager`, `Compliance Officer`,
-   `Contract Manager`, `Department Head`, `Employee`).
-2. `POST /auth/login` (form-encoded `username`=email, `password`) → copy
-   `access_token`.
-3. In Swagger, click **Authorize** and paste the token.
-4. `DELETE /users/{user_id}` as Administrator → `200/204`.
-   As Employee → `403 Forbidden`. With no token → `401 Unauthorized`.
-
-### Sprint 7/8 — Contracts
-1. `POST /contracts` — `created_by` is taken from the JWT, never the body.
-2. `GET /contracts`, `GET /contracts/{id}` (try a bad id → `404`).
-3. `POST /contracts/{id}/submit-review` → `Draft → Under Review`.
-4. `POST /contracts/{id}/approve` (Administrator/Legal Manager only).
-5. `POST /contracts/{id}/activate`.
-6. Try an out-of-order transition (e.g. approve a Draft contract) → `400`.
-
-### Sprint 9 — Obligations
-1. `POST /obligations` with a valid `contract_id`.
-2. `GET /obligations`, `GET /obligations/{id}`,
-   `GET /contracts/{id}/obligations`.
-3. `PATCH /obligations/{id}/status`, `POST /obligations/{id}/complete`
-   (backend sets `completion_date`, not the client).
-4. Overdue detection runs automatically whenever obligations are listed or
-   fetched — any obligation whose `due_date` has passed and isn't
-   `Completed` flips to `Overdue` and fires a notification.
-
-### Sprint 10 — Renewals
-1. `POST /renewals` for an existing contract.
-2. `PATCH /renewals/{id}/status` → `Upcoming → In Progress`.
-3. `POST /renewals/{id}/renew` → sets `Renewed`, pushes `new_expiry_date`
-   onto the parent contract, and reactivates it if it had expired.
-
-### Sprint 11 — Compliance
-1. `GET /contracts/{id}/compliance` — computed live from the contract's
-   obligations (see `docs/DATABASE_DESIGN.md` and
-   `app/services/compliance_service.py` for the exact scoring rules) and
-   written to `compliance_records` for history.
-2. `GET /compliance/summary`, `GET /compliance/non-compliant`,
-   `GET /compliance/high-risk`.
-
-### Sprint 12 — Notifications
-1. `GET /notifications` — only returns the authenticated user's own
-   notifications.
-2. `PATCH /notifications/{id}/read`, `PATCH /notifications/read-all`.
-3. Set real `SMTP_*` values in `.env` to see emails actually sent; without
-   them, notifications are still created in the DB but email sending is
-   skipped gracefully (logged, never crashes the request).
-
-## 6. Pushing to GitHub
-
-```bash
-git init
-git add .
-git commit -m "ContractIQ backend: Sprints 3-12 (DB design, auth/RBAC, contracts, obligations, renewals, compliance, notifications)"
-git branch -M main
-git remote add origin <your-assigned-repo-url>
-git push -u origin main
-```
-
-`.env` is already excluded via `.gitignore` — never commit real credentials.
-=======
-ContractIQ
-Contract Obligation Tracking & Compliance Management Platform
-ContractIQ is a FastAPI + PostgreSQL backend for managing the full contract lifecycle — creation, review, approval, activation, obligation tracking, renewals, compliance/risk scoring, notifications, and audit logging — behind a role-based, JWT-secured REST API.
+ContractIQ — Contract Obligation Tracking & Compliance Management Platform
+ContractIQ is a full-stack platform for managing the entire contract lifecycle — creation, review, approval, activation, obligation tracking, renewals, compliance/risk scoring, notifications, and audit logging — behind a role-based, JWT-secured REST API, with an Angular frontend on top.
+This repository contains the FastAPI + PostgreSQL backend (Sprints 3–12) and the Angular 18 frontend (Sprints 14–15) that consumes it.
+See `docs/SPRINT14_15_COMPLETION_CHECKLIST.md` for the task-by-task completion map and verification notes.
 ---
 Table of Contents
 Overview
+Sprint-by-Sprint Breakdown
 Tech Stack
 Project Structure
-Database Design
-Roles & Permissions
-Getting Started
+Quick Start
 Environment Variables
 Database Migrations
 Running with Docker
+Database Design
+Roles & Permissions
 API Reference
 Business Rules Cheat Sheet
 Testing
@@ -205,7 +21,7 @@ Seed Data
 Contributing
 License
 ---
-1. Overview
+Overview
 ContractIQ models the following business flow:
 ```
 User
@@ -235,7 +51,39 @@ Renewal workflow that rolls a completed renewal's new expiry date back onto the 
 Live compliance scoring and risk-level classification, persisted as historical records
 In-app + email notifications (SMTP, degrades gracefully if unconfigured)
 Audit logging and activity history models
-2. Tech Stack
+Angular frontend with authentication, protected routing, role-aware navigation, dashboard analytics, contracts, obligations, renewals, compliance, notifications, reports, audit/activity, profile, and administrator user management
+Sprint-by-Sprint Breakdown
+ContractIQ was built incrementally across Sprints 3–15. Each sprint added a self-contained layer on top of the previous one — schema first, then auth, then business modules, then reporting, then the full Angular frontend.
+Sprint 3 — Database Design
+Designed the core relational schema for the platform: `users`, `contracts`, `contract_versions`, `obligations`, `renewals`, `notifications`, `reports`, `audit_logs`, and `activities`. Modeled entity relationships (a contract has many obligations, versions, and renewals; obligations and contracts each generate notifications) and implemented them as SQLAlchemy models under `app/models/`. Deliverables: the ER diagram (`ContractIQ_ER_Diagram.png`) and `docs/DATABASE_DESIGN.md`.
+Sprint 4 — Database Migrations
+Wired up Alembic (`alembic/env.py`) to `app.database.Base.metadata` so that `alembic revision --autogenerate` picks up every model automatically. Produced the initial migration and verified all tables were created correctly in PostgreSQL via `alembic upgrade head`.
+Sprint 5 — Authentication
+Implemented JWT-based authentication: `POST /auth/register` and `POST /auth/login`, password hashing with `passlib`/`bcrypt`, and token creation/decoding in `app/core/security.py`. Login is form-encoded with `username` = email, returning a bearer access token used by every other protected endpoint.
+Sprint 6 — Role-Based Access Control (RBAC)
+Defined the six-role model (`Administrator`, `Legal Manager`, `Compliance Officer`, `Contract Manager`, `Department Head`, `Employee`) in `app/core/roles.py`, and built a reusable `require_roles(*allowed_roles)` FastAPI dependency (`app/core/permissions.py`) layered on top of JWT auth. Missing/invalid tokens return `401`; valid tokens with an insufficient role return `403`.
+Sprint 7 — Contract Management (Core)
+Built the core Contract CRUD API: create, list, retrieve, and update contracts, with `created_by` always taken from the JWT rather than the request body. Introduced `contract_versions` to track document/content history per contract.
+Sprint 8 — Contract Lifecycle
+Added enforced, server-side status transitions for contracts (`Draft → Under Review → Approved → Active → …`) via dedicated endpoints — `submit-review`, `approve`, `activate` — plus direct status/assignment changes. Out-of-order transitions (e.g. approving a `Draft` contract) are rejected with `400`.
+Sprint 9 — Obligation Tracking
+Built the Obligations module: create, list, retrieve, update, and complete obligations tied to a contract. Implemented automatic overdue detection — any obligation past its `due_date` and not `Completed` flips to `Overdue` lazily, the next time it's read or listed, and fires a notification.
+Sprint 10 — Renewal Management
+Built the Renewals module for tracking contract renewal cycles. The key business rule: `POST /renewals/{id}/renew` is the only way a contract's expiry date and active status get updated — it marks the renewal `Renewed`, pushes the `new_expiry_date` onto the parent contract, and reactivates it if it had expired.
+Sprint 11 — Compliance Monitoring
+Implemented live compliance scoring and risk-level classification in `app/services/compliance_service.py`. Every call to `GET /contracts/{id}/compliance` re-evaluates the contract's obligations on the spot (nothing is cached) and writes a fresh row to `compliance_records`, preserving a full history of evaluations. Added summary endpoints for non-compliant and high-risk contracts.
+Sprint 12 — Notifications
+Built a central notification system (`app/services/notification_service.py`) that creates in-app notifications for events like overdue obligations, plus optional outbound email via `app/services/email_service.py`. If SMTP isn't configured, notifications are still written to the database and email sending is skipped gracefully rather than raising an error.
+Sprint 13 — Reports, Analytics and Dashboard Development
+Built the reporting/analytics layer that the frontend dashboard consumes: SQLAlchemy aggregation queries and Pydantic response schemas for contract summaries (total/active/expired/pending-approval, grouped by status), obligation summaries (pending/completed/overdue), renewal summaries (upcoming, expiring, within a date range), and compliance summaries (compliant/non-compliant/high-risk). No duplicate reporting tables — everything is computed from the existing contract, obligation, renewal, and compliance data.
+Sprint 14 — Angular Frontend Foundation, Dashboard & Authentication
+Split into two parts:
+14A — Frontend Foundation & Dashboard: set up the Angular 18 project with Angular Material, built the common application layout (header, sidebar, main content, responsive design), and wired the dashboard to the Sprint 13 reporting APIs via a dedicated Angular service — including loading, empty, and error states, with no hardcoded numbers.
+14B — Authentication & Integration: built the login, registration, and forgot-password screens using Angular reactive forms, connected login to the FastAPI auth API, stored the JWT, added route protection (`auth.guard.ts`) and an HTTP interceptor (`auth.interceptor.ts`) to attach the bearer token to every request, and implemented logout and role-aware navigation.
+Sprint 15 — Full Frontend Integration
+Completed the rest of the Angular application, connecting every remaining backend module to a real UI screen: Contracts, Obligations, Renewals, Compliance, Notifications, Reports, and Audit/Activity History, plus Profile and (for Administrators) User Management. Standardized the API call architecture — Angular Component → Angular Service → HTTP Request → FastAPI → SQLAlchemy → PostgreSQL, and back — kept entirely out of components and inside `data.service.ts`/`auth.service.ts`. Added consistent form validation, error handling, loading/empty states, and a responsive layout across desktop, tablet, and mobile. Finished with an end-to-end walkthrough (login → dashboard → create contract → obligation → renewal → compliance → notification → reports → activity → logout) to confirm every module reflects data correctly across the others. See `docs/SPRINT14_15_COMPLETION_CHECKLIST.md` for the full deliverable checklist.
+Tech Stack
+Backend
 Technology	Purpose
 Python 3.12+	Backend language
 FastAPI	REST API framework
@@ -249,7 +97,13 @@ Uvicorn	ASGI server
 Docker / docker-compose	Containerized DB + API
 Pytest	Testing
 Swagger / OpenAPI	Interactive API docs (`/docs`)
-3. Project Structure
+Frontend
+Technology	Purpose
+Angular 18	SPA framework
+Angular Material	UI components
+Reactive Forms	Form handling & validation
+HttpClient + interceptors	API communication, auth token injection
+Project Structure
 ```
 contractiq/
 ├── requirements.txt
@@ -260,55 +114,129 @@ contractiq/
 ├── seed.py
 │
 ├── app/
-│   ├── main.py                 # FastAPI app, CORS, router registration
-│   ├── config.py                # Settings loaded from .env (pydantic-settings)
-│   ├── database.py               # SQLAlchemy engine / session / Base
+│   ├── main.py                  # FastAPI app, CORS, router registration
+│   ├── config.py                 # Settings loaded from .env (pydantic-settings)
+│   ├── database.py                # SQLAlchemy engine / session / Base
 │   │
 │   ├── core/
-│   │   ├── security.py           # password hashing, JWT create/decode
-│   │   ├── deps.py                # get_current_user / get_current_active_user
-│   │   ├── permissions.py          # require_roles() RBAC dependency
-│   │   └── roles.py                # UserRole enum
+│   │   ├── security.py            # password hashing, JWT create/decode
+│   │   ├── deps.py                 # get_current_user / get_current_active_user
+│   │   ├── permissions.py           # require_roles() RBAC dependency
+│   │   └── roles.py                  # UserRole enum
 │   │
-│   ├── models/                   # SQLAlchemy ORM models
+│   ├── models/                    # SQLAlchemy ORM models
 │   │   ├── user.py, contract.py, contract_version.py, obligation.py
 │   │   ├── renewal.py, notification.py, compliance.py, report.py
 │   │   └── audit_log.py, activity.py
 │   │
-│   ├── schemas/                  # Pydantic request/response schemas
+│   ├── schemas/                   # Pydantic request/response schemas
 │   │   ├── auth.py, user.py, contract.py, obligation.py
 │   │   └── renewal.py, compliance.py, notification.py
 │   │
-│   ├── services/                 # Business logic
+│   ├── services/                  # Business logic
 │   │   ├── contract_service.py, obligation_service.py
-│   │   ├── compliance_service.py    # scoring + risk-level rules
-│   │   ├── notification_service.py  # central notification creation
-│   │   └── email_service.py          # SMTP sending
+│   │   ├── compliance_service.py     # scoring + risk-level rules
+│   │   ├── notification_service.py   # central notification creation
+│   │   └── email_service.py           # SMTP sending
 │   │
-│   └── api/                      # Routers registered in main.py
-│       ├── auth.py                 # /auth
-│       ├── users.py                # /users
-│       ├── contracts.py            # /contracts
-│       ├── obligations.py          # /obligations, /contracts/{id}/obligations
-│       ├── renewals.py             # /renewals, /contracts/{id}/renewals
-│       ├── compliance.py           # /compliance
-│       └── notifications.py        # /notifications
+│   └── api/                       # Routers registered in main.py
+│       ├── auth.py                  # /auth
+│       ├── users.py                 # /users
+│       ├── contracts.py             # /contracts
+│       ├── obligations.py           # /obligations, /contracts/{id}/obligations
+│       ├── renewals.py              # /renewals, /contracts/{id}/renewals
+│       ├── compliance.py            # /compliance
+│       └── notifications.py         # /notifications
 │
 ├── alembic/
-│   ├── env.py                    # wired to app.database.Base.metadata
-│   └── versions/                 # migration history
+│   ├── env.py                     # wired to app.database.Base.metadata
+│   └── versions/                  # migration history
 │
 ├── docs/
 │   ├── DATABASE_DESIGN.md
 │   ├── ER_DIAGRAM.md
-│   └── schema.dbml
+│   ├── schema.dbml
+│   └── SPRINT14_15_COMPLETION_CHECKLIST.md
 │
-└── tests/
-    └── test_health.py
+├── tests/
+│   └── test_health.py
+│
+└── frontend/                      # Angular 18 application
+    └── src/app/
+        ├── core/                   # auth service, guard, interceptor, api base, models
+        ├── layout/                 # shell (header, sidebar, main content)
+        ├── shared/ui/              # reusable UI components
+        └── pages/
+            ├── auth/               # login, register, forgot-password
+            ├── dashboard/
+            ├── contracts/
+            ├── obligations/
+            ├── renewals/
+            ├── compliance/
+            ├── notifications/
+            ├── reports/
+            ├── activity/
+            ├── profile/
+            └── users/
 ```
-> **Note:** the repository also contains a couple of superseded/legacy files (`app/api/user_api.py`, `app/api/contract_compliance.py`, `app/database/database.py`, `app/models/audit.py`, `app/routers/*`) left over from earlier sprints. They are **not** imported by `app/main.py` and are not part of the live application — the files listed above under `app/api/` and `app/database.py` are the ones actually wired in. Safe to delete during cleanup.
-4. Database Design
-The schema has 10 tables, matching the original Sprint 3 design plus `compliance_records`, added to retain a history of compliance evaluations.
+> **Note:** the repository also contains a few superseded/legacy files (`app/api/user_api.py`, `app/api/contract_compliance.py`, `app/database/database.py`, `app/models/audit.py`, `app/routers/*`) left over from earlier sprints. They are **not** imported by `app/main.py` and are not part of the live application. Safe to delete during cleanup.
+Quick Start
+Prerequisites: Python 3.12+, Node.js + npm, PostgreSQL 16 (or Docker).
+Backend
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
+
+pip install -r requirements.txt
+
+cp .env.example .env
+# edit .env: DATABASE_URL, SECRET_KEY, SMTP_* (optional)
+
+# create the database if running Postgres locally (skip if using Docker)
+psql -U postgres -c "CREATE DATABASE contractiq_db;"
+
+alembic upgrade head
+uvicorn app.main:app --reload
+```
+Open http://127.0.0.1:8000/docs for interactive Swagger docs, or http://127.0.0.1:8000/redoc for ReDoc.
+Health check: `GET /` → `{"status": "ok", "service": "ContractIQ API"}`
+Frontend
+```bash
+cd frontend
+npm ci
+npm start
+```
+Open http://localhost:4200. The frontend uses `http://localhost:8000` as the default API base.
+Environment Variables
+Set in `.env` (see `.env.example`):
+Variable	Default	Description
+`DATABASE_URL`	`postgresql+psycopg2://postgres:postgres@localhost:5432/contractiq_db`	SQLAlchemy connection string
+`SECRET_KEY`	(dev placeholder — change in production)	JWT signing secret
+`ALGORITHM`	`HS256`	JWT signing algorithm
+`ACCESS_TOKEN_EXPIRE_MINUTES`	`60`	JWT lifetime
+`SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD`	—	Outbound email for notifications
+`SMTP_FROM`	`ContractIQ <no-reply@contractiq.com>`	From-address for emails
+`RENEWAL_REMINDER_DAYS`	`90,60,30,7`	Days-before-expiry thresholds for renewal reminders
+If `SMTP_*` is left blank, notifications are still written to the database — email sending is simply skipped and logged rather than raising an error.
+Database Migrations
+Alembic (`alembic/env.py`) is wired to `app.database.Base.metadata` and reads `DATABASE_URL` from `.env`, so autogenerate picks up every model under `app/models/`.
+```bash
+# generate a migration after changing a model
+alembic revision --autogenerate -m "describe your change"
+
+# apply all pending migrations
+alembic upgrade head
+```
+After migrating, you should see all 10 tables under `contractiq_db → public`: `users`, `contracts`, `contract_versions`, `obligations`, `renewals`, `notifications`, `reports`, `compliance_records`, `audit_logs`, `activities`.
+Running with Docker
+```bash
+docker compose up --build
+```
+This starts a `postgres:16` container plus the API container, running migrations automatically on boot (`alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000`). The API is then available at http://localhost:8000.
+> The default `docker-compose.yml` uses hardcoded dev credentials (`postgres` / `postgres`, a placeholder `SECRET_KEY`). Override these via environment variables or a `.env` file for anything beyond local development.
+Database Design
+The schema has 10 tables, matching the original Sprint 3 design plus `compliance_records`, which retains a history of compliance evaluations.
 Table	Purpose	Key columns
 `users`	Accounts, credentials, roles	`id`, `full_name`, `email`, `hashed_password`, `role`, `is_active`
 `contracts`	Master contract record	`id`, `title`, `contract_number`, `category`, `status`, `start_date`, `end_date`, `created_by`, `assigned_to`, `reviewed_at`, `approved_at`, `activated_at`
@@ -321,8 +249,8 @@ Table	Purpose	Key columns
 `audit_logs`	Security/action audit trail	`id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `ip_address`
 `activities`	General user activity feed	`id`, `user_id`, `description`, `entity_type`, `entity_id`
 Relationships: a `User` creates/is assigned many `Contracts`; a `Contract` has many `ContractVersions`, `Obligations`, and `Renewals` (all cascade-deleted with the contract); `Obligations` and `Contracts` each generate `Notifications`; `ComplianceRecord` and `Report` reference a `Contract`/`User` respectively; `AuditLog` and `Activity` both belong to a `User`.
-See `contractiq/docs/DATABASE_DESIGN.md` and `contractiq/docs/schema.dbml` for full column-level detail, and `ContractIQ_ER_Diagram.png` for the entity-relationship diagram.
-5. Roles & Permissions
+See `docs/DATABASE_DESIGN.md` and `docs/schema.dbml` for full column-level detail, and `ContractIQ_ER_Diagram.png` for the entity-relationship diagram.
+Roles & Permissions
 Six roles, defined in `app/core/roles.py`:
 `ADMINISTRATOR`
 `LEGAL_MANAGER`
@@ -330,66 +258,14 @@ Six roles, defined in `app/core/roles.py`:
 `CONTRACT_MANAGER`
 `DEPARTMENT_HEAD`
 `EMPLOYEE`
-Authorization is enforced with a reusable `require_roles(*allowed_roles)` FastAPI dependency (`app/core/permissions.py`), layered on top of JWT auth: a missing/invalid token returns `401`, a valid token with an insufficient role returns `403`. Common groupings used across routers:
+Authorization is enforced with a reusable `require_roles(*allowed_roles)` FastAPI dependency (`app/core/permissions.py`), layered on top of JWT auth: a missing/invalid token returns `401`, a valid token with an insufficient role returns `403`.
+Common groupings used across routers:
 Group	Roles
 `ANY_MANAGER_ROLES`	Administrator, Legal Manager, Contract Manager
 `COMPLIANCE_VIEW_ROLES`	Administrator, Legal Manager, Compliance Officer, Contract Manager
 `APPROVAL_ROLES`	Administrator, Legal Manager
-6. Getting Started
-Prerequisites: Python 3.12+, PostgreSQL 16 (or Docker), `pip`.
-```bash
-cd contractiq
-
-# 1. Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Configure environment
-cp .env.example .env
-# edit .env: DATABASE_URL, SECRET_KEY, SMTP_* (optional)
-
-# 4. Create the database (if running Postgres locally, not via Docker)
-psql -U postgres -c "CREATE DATABASE contractiq_db;"
-
-# 5. Apply migrations
-alembic upgrade head
-
-# 6. Run the API
-uvicorn app.main:app --reload
-```
-Then open http://127.0.0.1:8000/docs for interactive Swagger docs, or http://127.0.0.1:8000/redoc for ReDoc.
-Health check: `GET /` → `{"status": "ok", "service": "ContractIQ API"}`
-7. Environment Variables
-Set in `contractiq/.env` (see `.env.example`):
-Variable	Default	Description
-`DATABASE_URL`	`postgresql+psycopg2://postgres:postgres@localhost:5432/contractiq_db`	SQLAlchemy connection string
-`SECRET_KEY`	(dev placeholder — change in production)	JWT signing secret
-`ALGORITHM`	`HS256`	JWT signing algorithm
-`ACCESS_TOKEN_EXPIRE_MINUTES`	`60`	JWT lifetime
-`SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD`	—	Outbound email for notifications
-`SMTP_FROM`	`ContractIQ <no-reply@contractiq.com>`	From-address for emails
-`RENEWAL_REMINDER_DAYS`	`90,60,30,7`	Days-before-expiry thresholds for renewal reminders
-If `SMTP_*` is left blank, notifications are still written to the database — email sending is simply skipped and logged rather than raising an error.
-8. Database Migrations
-Alembic (`alembic/env.py`) is wired to `app.database.Base.metadata` and reads `DATABASE_URL` from `.env`, so autogenerate picks up every model under `app/models/`.
-```bash
-# generate a migration after changing a model
-alembic revision --autogenerate -m "describe your change"
-
-# apply all pending migrations
-alembic upgrade head
-```
-After migrating, you should see all 10 tables under `contractiq_db → public` in your database client: `users`, `contracts`, `contract_versions`, `obligations`, `renewals`, `notifications`, `reports`, `compliance_records`, `audit_logs`, `activities`.
-9. Running with Docker
-```bash
-docker compose up --build
-```
-This starts a `postgres:16` container plus the API container, running migrations automatically on boot (`alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000`). The API is then available at http://localhost:8000.
-> The default `docker-compose.yml` uses hardcoded dev credentials (`postgres` / `postgres`, a placeholder `SECRET_KEY`). Override these via environment variables or a `.env` file for anything beyond local development.
-10. API Reference
+The Angular frontend mirrors this: navigation options are shown/hidden based on the logged-in user's role, and protected routes redirect unauthenticated users to the login page.
+API Reference
 All endpoints except `/auth/register` and `/auth/login` require a `Bearer` JWT (obtained from `/auth/login`, form-encoded with `username`=email).
 Auth — `/auth`
 Method	Path	Description
@@ -449,82 +325,28 @@ GET	`/notifications/{id}`	Get a notification
 POST	`/notifications`	Create a notification
 PATCH	`/notifications/{id}/read`	Mark as read
 PATCH	`/notifications/read-all`	Mark all as read
-11. Business Rules Cheat Sheet
+Business Rules Cheat Sheet
 Contract status transitions are enforced server-side — out-of-order transitions (e.g. approving a `Draft` contract) return `400`.
 `created_by` / `completion_date` / other server-derived fields are always taken from the JWT or computed server-side, never trusted from the request body.
 Obligation overdue flips happen lazily on read, not via a background job — no obligation is marked `Overdue` until it's next fetched or listed after its `due_date` has passed.
 Renewal completion (`POST /renewals/{id}/renew`) is the only way a contract's expiry date and active status get updated as a result of a renewal.
 Compliance is computed live, not cached — each call to `GET /contracts/{id}/compliance` re-evaluates the contract's obligations and writes a fresh `compliance_records` row.
-12. Testing
+Testing
 ```bash
 pytest
 ```
 `tests/test_health.py` covers the health-check endpoint; extend this directory as coverage grows.
-13. Seed Data
+Seed Data
 ```bash
 python seed.py
 ```
 Populates the database with sample users, contracts, obligations, and renewals for manual testing against Swagger UI.
-14. Contributing
+Contributing
 ```bash
 git add .
 git commit -m "describe your change"
 git push
 ```
 `.env` is already excluded via `.gitignore` — never commit real credentials or a production `SECRET_KEY`.
-15. License
+License
 MIT — see `LICENSE`.
->>>>>>> 4eaec42803a8247b17c344438983b92f6c9f743f
-
-## Sprint 13 — Reports, Analytics & Dashboard
-
-Sprint 13 is included in this version. The backend exposes authenticated dashboard and analytics endpoints plus PDF/Excel exports:
-
-- `GET /dashboard/summary`
-- `GET /dashboard/overdue-obligations`
-- `GET /reports/contracts/summary`
-- `GET /reports/obligations/summary`
-- `GET /reports/renewals/summary?upcoming_days=30`
-- `GET /reports/compliance/summary`
-- `GET /reports/risk`
-- `GET /reports/{contracts|obligations|renewals|compliance}/export/{pdf|excel}`
-
-Exports use ReportLab and openpyxl. Every generated export records report metadata in the `reports` table.
-
-### Angular dashboard
-
-The `frontend/` directory contains the Angular dashboard application. It reads the authenticated API using the bearer token in `localStorage` under `contractiq_token`, displays contract/obligation/renewal/compliance KPIs, and provides report export buttons.
-
-```bash
-cd frontend
-npm install
-npm start
-```
-
-The API defaults to `http://localhost:8000`. Set `api` in `frontend/src/app/app.component.ts` when deploying elsewhere.
-
-### Clean database migration
-
-The repository now has one reproducible Alembic baseline (`20260903_initial`) matching the current SQLAlchemy models. This removes the previous conflicting migration heads. For a fresh database:
-
-```bash
-alembic upgrade head
-python seed.py
-```
-
-For an existing development database created by the old conflicting migrations, back up any required data and recreate the database before running the clean baseline.
-
-### Sprint coverage
-
-| Sprint | Module | Included |
-|---|---|---|
-| 3–4 | Database, PostgreSQL, SQLAlchemy, Alembic, ER design | Yes |
-| 5 | JWT authentication | Yes |
-| 6 | Six-role RBAC and protected APIs | Yes |
-| 7 | Contract repository | Yes |
-| 8 | Contract lifecycle and approval workflow | Yes |
-| 9 | Obligations and overdue handling | Yes |
-| 10 | Renewals and renewal history | Yes |
-| 11 | Compliance scoring and risk | Yes |
-| 12 | In-app notifications and optional SMTP | Yes |
-| 13 | Dashboard, analytics, PDF/Excel reports, Angular UI | Yes |
