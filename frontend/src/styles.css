@@ -1,0 +1,57 @@
+/* ContractIQ Modern Global CSS Styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Material Card overrides */
+.mat-mdc-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05) !important;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+}
+
+/* Utility Badge Classes */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-active { background-color: #dcfce7; color: #166534; }
+.badge-draft { background-color: #f1f5f9; color: #475569; }
+.badge-review { background-color: #fef9c3; color: #854d0e; }
+.badge-approved { background-color: #e0f2fe; color: #0369a1; }
+.badge-expired { background-color: #fee2e2; color: #991b1b; }
+.badge-overdue { background-color: #ffe4e6; color: #be123c; }
+.badge-high-risk { background-color: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+.badge-medium-risk { background-color: #fff7ed; color: #c2410c; }
+.badge-low-risk { background-color: #f0fdf4; color: #15803d; }

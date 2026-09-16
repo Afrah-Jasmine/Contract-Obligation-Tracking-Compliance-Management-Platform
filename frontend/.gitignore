@@ -1,0 +1,7 @@
+# Node & Angular outputs
+node_modules/
+dist/
+.angular/
+.idea/
+.vscode/
+*.log
