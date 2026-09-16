@@ -144,8 +144,6 @@ ROLE_PERMISSIONS = {
 
     "Employee": {
         Permission.READ_CONTRACT,
-
-        Permission.READ_OBLIGATION,
     },
 }
 
