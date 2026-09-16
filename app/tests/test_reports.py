@@ -76,10 +76,40 @@ def test_dashboard_summary_and_risk_use_current_records():
     assert summary["obligations"]["overdue"] == 2
     assert summary["renewals"]["approaching_expiry"][0]["contract_number"] == "CNT-REPORT-1"
     assert summary["compliance"]["non_compliant"] == 1
+    assert summary["compliance"]["pending"] == 0
     assert risk_summary(session)[0]["overdue_obligations"] == 2
     assert len(report_rows(session, "obligations")) == 3
     assert len(report_rows(session, "renewals")) == 1
     assert len(report_rows(session, "contracts")) == 1
     assert len(report_rows(session, "compliance")) == 1
 
+    session.close()
+
+
+def test_dashboard_compliance_marks_contract_without_obligations_pending():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session = sessionmaker(bind=engine)()
+    user = User(
+        full_name="Pending Report User",
+        email="pending-report@example.com",
+        role="Administrator",
+        password_hash="not-a-real-password",
+    )
+    session.add(user)
+    session.flush()
+    session.add(Contract(
+        title="Uncovered Agreement",
+        contract_number="CNT-REPORT-EMPTY-1",
+        category="Vendor",
+        status="Draft",
+        created_by=user.id,
+    ))
+    session.commit()
+
+    compliance = dashboard_summary(session)["compliance"]
+
+    assert compliance["total_contracts"] == 1
+    assert compliance["pending"] == 1
+    assert compliance["compliant"] == 0
     session.close()

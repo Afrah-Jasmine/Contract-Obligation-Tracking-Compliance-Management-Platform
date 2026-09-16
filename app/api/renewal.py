@@ -16,6 +16,7 @@ from app.schemas.renewal_schema import (
     RENEWAL_STATUSES,
 )
 from app.middleware.auth import require_roles
+from app.services.audit_service import record_audit, snapshot_model
 
 
 router = APIRouter(
@@ -135,6 +136,16 @@ def create_renewal(
     )
 
     db.add(renewal)
+    db.flush()
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="CREATE",
+        entity_type="Renewal",
+        entity_id=renewal.id,
+        contract_id=renewal.contract_id,
+        new_value=snapshot_model(renewal),
+    )
     db.commit()
     db.refresh(renewal)
 
@@ -360,6 +371,7 @@ def get_renewal(
 def update_renewal(
     renewal_id: int,
     renewal_data: RenewalUpdate,
+    current_user: dict = Depends(require_roles(*MANAGER_ROLES)),
     db: Session = Depends(get_db)
 ):
 
@@ -408,6 +420,7 @@ def update_renewal(
     # Update fields
     # --------------------------------------------------------
 
+    old_value = snapshot_model(renewal)
     if renewal_data.renewal_date is not None:
         renewal.renewal_date = renewal_data.renewal_date
 
@@ -420,6 +433,16 @@ def update_renewal(
     if renewal_data.notes is not None:
         renewal.notes = renewal_data.notes
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="UPDATE",
+        entity_type="Renewal",
+        entity_id=renewal.id,
+        contract_id=renewal.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(renewal),
+    )
     db.commit()
     db.refresh(renewal)
 
@@ -442,6 +465,7 @@ def update_renewal(
 def update_renewal_status(
     renewal_id: int,
     status_data: RenewalStatusUpdate,
+    current_user: dict = Depends(require_roles(*STATUS_ROLES)),
     db: Session = Depends(get_db)
 ):
 
@@ -505,8 +529,19 @@ def update_renewal_status(
             )
         )
 
+    old_value = snapshot_model(renewal)
     renewal.status = new_status
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Renewal",
+        entity_id=renewal.id,
+        contract_id=renewal.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(renewal),
+    )
     db.commit()
     db.refresh(renewal)
 
@@ -529,6 +564,7 @@ def update_renewal_status(
 def complete_renewal(
     renewal_id: int,
     renewal_data: RenewalComplete,
+    current_user: dict = Depends(require_roles(*RENEW_ROLES)),
     db: Session = Depends(get_db)
 ):
 
@@ -569,6 +605,7 @@ def complete_renewal(
     # Update renewal
     # --------------------------------------------------------
 
+    old_value = snapshot_model(renewal)
     renewal.new_expiry_date = renewal_data.new_expiry_date
     renewal.status = "Renewed"
 
@@ -588,6 +625,16 @@ def complete_renewal(
 
     contract.end_date = renewal_data.new_expiry_date
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="RENEW",
+        entity_type="Renewal",
+        entity_id=renewal.id,
+        contract_id=renewal.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(renewal),
+    )
     db.commit()
     db.refresh(renewal)
 

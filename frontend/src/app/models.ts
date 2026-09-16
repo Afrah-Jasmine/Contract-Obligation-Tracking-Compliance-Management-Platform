@@ -5,6 +5,20 @@ export interface LoginResponse {
   role: string;
 }
 
+export interface AuditRecord {
+  id: number;
+  user_id: number;
+  user_name: string | null;
+  user_email: string | null;
+  action: string;
+  entity_type: string | null;
+  entity_id: number | null;
+  contract_id: number | null;
+  old_value: Record<string, unknown> | null;
+  new_value: Record<string, unknown> | null;
+  created_at: string | null;
+}
+
 export interface DashboardSummary {
   contracts: { total: number; active: number; draft: number; under_review: number; approved: number; expired: number; terminated: number; by_category: Record<string, number> };
   obligations: { total: number; pending: number; in_progress: number; completed: number; delayed: number; overdue: number };

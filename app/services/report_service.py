@@ -130,7 +130,9 @@ def _compliance_rows(db: Session) -> list[dict]:
         delayed = int(delayed or 0)
         pending = max(total - completed - overdue - delayed, 0)
         score = round((completed / total) * 100, 2) if total else 0.0
-        if overdue:
+        if total == 0:
+            status, risk = "Pending", "Low"
+        elif overdue:
             status, risk = "Non-Compliant", "High" if overdue >= 2 else "Medium"
         elif delayed:
             status, risk = "Delayed", "Low"

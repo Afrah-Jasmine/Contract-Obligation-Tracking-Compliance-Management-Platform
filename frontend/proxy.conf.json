@@ -1,5 +1,10 @@
 {
   "/auth": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
   "/dashboard": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
-  "/reports": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true }
+  "/reports": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
+  "/contracts": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
+  "/obligations": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
+  "/renewals": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
+  "/compliance": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true },
+  "/notifications": { "target": "http://127.0.0.1:8000", "secure": false, "changeOrigin": true }
 }

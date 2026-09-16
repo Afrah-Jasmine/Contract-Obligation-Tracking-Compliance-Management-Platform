@@ -13,6 +13,7 @@ from app.api.renewal import router as renewal_router
 from app.api.compliance import router as compliance_router
 from app.api.notifications import router as notification_router
 from app.api.reports import dashboard_router, router as reports_router
+from app.api.audit import router as audit_router
 
 # Import all SQLAlchemy models
 # This ensures SQLAlchemy knows about all relationships.
@@ -80,6 +81,7 @@ app.include_router(notification_router)
 # Reports and analytics APIs
 app.include_router(reports_router)
 app.include_router(dashboard_router)
+app.include_router(audit_router)
 
 
 # ============================================================

@@ -19,6 +19,7 @@ from app.services.notification_service import (
     generate_obligation_due_alerts,
     generate_overdue_alerts,
 )
+from app.services.audit_service import record_audit, snapshot_model
 
 router = APIRouter(
     prefix="/obligations",
@@ -158,6 +159,16 @@ def create_obligation(
     )
 
     db.add(obligation)
+    db.flush()
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="CREATE",
+        entity_type="Obligation",
+        entity_id=obligation.id,
+        contract_id=obligation.contract_id,
+        new_value=snapshot_model(obligation),
+    )
     db.commit()
     db.refresh(obligation)
 
@@ -396,12 +407,23 @@ def update_obligation(
     # Update allowed fields
     # --------------------------------------------------------
 
+    old_value = snapshot_model(obligation)
     obligation.title = obligation_data.title
     obligation.description = obligation_data.description
     obligation.obligation_type = obligation_data.obligation_type
     obligation.due_date = obligation_data.due_date
     obligation.assigned_to = obligation_data.assigned_to
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="UPDATE",
+        entity_type="Obligation",
+        entity_id=obligation.id,
+        contract_id=obligation.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(obligation),
+    )
     db.commit()
     db.refresh(obligation)
 
@@ -485,6 +507,7 @@ def update_obligation_status(
             )
         )
 
+    old_value = snapshot_model(obligation)
     obligation.status = new_status
 
     # --------------------------------------------------------
@@ -497,6 +520,16 @@ def update_obligation_status(
     elif current_status == "Completed":
         obligation.completion_date = None
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Obligation",
+        entity_id=obligation.id,
+        contract_id=obligation.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(obligation),
+    )
     db.commit()
     db.refresh(obligation)
 
@@ -539,9 +572,20 @@ def complete_obligation(
             detail="Obligation is already completed"
         )
 
+    old_value = snapshot_model(obligation)
     obligation.status = "Completed"
     obligation.completion_date = date.today()
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Obligation",
+        entity_id=obligation.id,
+        contract_id=obligation.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(obligation),
+    )
     db.commit()
     db.refresh(obligation)
 
@@ -587,8 +631,19 @@ def assign_obligation(
             detail="Assigned user not found or inactive"
         )
 
+    old_value = snapshot_model(obligation)
     obligation.assigned_to = assigned_to
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="ASSIGN",
+        entity_type="Obligation",
+        entity_id=obligation.id,
+        contract_id=obligation.contract_id,
+        old_value=old_value,
+        new_value=snapshot_model(obligation),
+    )
     db.commit()
     db.refresh(obligation)
 

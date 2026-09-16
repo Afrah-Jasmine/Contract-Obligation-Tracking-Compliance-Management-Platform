@@ -18,12 +18,24 @@ from app.services.notification_service import (
     generate_approval_notification,
     generate_status_notification,
 )
+from app.services.audit_service import record_audit, snapshot_model
 
 
 router = APIRouter(
     prefix="/contracts",
     tags=["Contracts"]
 )
+
+CONTRACT_CREATE_ROLES = ("Administrator", "Legal Manager", "Contract Manager")
+CONTRACT_VIEW_ROLES = (
+    "Administrator", "Legal Manager", "Compliance Officer",
+    "Contract Manager", "Department Head", "Employee",
+)
+CONTRACT_DETAIL_ROLES = (
+    "Administrator", "Compliance Officer", "Contract Manager",
+    "Department Head", "Employee",
+)
+CONTRACT_WRITE_ROLES = ("Administrator", "Contract Manager")
 
 
 # ============================================================
@@ -39,11 +51,7 @@ router = APIRouter(
 def create_contract(
     contract_data: ContractCreate,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_CREATE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -73,6 +81,16 @@ def create_contract(
     )
 
     db.add(contract)
+    db.flush()
+    record_audit(
+        db,
+        user_id=user_id,
+        action="CREATE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -91,14 +109,7 @@ def create_contract(
 )
 def get_contracts(
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Compliance Officer",
-            "Contract Manager",
-            "Department Head",
-            "Employee"
-        )
+        require_roles(*CONTRACT_VIEW_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -110,7 +121,7 @@ def get_contracts(
 
 # ============================================================
 # GET CONTRACT BY ID
-# All authenticated roles
+# Administrator, Compliance Officer, Contract Manager, Department Head, Employee
 # ============================================================
 
 @router.get(
@@ -121,14 +132,7 @@ def get_contracts(
 def get_contract(
     contract_id: int,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Compliance Officer",
-            "Contract Manager",
-            "Department Head",
-            "Employee"
-        )
+        require_roles(*CONTRACT_DETAIL_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -148,7 +152,7 @@ def get_contract(
 
 # ============================================================
 # UPDATE CONTRACT
-# Administrator, Legal Manager, Contract Manager
+# Administrator, Contract Manager
 # ============================================================
 
 @router.put(
@@ -160,11 +164,7 @@ def update_contract(
     contract_id: int,
     contract_data: ContractUpdate,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -191,6 +191,7 @@ def update_contract(
             detail="Contract number already exists"
         )
 
+    old_value = snapshot_model(contract)
     contract.title = contract_data.title
     contract.contract_number = contract_data.contract_number
     contract.category = contract_data.category
@@ -198,6 +199,16 @@ def update_contract(
     contract.start_date = contract_data.start_date
     contract.end_date = contract_data.end_date
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="UPDATE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        old_value=old_value,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -219,11 +230,7 @@ def update_contract_status(
     contract_id: int,
     status_data: ContractStatusUpdate,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -238,6 +245,7 @@ def update_contract_status(
             detail="Contract not found"
         )
 
+    old_value = snapshot_model(contract)
     current_status = contract.status
     new_status = status_data.status
 
@@ -268,6 +276,16 @@ def update_contract_status(
     elif new_status == "Approved":
         contract.approved_at = datetime.utcnow()
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        old_value=old_value,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -290,11 +308,7 @@ def update_contract_status(
 def submit_for_review(
     contract_id: int,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -318,9 +332,20 @@ def submit_for_review(
             )
         )
 
+    old_value = snapshot_model(contract)
     contract.status = "Under Review"
     contract.reviewed_at = datetime.utcnow()
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        old_value=old_value,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -334,7 +359,7 @@ def submit_for_review(
 #
 # Under Review -> Approved
 #
-# Only Administrator and Legal Manager can approve.
+# Administrator and Contract Manager can approve.
 # ============================================================
 
 @router.post(
@@ -345,10 +370,7 @@ def submit_for_review(
 def approve_contract(
     contract_id: int,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -372,9 +394,20 @@ def approve_contract(
             )
         )
 
+    old_value = snapshot_model(contract)
     contract.status = "Approved"
     contract.approved_at = datetime.utcnow()
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        old_value=old_value,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -402,11 +435,7 @@ def approve_contract(
 def activate_contract(
     contract_id: int,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -430,8 +459,19 @@ def activate_contract(
             )
         )
 
+    old_value = snapshot_model(contract)
     contract.status = "Active"
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="STATUS_CHANGE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        old_value=old_value,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -441,7 +481,7 @@ def activate_contract(
 # ============================================================
 # ASSIGN CONTRACT
 #
-# Administrator, Legal Manager, Contract Manager
+# Administrator, Contract Manager
 # ============================================================
 
 @router.patch(
@@ -453,11 +493,7 @@ def assign_contract(
     contract_id: int,
     assignment_data: ContractAssignment,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Legal Manager",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -483,8 +519,19 @@ def assign_contract(
             detail="Assigned user not found or inactive"
         )
 
+    old_value = snapshot_model(contract)
     contract.assigned_to = assignment_data.assigned_to
 
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="ASSIGN",
+        entity_type="Contract",
+        entity_id=contract.id,
+        contract_id=contract.id,
+        old_value=old_value,
+        new_value=snapshot_model(contract),
+    )
     db.commit()
     db.refresh(contract)
 
@@ -503,10 +550,7 @@ def assign_contract(
 def delete_contract(
     contract_id: int,
     current_user: dict = Depends(
-        require_roles(
-            "Administrator",
-            "Contract Manager"
-        )
+        require_roles(*CONTRACT_WRITE_ROLES)
     ),
     db: Session = Depends(get_db)
 ):
@@ -521,7 +565,16 @@ def delete_contract(
             detail="Contract not found"
         )
 
+    old_value = snapshot_model(contract)
     db.delete(contract)
+    record_audit(
+        db,
+        user_id=current_user["user_id"],
+        action="DELETE",
+        entity_type="Contract",
+        entity_id=contract.id,
+        old_value=old_value,
+    )
     db.commit()
 
     return {
