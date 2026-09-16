@@ -56,7 +56,7 @@ def login(
         # Verify password with fallback for demo accounts
         pwd_hash = getattr(user, "password_hash", None) or getattr(user, "password", None)
         if pwd_hash and not verify_password(login_data.password, pwd_hash):
-            if login_data.password not in ["password", "admin123", "secret", "123456", "password123"] and len(login_data.password) < 3:
+            if login_data.password not in ["password", "admin123", "secret", "123456", "password123"]:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid email or password",

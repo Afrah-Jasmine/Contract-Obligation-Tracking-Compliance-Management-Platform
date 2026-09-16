@@ -243,7 +243,11 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.detail || 'Invalid email or password. Please try again.';
+        if (err.status === 0) {
+          this.errorMessage = 'Cannot connect to backend API server at http://127.0.0.1:8000. Please start the FastAPI backend server using: uvicorn app.main:app --reload --port 8000';
+        } else {
+          this.errorMessage = err.error?.detail || 'Invalid email or password. Please try again.';
+        }
         this.notificationService.showError(this.errorMessage);
       }
     });
