@@ -8,6 +8,7 @@ from app.routers import renewals
 from app.routers import compliance
 from app.routers import notifications
 from app.routers import reports
+from app.routers import audit
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware  
 
@@ -37,6 +38,7 @@ app.include_router(renewals.router)
 app.include_router(compliance.router)
 app.include_router(notifications.router)
 app.include_router(reports.router)
+app.include_router(audit.router)
 
 
 @app.on_event("startup")

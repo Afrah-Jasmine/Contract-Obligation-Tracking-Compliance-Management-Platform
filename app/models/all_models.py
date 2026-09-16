@@ -91,8 +91,9 @@ class AuditLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     action = Column(String(255), nullable=False)
-    entity_type = Column(String(100), nullable=False)
+    resource_type = Column("entity_type", String(100), nullable=False)
     entity_id = Column(Integer, nullable=False)
+    details = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 # 9. ACTIVITIES TABLE

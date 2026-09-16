@@ -1,26 +1,32 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FileText, Clock, ShieldCheck, Download } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { BarChart3, Bell, ClipboardCheck, FileText, History, LayoutDashboard, RefreshCw, ShieldCheck } from 'lucide-react';
+
+const links = [
+  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Contracts', path: '/contracts', icon: FileText },
+  { label: 'Obligations', path: '/obligations', icon: ClipboardCheck },
+  { label: 'Renewals', path: '/renewals', icon: RefreshCw },
+  { label: 'Compliance', path: '/compliance', icon: ShieldCheck },
+  { label: 'Notifications', path: '/notifications', icon: Bell },
+  { label: 'Reports', path: '/reports', icon: BarChart3 },
+  { label: 'Audit History', path: '/audit-history', icon: History },
+];
 
 const Sidebar = () => {
   return (
-    <div style={{ width: '240px', background: '#1e293b', color: '#fff', minHeight: '100vh', padding: '20px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>ContractIQ 📊</h2>
-      <nav style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <Link to="/contracts" style={{ color: '#fff', textDecoration: 'none', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <FileText size={18} /> Contracts
-        </Link>
-        <Link to="/renewals" style={{ color: '#fff', textDecoration: 'none', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Clock size={18} /> Renewals
-        </Link>
-        <Link to="/compliance" style={{ color: '#fff', textDecoration: 'none', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <ShieldCheck size={18} /> Compliance
-        </Link>
-        <Link to="/exports" style={{ color: '#fff', textDecoration: 'none', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Download size={18} /> Export Reports
-        </Link>
+    <aside className="sidebar">
+      <div className="brand"><span className="brand-mark">C</span><span>ContractIQ</span></div>
+      <div className="sidebar-caption">Workspace</div>
+      <nav className="sidebar-nav">
+        {links.map(({ label, path, icon: Icon }) => (
+          <NavLink key={path} to={path} className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}>
+            <Icon size={17} strokeWidth={1.8} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
       </nav>
-    </div>
+      <div className="sidebar-footer"><span className="status-dot" /> Systems operational</div>
+    </aside>
   );
 };
 

@@ -6,11 +6,26 @@ from typing import List
 
 from app.database.database import get_db
 from app.models.all_models import Contract, Obligation, Renewal, ComplianceRecord, ObligationStatus, ComplianceStatusEnum
+from app.models.contract import ContractStatus
 from app.schemas.report import DashboardSummaryResponse, RiskReportResponse, GenericSummaryResponse
 from app.core.security import get_current_user
 from app.services.report_service import get_dashboard_summary, generate_excel_report, generate_pdf_report
 
 router = APIRouter(tags=["Reports & Analytics"])
+
+
+@router.get("/reports/summary", status_code=status.HTTP_200_OK)
+def get_reports_summary(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    return {
+        "total_contracts": db.query(Contract).count(),
+        "contracts_by_status": {
+            "Active": db.query(Contract).filter(Contract.status == ContractStatus.ACTIVE).count(),
+            "Draft": db.query(Contract).filter(Contract.status == ContractStatus.DRAFT).count(),
+            "Expired": db.query(Contract).filter(Contract.status == ContractStatus.EXPIRED).count(),
+        },
+        "total_obligations": db.query(Obligation).count(),
+        "overdue_obligations": db.query(Obligation).filter(Obligation.status == ObligationStatus.OVERDUE).count(),
+    }
 
 # Helper to safely format status keys (handles both Enums and Strings)
 def format_status(status_val):

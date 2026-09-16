@@ -14,6 +14,7 @@ from app.schemas.contracts import (
 )
 from app.core.roles import UserRole
 from app.core.security import get_current_user
+from app.utils.audit import record_audit_log
 
 # 🛡️ RoleChecker class to enforce permissions
 class RoleChecker:
@@ -63,6 +64,15 @@ def create_contract(
     db.add(new_contract)
     db.commit()
     db.refresh(new_contract)
+    record_audit_log(
+        db,
+        current_user.get("id"),
+        "CREATE",
+        "Contract",
+        new_contract.id,
+        f"Created contract {new_contract.contract_number}",
+    )
+    db.commit()
     return new_contract
 
 @router.get("/", response_model=List[ContractResponse], status_code=status.HTTP_200_OK)
@@ -107,6 +117,16 @@ def update_contract(
     for key, value in update_data.items():
         setattr(contract, key, value)
     
+    db.commit()
+    db.refresh(contract)
+    record_audit_log(
+        db,
+        current_user.get("id"),
+        "UPDATE",
+        "Contract",
+        contract.id,
+        f"Updated contract {contract.contract_number}",
+    )
     db.commit()
     db.refresh(contract)
     return contract

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import API from '../services/api';
 import { Lock, Mail, ShieldCheck } from 'lucide-react';
 
@@ -28,7 +28,8 @@ const handleSubmit = async (e) => {
 
       const token = response.data.access_token || response.data.token;
       
-      localStorage.setItem('token', token);
+      localStorage.setItem('access_token', token);
+      localStorage.removeItem('token');
       onLoginSuccess(token);
     } catch (err) {
       console.error('Login error:', err);
