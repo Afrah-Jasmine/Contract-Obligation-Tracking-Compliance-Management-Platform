@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, compliance, contracts, notifications, obligations, renewals, reports, users
 from app.database.database import test_database_connection
 
@@ -7,6 +8,14 @@ app = FastAPI(
     title="ContractIQ API - Contract & Obligation Management Platform",
     description="ContractIQ Compliance & Contract Management Platform with RBAC authorization, Reports, Analytics & Dashboard",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth.router)
