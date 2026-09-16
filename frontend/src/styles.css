@@ -1,4 +1,4 @@
-/* ContractIQ Modern Global CSS Styles */
+/* ContractIQ Modern Light Theme CSS Styles */
 html, body {
   height: 100%;
   margin: 0;
@@ -30,9 +30,9 @@ html, body {
 /* Material Card overrides */
 .mat-mdc-card {
   border-radius: 12px !important;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04), 0 2px 4px -2px rgba(0,0,0,0.03) !important;
   border: 1px solid #e2e8f0;
-  background-color: #ffffff;
+  background-color: #ffffff !important;
 }
 
 /* Utility Badge Classes */
@@ -55,3 +55,28 @@ html, body {
 .badge-high-risk { background-color: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
 .badge-medium-risk { background-color: #fff7ed; color: #c2410c; }
 .badge-low-risk { background-color: #f0fdf4; color: #15803d; }
+
+/* KPI Icon & Color Utilities */
+.bg-blue-100 { background-color: #dbeafe !important; }
+.text-blue-600 { color: #1d4ed8 !important; }
+
+.bg-emerald-100 { background-color: #d1fae5 !important; }
+.text-emerald-600 { color: #047857 !important; }
+
+.bg-amber-100 { background-color: #fef3c7 !important; }
+.text-amber-600 { color: #b45309 !important; }
+
+.bg-indigo-100 { background-color: #e0e7ff !important; }
+.text-indigo-600 { color: #4338ca !important; }
+
+.bg-rose-100 { background-color: #ffe4e6 !important; }
+.text-rose-600 { color: #be123c !important; }
+
+.bg-purple-100 { background-color: #f3e8ff !important; }
+.text-purple-600 { color: #7e22ce !important; }
+
+.bg-teal-100 { background-color: #ccfbf1 !important; }
+.text-teal-600 { color: #0f766e !important; }
+
+.bg-cyan-100 { background-color: #cffafe !important; }
+.text-cyan-600 { color: #0e7490 !important; }

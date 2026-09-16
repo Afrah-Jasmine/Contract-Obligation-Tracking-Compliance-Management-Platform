@@ -412,6 +412,9 @@ import Chart from 'chart.js/auto';
     }
     .kpi-card {
       padding: 16px;
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
 
       .kpi-body {
         display: flex;
@@ -421,25 +424,31 @@ import Chart from 'chart.js/auto';
       .kpi-label {
         display: block;
         font-size: 0.8125rem;
-        font-weight: 600;
-        color: #64748b;
+        font-weight: 700;
+        color: #475569;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
       .kpi-value {
-        font-size: 2rem;
+        font-size: 2.25rem;
         font-weight: 800;
         color: #0f172a;
         line-height: 1.2;
         margin-top: 4px;
       }
       .kpi-icon-wrapper {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
       }
       .kpi-footer {
         margin-top: 12px;
@@ -447,8 +456,22 @@ import Chart from 'chart.js/auto';
         border-top: 1px solid #f1f5f9;
         font-size: 0.75rem;
         color: #64748b;
+        font-weight: 500;
+
+        strong {
+          color: #0f172a;
+        }
       }
     }
+
+    .card-blue { border-top: 4px solid #2563eb !important; }
+    .card-emerald { border-top: 4px solid #059669 !important; }
+    .card-amber { border-top: 4px solid #d97706 !important; }
+    .card-indigo { border-top: 4px solid #4338ca !important; }
+    .card-rose { border-top: 4px solid #be123c !important; }
+    .card-purple { border-top: 4px solid #7e22ce !important; }
+    .card-teal { border-top: 4px solid #0f766e !important; }
+    .card-cyan { border-top: 4px solid #0e7490 !important; }
     .charts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));

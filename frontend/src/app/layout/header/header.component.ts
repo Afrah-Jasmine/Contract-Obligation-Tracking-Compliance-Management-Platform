@@ -69,11 +69,12 @@ import { AuthService } from '../../core/services/auth.service';
   `,
   styles: [`
     .header-toolbar {
-      background-color: #1e293b;
-      color: #ffffff;
+      background-color: #ffffff;
+      color: #0f172a;
       height: 64px;
       padding: 0 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid #e2e8f0;
       position: sticky;
       top: 0;
       z-index: 1000;
@@ -85,15 +86,16 @@ import { AuthService } from '../../core/services/auth.service';
       margin-left: 8px;
     }
     .brand-icon {
-      color: #38bdf8;
+      color: #0284c7;
     }
     .brand-title {
       font-size: 1.25rem;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: -0.5px;
+      color: #0f172a;
     }
     .brand-accent {
-      color: #38bdf8;
+      color: #0284c7;
     }
     .spacer {
       flex: 1 1 auto;
@@ -102,9 +104,14 @@ import { AuthService } from '../../core/services/auth.service';
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #ffffff;
-      height: 48px;
-      border-radius: 24px;
+      color: #0f172a;
+      height: 44px;
+      border-radius: 22px;
+      padding: 0 12px;
+
+      &:hover {
+        background-color: #f1f5f9;
+      }
     }
     .user-avatar {
       width: 32px;
@@ -127,15 +134,18 @@ import { AuthService } from '../../core/services/auth.service';
     .user-name {
       font-size: 0.875rem;
       font-weight: 600;
+      color: #0f172a;
     }
     .user-role {
       font-size: 0.7rem;
-      color: #94a3b8;
+      color: #64748b;
+      font-weight: 500;
     }
     .menu-header {
       padding: 12px 16px;
       display: flex;
       flex-direction: column;
+      background-color: #f8fafc;
     }
   `]
 })

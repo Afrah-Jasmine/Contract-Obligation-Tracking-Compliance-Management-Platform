@@ -52,34 +52,45 @@ interface NavItem {
     .sidebar-nav {
       width: 240px;
       height: 100%;
-      background-color: #0f172a;
-      color: #94a3b8;
-      padding-top: 8px;
+      background-color: #ffffff;
+      color: #475569;
+      padding-top: 12px;
+      border-right: 1px solid #e2e8f0;
     }
     .nav-link {
-      color: #94a3b8 !important;
+      color: #475569 !important;
       border-left: 4px solid transparent;
       margin: 4px 8px;
-      border-radius: 6px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.15s ease-in-out;
+
+      mat-icon {
+        color: #64748b !important;
+      }
 
       &:hover {
-        background-color: #1e293b;
-        color: #f8fafc !important;
+        background-color: #f1f5f9;
+        color: #0f172a !important;
+
+        mat-icon {
+          color: #0284c7 !important;
+        }
       }
     }
     .active-link {
-      background-color: #1e293b !important;
-      color: #38bdf8 !important;
-      border-left-color: #38bdf8;
-      font-weight: 600;
+      background-color: #e0f2fe !important;
+      color: #0284c7 !important;
+      border-left-color: #0284c7;
+      font-weight: 700;
 
       mat-icon {
-        color: #38bdf8 !important;
+        color: #0284c7 !important;
       }
     }
     .my-2 {
       margin: 16px 0;
-      border-color: #334155;
+      border-color: #e2e8f0;
     }
   `]
 })
