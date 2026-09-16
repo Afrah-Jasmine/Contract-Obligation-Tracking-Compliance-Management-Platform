@@ -1,12 +1,11 @@
 from fastapi import FastAPI
-from app.routers import auth, compliance, contracts, notifications, obligations, renewals, users
+from app.routers import auth, compliance, contracts, notifications, obligations, renewals, reports, users
 from app.database.database import test_database_connection
-
 
 
 app = FastAPI(
     title="ContractIQ API - Contract & Obligation Management Platform",
-    description="ContractIQ Compliance & Contract Management Platform with RBAC authorization and Obligation Tracking",
+    description="ContractIQ Compliance & Contract Management Platform with RBAC authorization, Reports, Analytics & Dashboard",
     version="1.0.0"
 )
 
@@ -17,9 +16,7 @@ app.include_router(obligations.router)
 app.include_router(renewals.router)
 app.include_router(compliance.router)
 app.include_router(notifications.router)
-
-
-
+app.include_router(reports.router)
 
 
 @app.on_event("startup")
@@ -33,7 +30,7 @@ def startup_event():
 @app.get("/")
 def root():
     return {
-        "message": "ContractIQ Backend API with Role-Based Access Control (RBAC) is running successfully.",
+        "message": "ContractIQ Backend API with Role-Based Access Control (RBAC) and Sprint 13 Reports & Analytics is running successfully.",
         "docs": "/docs",
         "roles": [
             "Administrator",
