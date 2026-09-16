@@ -1,52 +1,65 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login {
 
-  email = '';
-  password = '';
+  loginForm;
+  errorMessage = '';
+  isLoading = false;
 
   constructor(
+    private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
 
   login() {
 
-    this.authService.login(
-      this.email,
-      this.password
-    ).subscribe({
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+    this.errorMessage = '';
+this.isLoading = true;
+
+    const email = this.loginForm.value.email!;
+    const password = this.loginForm.value.password!;
+
+    this.authService.login(email, password).subscribe({
 
       next: (response: any) => {
 
         console.log('Login Success:', response);
 
-        this.authService.saveToken(
-          response.access_token
-        );
+        this.authService.saveToken(response.access_token);
+        this.isLoading = false;
 
         this.router.navigate(['/dashboard']);
       },
 
       error: (error: any) => {
 
-        console.error('Login Failed:', error);
+  console.error('Login Failed:', error);
+    this.isLoading = false;
 
-        alert('Invalid email or password');
 
-      }
+  this.errorMessage = 'Invalid email or password';
+}
 
     });
-
   }
-
 }

@@ -17,6 +17,8 @@ import { Chart } from 'chart.js/auto';
 })
 
 export class Dashboard implements OnInit {
+  errorMessage = '';
+  isLoading = false;
 
   // ===============================
   // DASHBOARD DATA
@@ -127,6 +129,7 @@ overdueObligations: any[] = [];
   // ===============================
 
   loadDashboard(): void {
+     this.isLoading = true;
 
     this.dashboardService
       .getDashboardSummary()
@@ -135,6 +138,8 @@ overdueObligations: any[] = [];
         next: (data: any) => {
 
           console.log('Dashboard Data:', data);
+           this.isLoading = false;
+
 
           this.dashboardData = data;
 
@@ -152,12 +157,15 @@ overdueObligations: any[] = [];
 
         error: (error: any) => {
 
-          console.error(
-            'Error loading dashboard:',
-            error
-          );
+  console.error(
+    'Error loading dashboard:',
+    error
+  );
+         this.isLoading = false;
 
-        }
+  this.errorMessage = 'Unable to load dashboard data. Please try again.';
+
+}
 
       });
 
@@ -509,17 +517,17 @@ overdueObligations: any[] = [];
 
         },
 
-        error: (error: any) => {
+      error: (error: any) => {
 
-          console.error(
+  console.error(
+    'Error loading Contract Categories:',
+    error
+  );
 
-            'Error loading Contract Categories:',
+  this.errorMessage =
+    'Unable to load contract category data.';
 
-            error
-
-          );
-
-        }
+}
 
       });
 

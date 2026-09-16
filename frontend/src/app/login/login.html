@@ -5,18 +5,27 @@
     <h1>ContractIQ</h1>
     <p>Contract Management System</p>
 
-    <form (ngSubmit)="login()">
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
 
       <div class="form-group">
         <label>Email</label>
 
         <input
           type="email"
-          name="email"
-          [(ngModel)]="email"
+          formControlName="email"
           placeholder="Enter your email"
-          required
         >
+
+        @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
+          <small class="error">
+            @if (loginForm.controls.email.errors?.['required']) {
+              Email is required.
+            }
+            @if (loginForm.controls.email.errors?.['email']) {
+              Enter a valid email address.
+            }
+          </small>
+        }
       </div>
 
       <div class="form-group">
@@ -24,18 +33,39 @@
 
         <input
           type="password"
-          name="password"
-          [(ngModel)]="password"
+          formControlName="password"
           placeholder="Enter your password"
-          required
         >
-      </div>
 
-      <button type="submit">
-        Login
-      </button>
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <small class="error">
+            @if (loginForm.controls.password.errors?.['required']) {
+              Password is required.
+            }
+            @if (loginForm.controls.password.errors?.['minlength']) {
+              Password must be at least 6 characters.
+            }
+          </small>
+        }
+      </div>
+      @if (errorMessage) {
+  <small class="error">
+    {{ errorMessage }}
+  </small>
+}
+
+      <button type="submit" [disabled]="isLoading">
+  @if (isLoading) {
+    Logging in...
+  } @else {
+    Login
+  }
+</button>
 
     </form>
+    <a routerLink="/forgot-password" class="forgot-link">
+  Forgot Password?
+</a>
 
   </div>
 

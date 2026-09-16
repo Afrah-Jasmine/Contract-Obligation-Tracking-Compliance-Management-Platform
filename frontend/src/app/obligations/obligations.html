@@ -1,0 +1,407 @@
+<div class="obligations-container">
+
+  <h1>Obligations</h1>
+
+  <!-- =============================== -->
+  <!-- CREATE BUTTON -->
+  <!-- =============================== -->
+
+  <button
+    type="button"
+    (click)="showCreateForm = !showCreateForm">
+
+    {{ showCreateForm ? 'Cancel' : 'Create Obligation' }}
+
+  </button>
+  <!-- =============================== -->
+<!-- EDIT OBLIGATION FORM -->
+<!-- =============================== -->
+
+@if (editingObligationId !== null) {
+
+  <div class="obligation-form">
+
+    <h2>Edit Obligation</h2>
+
+    <form
+      (submit)="$event.preventDefault(); updateObligation()">
+
+      <label>Contract ID *</label>
+
+      <input
+        type="number"
+        [(ngModel)]="editObligation.contract_id"
+        name="edit_contract_id"
+        required
+      >
+
+      <label>Title *</label>
+
+      <input
+        type="text"
+        [(ngModel)]="editObligation.title"
+        name="edit_title"
+        required
+      >
+
+      <label>Description</label>
+
+      <textarea
+        [(ngModel)]="editObligation.description"
+        name="edit_description">
+      </textarea>
+
+      <label>Due Date *</label>
+
+      <input
+        type="date"
+        [(ngModel)]="editObligation.due_date"
+        name="edit_due_date"
+        required
+      >
+
+      <label>Assigned To</label>
+
+      <input
+        type="number"
+        [(ngModel)]="editObligation.assigned_to"
+        name="edit_assigned_to"
+      >
+
+      <button type="submit">
+        Update Obligation
+      </button>
+
+      <button
+        type="button"
+        (click)="editingObligationId = null">
+
+        Cancel
+
+      </button>
+
+    </form>
+
+  </div>
+
+}
+
+
+  <!-- =============================== -->
+  <!-- SUCCESS MESSAGE -->
+  <!-- =============================== -->
+
+  @if (successMessage) {
+
+    <p class="success-message">
+      {{ successMessage }}
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- ERROR MESSAGE -->
+  <!-- =============================== -->
+
+  @if (errorMessage) {
+
+    <p class="error-message">
+      {{ errorMessage }}
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- CREATE FORM -->
+  <!-- =============================== -->
+
+  @if (showCreateForm) {
+
+    <div class="obligation-form">
+
+      <h2>Create Obligation</h2>
+
+      <form
+        (submit)="$event.preventDefault(); createObligation()">
+
+
+        <label>
+          Contract ID *
+        </label>
+
+        <input
+          type="number"
+          [(ngModel)]="newObligation.contract_id"
+          name="contract_id"
+          required
+        >
+
+
+        <label>
+          Title *
+        </label>
+
+        <input
+          type="text"
+          [(ngModel)]="newObligation.title"
+          name="title"
+          required
+        >
+
+
+        <label>
+          Description
+        </label>
+
+        <textarea
+          [(ngModel)]="newObligation.description"
+          name="description">
+        </textarea>
+
+
+        <label>
+          Due Date *
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="newObligation.due_date"
+          name="due_date"
+          required
+        >
+
+
+        <label>
+          Assigned To
+        </label>
+
+        <input
+          type="number"
+          [(ngModel)]="newObligation.assigned_to"
+          name="assigned_to"
+        >
+
+
+        <button type="submit">
+          Create Obligation
+        </button>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- SEARCH & FILTER -->
+  <!-- =============================== -->
+
+  <div class="filter-section">
+
+    <input
+      type="text"
+      placeholder="Search obligations..."
+      [(ngModel)]="searchText"
+      name="searchText"
+    >
+
+
+    <select
+      [(ngModel)]="statusFilter"
+      name="statusFilter">
+
+      <option value="">
+        All Status
+      </option>
+
+      <option value="Pending">
+        Pending
+      </option>
+
+      <option value="In Progress">
+        In Progress
+      </option>
+
+      <option value="Completed">
+        Completed
+      </option>
+
+      <option value="Delayed">
+        Delayed
+      </option>
+
+      <option value="Overdue">
+        Overdue
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <!-- =============================== -->
+  <!-- LOADING -->
+  <!-- =============================== -->
+
+  @if (isLoading) {
+
+    <p class="loading-message">
+      Loading obligations...
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- NO OBLIGATIONS -->
+  <!-- =============================== -->
+
+  @if (
+    !isLoading &&
+    filteredObligations.length === 0 &&
+    !errorMessage
+  ) {
+
+    <p>
+      No obligations found.
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- OBLIGATIONS TABLE -->
+  <!-- =============================== -->
+
+  @if (filteredObligations.length > 0) {
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>ID</th>
+
+          <th>Contract ID</th>
+
+          <th>Title</th>
+
+          <th>Description</th>
+
+          <th>Due Date</th>
+
+          <th>Assigned To</th>
+
+          <th>Status</th>
+
+          <th>Actions</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        @for (
+          obligation of filteredObligations;
+          track obligation.id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ obligation.id }}
+            </td>
+
+
+            <td>
+              {{ obligation.contract_id }}
+            </td>
+
+
+            <td>
+              {{ obligation.title }}
+            </td>
+
+
+            <td>
+              {{ obligation.description || '-' }}
+            </td>
+
+
+            <td>
+              {{ obligation.due_date }}
+            </td>
+
+
+            <td>
+              {{ obligation.assigned_to || '-' }}
+            </td>
+
+
+            <td>
+              {{ obligation.status }}
+            </td>
+
+
+            <td>
+                <button
+  type="button"
+  (click)="startEdit(obligation)">
+
+  Edit
+
+</button>
+<button
+  type="button"
+  (click)="deleteObligation(obligation.id)">
+
+  Delete
+
+</button>
+
+              @if (obligation.status !== 'Completed') {
+
+                <button
+                  type="button"
+                  (click)="updateStatus(
+                    obligation.id,
+                    'In Progress'
+                  )">
+
+                  In Progress
+
+                </button>
+
+
+                <button
+                  type="button"
+                  (click)="updateStatus(
+                    obligation.id,
+                    'Completed'
+                  )">
+
+                  Complete
+
+                </button>
+
+              }
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  }
+
+</div>

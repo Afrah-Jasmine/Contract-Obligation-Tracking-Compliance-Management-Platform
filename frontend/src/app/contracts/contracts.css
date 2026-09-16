@@ -1,0 +1,59 @@
+/* Contract Details */
+
+.contract-details {
+  margin-top: 25px;
+  padding: 25px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+.contract-details h2 {
+  margin-bottom: 20px;
+}
+
+.contract-details p {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.contract-details strong {
+  display: inline-block;
+  width: 140px;
+}
+
+.contract-details button {
+  margin-top: 15px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+/* Status styling */
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.status-approved {
+  color: #2563eb;
+  font-weight: bold;
+}
+
+.status-review {
+  color: orange;
+  font-weight: bold;
+}
+
+.status-draft {
+  color: gray;
+  font-weight: bold;
+}
+
+.status-expired {
+  color: red;
+  font-weight: bold;
+}

@@ -1,10 +1,13 @@
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
 from backend.app.models.contract import Contract
 from backend.app.models.user import User
+from backend.app.models.audit_log import AuditLog
+
 from backend.app.schemas.contract import (
     ContractCreate,
     ContractUpdate,
@@ -12,16 +15,22 @@ from backend.app.schemas.contract import (
     ContractAssignment,
     ContractOut
 )
+
 from backend.app.services.notification_service import (
     create_approval_notification,
     create_contract_approved_notification
 )
+
 from backend.app.core.auth import get_current_user
 
 
 router = APIRouter()
 
+
+# =========================================================
 # SUBMIT CONTRACT FOR REVIEW
+# =========================================================
+
 @router.post(
     "/{contract_id}/submit-review",
     response_model=ContractOut
@@ -42,11 +51,21 @@ def submit_contract_for_review(
             detail="Contract not found"
         )
 
-    # Contract must be in Draft status
     if contract.status != "Draft":
         raise HTTPException(
             status_code=400,
             detail="Only Draft contracts can be submitted for review"
+        )
+
+    # Get logged-in user
+    user = db.query(User).filter(
+        User.email == current_user["email"]
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
         )
 
     # Change status
@@ -63,10 +82,29 @@ def submit_contract_for_review(
         contract_number=contract.contract_number
     )
 
+    # Create audit log
+    audit_log = AuditLog(
+        contract_id=contract.id,
+        user_id=user.id,
+        action="Submitted Contract For Review",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was submitted for review."
+        )
+    )
+
+    db.add(audit_log)
+
+    db.commit()
     db.refresh(contract)
 
     return contract
+
+
+# =========================================================
 # APPROVE CONTRACT
+# =========================================================
+
 @router.post(
     "/{contract_id}/approve",
     response_model=ContractOut
@@ -104,6 +142,17 @@ def approve_contract(
             detail="You do not have permission to approve contracts"
         )
 
+    # Get logged-in user
+    user = db.query(User).filter(
+        User.email == current_user["email"]
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
     # Approve contract
     contract.status = "Approved"
     contract.approved_at = datetime.utcnow()
@@ -116,10 +165,29 @@ def approve_contract(
         contract_number=contract.contract_number
     )
 
+    # Create audit log
+    audit_log = AuditLog(
+        contract_id=contract.id,
+        user_id=user.id,
+        action="Approved Contract",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was approved."
+        )
+    )
+
+    db.add(audit_log)
+
+    db.commit()
     db.refresh(contract)
 
     return contract
+
+
+# =========================================================
 # CREATE CONTRACT
+# =========================================================
+
 @router.post(
     "/",
     response_model=ContractOut,
@@ -169,10 +237,28 @@ def create_contract(
     db.commit()
     db.refresh(db_contract)
 
+    # Create audit log
+    audit_log = AuditLog(
+        contract_id=db_contract.id,
+        user_id=user.id,
+        action="Created Contract",
+        description=(
+            f"Contract {db_contract.contract_number} "
+            f"was created."
+        )
+    )
+
+    db.add(audit_log)
+
+    db.commit()
+
     return db_contract
 
 
+# =========================================================
 # GET ALL CONTRACTS
+# =========================================================
+
 @router.get(
     "/",
     response_model=list[ContractOut]
@@ -187,7 +273,10 @@ def get_contracts(
     return contracts
 
 
+# =========================================================
 # UPDATE CONTRACT
+# =========================================================
+
 @router.put(
     "/{contract_id}",
     response_model=ContractOut
@@ -210,7 +299,18 @@ def update_contract(
             detail="Contract not found"
         )
 
-    # Update only fields provided by the user
+    # Find logged-in user
+    user = db.query(User).filter(
+        User.email == current_user["email"]
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Update fields
     if contract_data.title is not None:
         contract.title = contract_data.title
 
@@ -226,11 +326,29 @@ def update_contract(
     if contract_data.end_date is not None:
         contract.end_date = contract_data.end_date
 
+    # Create audit log
+    audit_log = AuditLog(
+        contract_id=contract.id,
+        user_id=user.id,
+        action="Updated Contract",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was updated."
+        )
+    )
+
+    db.add(audit_log)
+
     db.commit()
     db.refresh(contract)
 
     return contract
+
+
+# =========================================================
 # ASSIGN CONTRACT
+# =========================================================
+
 @router.patch(
     "/{contract_id}/assign",
     response_model=ContractOut
@@ -254,24 +372,53 @@ def assign_contract(
         )
 
     # Find assigned user
-    user = db.query(User).filter(
+    assigned_user = db.query(User).filter(
         User.id == assignment.assigned_to
     ).first()
 
-    if not user:
+    if not assigned_user:
         raise HTTPException(
             status_code=404,
             detail="Assigned user not found"
         )
 
+    # Find current logged-in user
+    user = db.query(User).filter(
+        User.email == current_user["email"]
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
     # Assign contract
-    contract.assigned_to = user.id
+    contract.assigned_to = assigned_user.id
+
+    # Create audit log
+    audit_log = AuditLog(
+        contract_id=contract.id,
+        user_id=user.id,
+        action="Assigned Contract",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"was assigned to user {assigned_user.id}."
+        )
+    )
+
+    db.add(audit_log)
 
     db.commit()
     db.refresh(contract)
 
     return contract
+
+
+# =========================================================
 # UPDATE CONTRACT STATUS
+# =========================================================
+
 @router.patch(
     "/{contract_id}/status",
     response_model=ContractOut
@@ -292,6 +439,17 @@ def update_contract_status(
         raise HTTPException(
             status_code=404,
             detail="Contract not found"
+        )
+
+    # Find logged-in user
+    user = db.query(User).filter(
+        User.email == current_user["email"]
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
         )
 
     # Supported statuses
@@ -327,7 +485,10 @@ def update_contract_status(
     if new_status not in valid_transitions[current_status]:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid status transition: {current_status} → {new_status}"
+            detail=(
+                f"Invalid status transition: "
+                f"{current_status} → {new_status}"
+            )
         )
 
     # Update status
@@ -340,7 +501,81 @@ def update_contract_status(
     if new_status == "Approved":
         contract.approved_at = datetime.utcnow()
 
+    # Create audit log
+    audit_log = AuditLog(
+        contract_id=contract.id,
+        user_id=user.id,
+        action="Updated Contract Status",
+        description=(
+            f"Contract {contract.contract_number} "
+            f"status changed from "
+            f"{current_status} to {new_status}."
+        )
+    )
+
+    db.add(audit_log)
+
     db.commit()
     db.refresh(contract)
 
     return contract
+
+
+# =========================================================
+# DELETE CONTRACT
+# =========================================================
+
+@router.delete(
+    "/{contract_id}",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_contract(
+    contract_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+
+    contract = db.query(Contract).filter(
+        Contract.id == contract_id
+    ).first()
+
+    if not contract:
+        raise HTTPException(
+            status_code=404,
+            detail="Contract not found"
+        )
+
+    # Find logged-in user
+    user = db.query(User).filter(
+        User.email == current_user["email"]
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Save information before deleting
+    contract_id_value = contract.id
+    contract_number = contract.contract_number
+
+    # Create audit log BEFORE deleting contract
+    audit_log = AuditLog(
+        contract_id=contract_id_value,
+        user_id=user.id,
+        action="Deleted Contract",
+        description=(
+            f"Contract {contract_number} "
+            f"was deleted."
+        )
+    )
+
+    db.add(audit_log)
+
+    # Delete contract
+    db.delete(contract)
+
+    db.commit()
+
+    return None

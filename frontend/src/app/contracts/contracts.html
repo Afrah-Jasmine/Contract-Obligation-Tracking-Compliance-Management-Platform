@@ -1,0 +1,278 @@
+<div class="contracts-container">
+
+  <h1>Contracts</h1>
+  <input
+  type="text"
+  placeholder="Search contracts..."
+  [(ngModel)]="searchText">
+  <select [(ngModel)]="statusFilter">
+  <option value="">All Status</option>
+  <option value="Draft">Draft</option>
+  <option value="Under Review">Under Review</option>
+  <option value="Approved">Approved</option>
+  <option value="Active">Active</option>
+  <option value="Expired">Expired</option>
+  <option value="Terminated">Terminated</option>
+</select>
+<select [(ngModel)]="categoryFilter">
+  <option value="">All Categories</option>
+  <option value="Service">Service</option>
+  <option value="Service Agreement">Service Agreement</option>
+</select>
+  <button
+  type="button"
+  (click)="showCreateForm = !showCreateForm">
+
+  {{ showCreateForm ? 'Cancel' : 'Create Contract' }}
+
+</button>
+
+@if (successMessage) {
+  <p class="success-message">
+    {{ successMessage }}
+  </p>
+}
+
+@if (showCreateForm) {
+
+  <div class="contract-form">
+
+    <h2>{{ isEditMode ? 'Update Contract' : 'Create Contract' }}</h2>
+
+    <form (submit)="$event.preventDefault(); createContract()">
+
+      <label>Contract Number *</label>
+      <input
+        type="text"
+        [(ngModel)]="newContract.contract_number"
+        name="contract_number"
+        required
+      >
+
+      <label>Title *</label>
+      <input
+        type="text"
+        [(ngModel)]="newContract.title"
+        name="title"
+        required
+      >
+
+      <label>Category *</label>
+      <input
+        type="text"
+        [(ngModel)]="newContract.category"
+        name="category"
+        required
+      >
+
+      <label>Description</label>
+      <textarea
+        [(ngModel)]="newContract.description"
+        name="description">
+      </textarea>
+
+      <label>Start Date *</label>
+      <input
+        type="date"
+        [(ngModel)]="newContract.start_date"
+        name="start_date"
+        required
+      >
+
+      <label>End Date *</label>
+      <input
+        type="date"
+        [(ngModel)]="newContract.end_date"
+        name="end_date"
+        required
+      >
+
+    <button type="submit">
+  {{ isEditMode ? 'Update Contract' : 'Create Contract' }}
+</button>
+
+    </form>
+
+  </div>
+
+}
+
+  @if (isLoading) {
+    <p>Loading contracts...</p>
+  }
+
+  @if (errorMessage) {
+    <p class="error-message">
+      {{ errorMessage }}
+    </p>
+  }
+
+  @if (!isLoading && contracts.length === 0 && !errorMessage) {
+    <p>No contracts found.</p>
+  }
+
+  @if (filteredContracts.length > 0) {
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Contract Number</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @for (contract of filteredContracts; track contract.id) {
+
+          <tr>
+
+            <td>
+              {{ contract.id }}
+            </td>
+
+            <td>
+              {{ contract.contract_number }}
+            </td>
+
+            <td>
+              {{ contract.title }}
+            </td>
+
+            <td>
+              {{ contract.category }}
+            </td>
+
+            <td>
+              {{ contract.start_date }}
+            </td>
+
+            <td>
+              {{ contract.end_date }}
+            </td>
+
+            <td
+  [class.status-active]="contract.status === 'Active'"
+  [class.status-approved]="contract.status === 'Approved'"
+  [class.status-review]="contract.status === 'Under Review'"
+  [class.status-draft]="contract.status === 'Draft'"
+  [class.status-expired]="contract.status === 'Expired'"
+>
+  {{ contract.status }}
+</td>
+            
+        <td>
+
+  @if (contract.status === 'Draft') {
+    <button
+      type="button"
+      (click)="submitForReview(contract.id)">
+      Submit Review
+    </button>
+  }
+
+  @if (contract.status === 'Under Review') {
+    <button
+      type="button"
+      (click)="approveContract(contract.id)">
+      Approve
+    </button>
+  }
+
+  @if (contract.status === 'Approved') {
+    <button
+      type="button"
+      (click)="activateContract(contract.id)">
+      Activate
+    </button>
+    
+  }
+  <button
+  type="button"
+  (click)="editContract(contract)">
+  Edit
+</button>
+<button
+  type="button"
+  (click)="editContract(contract)">
+  Update
+</button>
+<button
+  type="button"
+  (click)="deleteContract(contract.id)">
+  Delete
+</button>
+<button
+  type="button"
+  (click)="viewContract(contract)">
+  View
+</button>
+</td>
+     </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+    @if (showDetails && selectedContract) {
+
+  <div class="contract-details">
+
+    <h2>Contract Details</h2>
+
+    <p>
+      <strong>Contract Number:</strong>
+      {{ selectedContract.contract_number }}
+    </p>
+
+    <p>
+      <strong>Title:</strong>
+      {{ selectedContract.title }}
+    </p>
+
+    <p>
+      <strong>Category:</strong>
+      {{ selectedContract.category }}
+    </p>
+
+    <p>
+      <strong>Description:</strong>
+      {{ selectedContract.description }}
+    </p>
+
+    <p>
+      <strong>Start Date:</strong>
+      {{ selectedContract.start_date }}
+    </p>
+
+    <p>
+      <strong>End Date:</strong>
+      {{ selectedContract.end_date }}
+    </p>
+
+    <p>
+      <strong>Status:</strong>
+      {{ selectedContract.status }}
+    </p>
+
+    <button
+      type="button"
+      (click)="showDetails = false">
+      Close
+    </button>
+
+  </div>
+
+}
+
+  }
+
+</div>

@@ -1,0 +1,389 @@
+<div class="compliance-container">
+
+  <h1>Compliance</h1>
+
+  <p>
+    Monitor contract compliance, risk levels and compliance scores.
+  </p>
+  <!-- =============================== -->
+<!-- COMPLIANCE SUMMARY -->
+<!-- =============================== -->
+
+<div class="compliance-summary-grid">
+
+  <div class="summary-card">
+    <h3>Total</h3>
+    <h2>{{ complianceSummary.total }}</h2>
+  </div>
+
+  <div class="summary-card">
+    <h3>Compliant</h3>
+    <h2>{{ complianceSummary.compliant }}</h2>
+  </div>
+
+  <div class="summary-card">
+    <h3>Pending</h3>
+    <h2>{{ complianceSummary.pending }}</h2>
+  </div>
+
+  <div class="summary-card">
+    <h3>Delayed</h3>
+    <h2>{{ complianceSummary.delayed }}</h2>
+  </div>
+
+  <div class="summary-card">
+    <h3>Non-Compliant</h3>
+    <h2>{{ complianceSummary.non_compliant }}</h2>
+  </div>
+
+  <div class="summary-card">
+    <h3>High Risk</h3>
+    <h2>{{ complianceSummary.high_risk }}</h2>
+  </div>
+
+</div>
+  <!-- =============================== -->
+<!-- SEARCH & FILTER -->
+<!-- =============================== -->
+
+<div class="compliance-filters">
+
+  <input
+    type="text"
+    placeholder="Search compliance..."
+    [(ngModel)]="searchText"
+  >
+
+  <select [(ngModel)]="statusFilter">
+
+    <option value="">All Status</option>
+
+    <option value="Compliant">
+      Compliant
+    </option>
+
+    <option value="Pending">
+      Pending
+    </option>
+
+    <option value="Delayed">
+      Delayed
+    </option>
+
+    <option value="Non-Compliant">
+      Non-Compliant
+    </option>
+
+    <option value="High Risk">
+      High Risk
+    </option>
+
+  </select>
+
+</div>
+
+
+  <!-- =============================== -->
+  <!-- LOADING -->
+  <!-- =============================== -->
+
+  @if (isLoading) {
+
+    <p class="loading-message">
+      Loading compliance records...
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- ERROR -->
+  <!-- =============================== -->
+
+  @if (errorMessage) {
+
+    <p class="error-message">
+      {{ errorMessage }}
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- SUCCESS -->
+  <!-- =============================== -->
+
+  @if (successMessage) {
+
+    <p class="success-message">
+      {{ successMessage }}
+    </p>
+
+  }
+
+
+  <!-- =============================== -->
+  <!-- COMPLIANCE TABLE -->
+  <!-- =============================== -->
+
+  @if (!isLoading && complianceRecords.length > 0) {
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>ID</th>
+
+          <th>Contract ID</th>
+
+          <th>Status</th>
+
+          <th>Compliance Score</th>
+
+          <th>Risk Level</th>
+
+          <th>Evaluated At</th>
+
+          <th>Notes</th>
+
+          <th>Actions</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        @for (
+          record of filteredCompliance;
+          track record.id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ record.id }}
+            </td>
+
+            <td>
+              {{ record.contract_id }}
+            </td>
+
+            <td>
+              {{ record.status }}
+            </td>
+
+            <td>
+              {{ record.compliance_score }}%
+            </td>
+
+            <td>
+              {{ record.risk_level }}
+            </td>
+
+            <td>
+              {{ record.evaluated_at }}
+            </td>
+
+            <td>
+              {{ record.notes }}
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  }
+<!-- =============================== -->
+<!-- NON-COMPLIANT CONTRACTS -->
+<!-- =============================== -->
+
+<div class="non-compliant-section">
+
+  <h2>⚠️ Non-Compliant Contracts</h2>
+
+  @if (nonCompliantRecords.length === 0) {
+
+    <p>No Non-Compliant Contracts Found.</p>
+
+  }
+
+  @if (nonCompliantRecords.length > 0) {
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Contract ID</th>
+          <th>Status</th>
+          <th>Compliance Score</th>
+          <th>Risk Level</th>
+          <th>Evaluated At</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @for (
+          record of nonCompliantRecords;
+          track record.id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ record.contract_id }}
+            </td>
+
+            <td>
+              {{ record.status }}
+            </td>
+
+            <td>
+              {{ record.compliance_score }}%
+            </td>
+
+            <td>
+              {{ record.risk_level }}
+            </td>
+
+            <td>
+              {{ record.evaluated_at }}
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  }
+
+</div>
+<!-- =============================== -->
+<!-- HIGH RISK CONTRACTS -->
+<!-- =============================== -->
+
+<div class="high-risk-section">
+
+  <h2>⚠️ High Risk Contracts</h2>
+
+  @if (highRiskRecords.length === 0) {
+
+    <p>No High Risk Contracts Found.</p>
+
+  }
+
+  @if (highRiskRecords.length > 0) {
+
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>Contract ID</th>
+          <th>Contract Number</th>
+          <th>Status</th>
+          <th>Compliance Score</th>
+          <th>Overdue Obligations</th>
+          <th>Risk Level</th>
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        @for (
+          record of highRiskRecords;
+          track record.contract_id
+        ) {
+
+          <tr>
+
+            <td>
+              {{ record.contract_id }}
+            </td>
+
+            <td>
+              {{ record.contract_number }}
+            </td>
+<td>
+  <span
+    class="status-badge"
+    [class.compliant]="record.compliance_status === 'Compliant'"
+    [class.pending]="record.compliance_status === 'Pending'"
+    [class.delayed]="record.compliance_status === 'Delayed'"
+    [class.non-compliant]="record.compliance_status === 'Non-Compliant'"
+  >
+    {{ record.compliance_status }}
+  </span>
+</td>
+    
+
+            <td>
+              {{ record.compliance_score }}%
+            </td>
+
+            <td>
+              {{ record.overdue_obligations }}
+            </td>
+
+            <td>
+  <span
+    class="risk-badge"
+    [class.low-risk]="record.risk_level === 'Low'"
+    [class.medium-risk]="record.risk_level === 'Medium'"
+    [class.high-risk]="record.risk_level === 'High'"
+  >
+    {{ record.risk_level }}
+  </span>
+</td>
+            <td>
+
+  <button
+    type="button"
+    (click)="loadComplianceHistory(record.contract_id)"
+  >
+    View History
+  </button>
+
+</td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  }
+
+</div>
+
+  <!-- =============================== -->
+  <!-- NO DATA -->
+  <!-- =============================== -->
+
+  @if (
+    !isLoading &&
+    complianceRecords.length === 0 &&
+    !errorMessage
+  ) {
+
+    <p>
+      No compliance records found.
+    </p>
+
+  }
+
+</div>

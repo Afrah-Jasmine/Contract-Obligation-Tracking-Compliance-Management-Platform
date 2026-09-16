@@ -8,7 +8,9 @@ from backend.app.api import compliance
 from backend.app.api import notifications
 from backend.app.api import reports
 from backend.app.api import dashboard
+from backend.app.models.compliance import Compliance
 from fastapi.middleware.cors import CORSMiddleware
+from backend.app.api import audit_logs
 
 
 app = FastAPI(
@@ -63,6 +65,11 @@ app.include_router(
 # Dashboard
 app.include_router(
     dashboard.router
+)
+app.include_router(
+    audit_logs.router,
+    prefix="/audit-logs",
+    tags=["Audit History"]
 )
 @app.get("/")
 def root():

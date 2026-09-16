@@ -1,0 +1,58 @@
+.renewal-filters {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.renewal-filters input,
+.renewal-filters select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.renewal-filters input {
+  width: 250px;
+}
+.renewal-form {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.renewal-form h2 {
+  margin-bottom: 20px;
+}
+
+.renewal-form label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.renewal-form input,
+.renewal-form textarea {
+  width: 100%;
+  max-width: 500px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.renewal-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.renewal-form button {
+  margin-top: 15px;
+  margin-right: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}

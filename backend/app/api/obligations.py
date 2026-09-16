@@ -229,7 +229,7 @@ def update_obligation_status(
         "In Progress": ["Completed", "Delayed", "Overdue"],
         "Delayed": ["In Progress", "Completed", "Overdue"],
         "Overdue": ["In Progress", "Completed"],
-        "Completed": []
+        "Completed": ["Overdue"]
     }
 
     if new_status not in valid_transitions.get(current_status, []):
@@ -334,4 +334,32 @@ def get_obligation(
         )
 
     return obligation
+# ============================================================
+# DELETE OBLIGATION
+# ============================================================
+
+@router.delete(
+    "/{obligation_id}",
+    status_code=204
+)
+def delete_obligation(
+    obligation_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+
+    obligation = db.query(Obligation).filter(
+        Obligation.id == obligation_id
+    ).first()
+
+    if not obligation:
+        raise HTTPException(
+            status_code=404,
+            detail="Obligation not found"
+        )
+
+    db.delete(obligation)
+    db.commit()
+
+    return
 

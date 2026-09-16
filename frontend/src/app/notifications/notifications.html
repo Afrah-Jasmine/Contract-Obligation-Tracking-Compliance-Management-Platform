@@ -1,0 +1,245 @@
+<div class="notifications-container">
+
+  <!-- HEADER -->
+  <div class="notifications-header">
+
+    <div>
+      <h1>Notifications</h1>
+
+      <p class="unread-count">
+        🔔 Unread: {{ unreadCount }}
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        (click)="refreshNotifications()">
+        🔄 Refresh
+      </button>
+
+      <button
+        type="button"
+        (click)="markAllAsRead()"
+        [disabled]="unreadCount === 0">
+        ✓ Mark All as Read
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SEARCH & FILTER -->
+
+  <div class="notification-filters">
+
+    <input
+      type="text"
+      placeholder="Search notifications..."
+      [(ngModel)]="searchText"
+    >
+
+    <select [(ngModel)]="statusFilter">
+
+      <option value="">
+        All Status
+      </option>
+
+      <option value="Unread">
+        Unread
+      </option>
+
+      <option value="Read">
+        Read
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <!-- LOADING -->
+
+  @if (isLoading) {
+
+    <p class="loading-message">
+      Loading notifications...
+    </p>
+
+  }
+
+
+  <!-- ERROR -->
+
+  @if (errorMessage) {
+
+    <p class="error-message">
+      {{ errorMessage }}
+    </p>
+
+  }
+
+
+  <!-- SUCCESS -->
+
+  @if (successMessage) {
+
+    <p class="success-message">
+      {{ successMessage }}
+    </p>
+
+  }
+
+
+  <!-- NO NOTIFICATIONS -->
+
+  @if (
+    !isLoading &&
+    filteredNotifications.length === 0 &&
+    !errorMessage
+  ) {
+
+    <div class="empty-state">
+
+      <h2>🔔 No Notifications</h2>
+
+      <p>
+        No notifications found.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- NOTIFICATIONS TABLE -->
+
+  @if (filteredNotifications.length > 0) {
+
+    <table class="notifications-table">
+
+      <thead>
+
+        <tr>
+
+          <th>ID</th>
+
+          <th>Type</th>
+
+          <th>Title</th>
+
+          <th>Message</th>
+
+          <th>Status</th>
+
+          <th>Created At</th>
+
+          <th>Actions</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        @for (
+          notification of filteredNotifications;
+          track notification.id
+        ) {
+
+          <tr
+            [class.unread-row]="
+              notification.status === 'Unread'
+            "
+          >
+
+            <td>
+              {{ notification.id }}
+            </td>
+
+
+            <td>
+              {{ notification.notification_type }}
+            </td>
+
+
+            <td>
+              <strong>
+                {{ notification.title }}
+              </strong>
+            </td>
+
+
+            <td>
+              {{ notification.message }}
+            </td>
+
+
+            <td>
+
+              <span
+                class="status-badge"
+                [class.unread]="
+                  notification.status === 'Unread'
+                "
+                [class.read]="
+                  notification.status === 'Read'
+                "
+              >
+
+                {{ notification.status }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+              {{ notification.created_at }}
+            </td>
+
+
+            <td>
+
+              @if (
+                notification.status === 'Unread'
+              ) {
+
+                <button
+                  type="button"
+                  class="read-button"
+                  (click)="
+                    markAsRead(notification.id)
+                  "
+                >
+                  ✓ Mark Read
+                </button>
+
+              }
+
+              @if (
+                notification.status === 'Read'
+              ) {
+
+                <span class="already-read">
+                  ✓ Read
+                </span>
+
+              }
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  }
+
+</div>

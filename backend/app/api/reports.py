@@ -51,7 +51,9 @@ def contract_summary(
         require_role(
             UserRole.ADMINISTRATOR,
             UserRole.LEGAL_MANAGER,
-            UserRole.COMPLIANCE_OFFICER
+            UserRole.COMPLIANCE_OFFICER,
+            UserRole.EMPLOYEE
+
         )
     )
 ):

@@ -1,0 +1,46 @@
+.app-header {
+  height: 64px;
+  background: #1976d2;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-left h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.menu-button,
+.logout-button {
+  border: none;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+.menu-button {
+  font-size: 24px;
+}
+
+.logout-button {
+  font-size: 14px;
+  padding: 8px 14px;
+  border: 1px solid white;
+  border-radius: 4px;
+}
+
+.logout-button:hover {
+  background: white;
+  color: #1976d2;
+}

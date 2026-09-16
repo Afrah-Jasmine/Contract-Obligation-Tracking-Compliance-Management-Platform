@@ -1,0 +1,63 @@
+.audit-history-container {
+  padding: 25px;
+}
+
+.audit-history-container h1 {
+  margin-bottom: 5px;
+}
+
+.audit-history-container p {
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.audit-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background: #f4f4f4;
+  font-weight: bold;
+}
+
+tr:hover {
+  background: #f9f9f9;
+}
+
+.loading-message {
+  padding: 20px;
+  font-size: 18px;
+}
+
+.error-message {
+  padding: 15px;
+  background: #ffe5e5;
+  color: #b00020;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+
+  .audit-history-container {
+    padding: 15px;
+  }
+
+  table {
+    min-width: 700px;
+  }
+
+}

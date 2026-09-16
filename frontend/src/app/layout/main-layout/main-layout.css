@@ -1,8 +1,3 @@
-:host {
-  display: block;
-  min-height: 100vh;
-}
-
 .app-layout {
   display: flex;
   min-height: calc(100vh - 64px);

@@ -1,0 +1,119 @@
+<div class="audit-history-container">
+
+  <h1>Audit History</h1>
+
+  <p>
+    Track contract activities and user actions.
+  </p>
+
+
+  <!-- Loading -->
+
+  @if (isLoading) {
+
+    <div class="loading-message">
+
+      Loading audit history...
+
+    </div>
+
+  }
+
+
+  <!-- Error -->
+
+  @if (errorMessage) {
+
+    <div class="error-message">
+
+      {{ errorMessage }}
+
+    </div>
+
+  }
+
+
+  <!-- Audit Table -->
+
+  @if (!isLoading && !errorMessage) {
+
+    <div class="audit-table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>ID</th>
+
+            <th>Contract ID</th>
+
+            <th>User ID</th>
+
+            <th>Action</th>
+
+            <th>Description</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          @for (
+            log of auditLogs;
+            track log.id
+          ) {
+
+            <tr>
+
+              <td>
+                {{ log.id }}
+              </td>
+
+              <td>
+                {{ log.contract_id }}
+              </td>
+
+              <td>
+                {{ log.user_id }}
+              </td>
+
+              <td>
+                {{ log.action }}
+              </td>
+
+              <td>
+                {{ log.description }}
+              </td>
+
+            </tr>
+
+          }
+
+
+          @if (auditLogs.length === 0) {
+
+            <tr>
+
+              <td colspan="5">
+
+                No audit history found.
+
+              </td>
+
+            </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  }
+
+</div>

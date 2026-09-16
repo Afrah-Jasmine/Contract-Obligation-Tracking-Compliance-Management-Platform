@@ -1,0 +1,175 @@
+/* ================================= */
+/* NOTIFICATIONS CONTAINER */
+/* ================================= */
+
+.notifications-container {
+  padding: 25px;
+}
+
+
+/* ================================= */
+/* HEADER */
+/* ================================= */
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notifications-header h1 {
+  margin: 0;
+}
+
+.unread-count {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+
+/* ================================= */
+/* HEADER BUTTONS */
+/* ================================= */
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.header-actions button {
+  padding: 9px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.header-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* ================================= */
+/* SEARCH & FILTER */
+/* ================================= */
+
+.notification-filters {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.notification-filters input,
+.notification-filters select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.notification-filters input {
+  width: 280px;
+}
+
+
+/* ================================= */
+/* TABLE */
+/* ================================= */
+
+.notifications-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.notifications-table th,
+.notifications-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.notifications-table th {
+  font-weight: bold;
+}
+
+
+/* ================================= */
+/* UNREAD ROW */
+/* ================================= */
+
+.unread-row {
+  font-weight: 500;
+}
+
+
+/* ================================= */
+/* STATUS BADGES */
+/* ================================= */
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge.unread {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.read {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+
+/* ================================= */
+/* ACTION BUTTON */
+/* ================================= */
+
+.read-button {
+  padding: 7px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.already-read {
+  font-size: 13px;
+}
+
+
+/* ================================= */
+/* MESSAGES */
+/* ================================= */
+
+.loading-message {
+  margin: 20px 0;
+}
+
+.error-message {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 5px;
+  background: #ffebee;
+}
+
+.success-message {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 5px;
+  background: #e8f5e9;
+}
+
+
+/* ================================= */
+/* EMPTY STATE */
+/* ================================= */
+
+.empty-state {
+  margin-top: 30px;
+  padding: 30px;
+  text-align: center;
+}

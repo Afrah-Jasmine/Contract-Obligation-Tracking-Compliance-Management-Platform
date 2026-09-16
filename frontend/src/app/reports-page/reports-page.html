@@ -1,0 +1,116 @@
+<div class="reports-container">
+
+  <h1>Reports & Analytics</h1>
+
+  <p>ContractIQ system overview</p>
+
+  <hr>
+
+
+  <!-- CONTRACTS -->
+
+  <h2>📄 Contracts</h2>
+
+  <p>
+    Total Contracts:
+    <strong>{{ contractSummary?.total }}</strong>
+  </p>
+
+  <p>
+    Active Contracts:
+    <strong>{{ contractSummary?.active }}</strong>
+  </p>
+
+  <p>
+    Expired Contracts:
+    <strong>{{ contractSummary?.expired }}</strong>
+  </p>
+
+  <hr>
+
+
+  <!-- OBLIGATIONS -->
+
+  <h2>📋 Obligations</h2>
+
+  <p>
+    Total Obligations:
+    <strong>{{ obligationSummary?.total }}</strong>
+  </p>
+
+  <p>
+    Completed:
+    <strong>{{ obligationSummary?.completed }}</strong>
+  </p>
+
+  <p>
+    Overdue:
+    <strong>{{ obligationSummary?.overdue }}</strong>
+  </p>
+
+  <hr>
+
+
+  <!-- RENEWALS -->
+
+  <h2>🔄 Renewals</h2>
+
+  <p>
+    Upcoming:
+    <strong>{{ renewalSummary?.upcoming }}</strong>
+  </p>
+
+  <p>
+    In Progress:
+    <strong>{{ renewalSummary?.in_progress }}</strong>
+  </p>
+
+  <p>
+    Renewed:
+    <strong>{{ renewalSummary?.renewed }}</strong>
+  </p>
+
+  <hr>
+
+
+  <!-- COMPLIANCE -->
+
+  <h2>✅ Compliance</h2>
+
+  <p>
+    Compliant:
+    <strong>{{ complianceSummary?.compliant }}</strong>
+  </p>
+
+  <p>
+    Pending:
+    <strong>{{ complianceSummary?.pending }}</strong>
+  </p>
+
+  <p>
+    Non-Compliant:
+    <strong>{{ complianceSummary?.non_compliant }}</strong>
+  </p>
+
+  <p>
+    High Risk:
+    <strong>{{ complianceSummary?.high_risk }}</strong>
+  </p>
+
+
+  <hr>
+
+
+  <!-- DEBUG -->
+
+  <h2>🔍 Debug Data</h2>
+
+  <pre>{{ contractSummary | json }}</pre>
+
+  <pre>{{ obligationSummary | json }}</pre>
+
+  <pre>{{ renewalSummary | json }}</pre>
+
+  <pre>{{ complianceSummary | json }}</pre>
+
+</div>
