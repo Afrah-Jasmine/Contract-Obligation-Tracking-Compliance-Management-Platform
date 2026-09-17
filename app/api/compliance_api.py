@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -6,6 +7,7 @@ from app.models.contract import Contract
 from app.schemas.compliance_schema import (
     ComplianceResponse,
     ComplianceSummaryResponse
+    ,ComplianceTimelineResponse
 )
 from app.services.compliance_service import calculate_compliance
 from app.core.auth import get_current_user
@@ -158,3 +160,23 @@ def non_compliant_contracts(
             })
 
     return response
+
+
+@router.get("/timeline", response_model=list[ComplianceTimelineResponse])
+def compliance_timeline(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    events = []
+    contracts = db.query(Contract).all()
+    for contract in contracts:
+        for obligation in contract.obligations:
+            event_date = obligation.completion_date or obligation.updated_at or obligation.created_at
+            if not event_date:
+                continue
+            events.append({
+                "date": event_date.date().isoformat() if hasattr(event_date, "date") else str(event_date),
+                "reason": f"{obligation.title} deadline and completion review",
+                "status": "Completed" if obligation.status == "Completed" else obligation.status,
+            })
+    return sorted(events, key=lambda event: event["date"], reverse=True)

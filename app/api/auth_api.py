@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime, timezone
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -19,9 +21,9 @@ def login(
     db: Session = Depends(get_db)
 ):
 
-    user = db.query(User).filter(
-        User.email == form_data.username
-    ).first()
+    # OAuth2 calls this field username, but ContractIQ authenticates by email.
+    email = form_data.username.strip().lower()
+    user = db.query(User).filter(func.lower(User.email) == email).first()
 
     if not user:
         raise HTTPException(
@@ -29,11 +31,23 @@ def login(
             detail="Invalid email or password"
         )
 
-    if not verify_password(form_data.password, user.password):
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    try:
+        password_matches = verify_password(form_data.password, user.password)
+    except (ValueError, TypeError):
+        # A malformed or legacy non-bcrypt database value is never a valid login.
+        password_matches = False
+
+    if not password_matches:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
+
+    user.last_login = datetime.now(timezone.utc)
+    db.commit()
 
     access_token = create_access_token(
         data={

@@ -1,0 +1,255 @@
+{
+  "report_type": "Audit Report",
+  "records": [
+    {
+      "id": 1,
+      "action": "Created contract",
+      "table_name": "contracts"
+    },
+    {
+      "id": 2,
+      "action": "Updated contract",
+      "table_name": "contracts"
+    },
+    {
+      "id": 3,
+      "action": "Created obligation",
+      "table_name": "obligations"
+    },
+    {
+      "id": 4,
+      "action": "Generated compliance report",
+      "table_name": "reports"
+    },
+    {
+      "id": 6,
+      "action": "UPDATE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 7,
+      "action": "DELETE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 8,
+      "action": "INSERT",
+      "table_name": "obligations"
+    },
+    {
+      "id": 9,
+      "action": "UPDATE",
+      "table_name": "renewals"
+    },
+    {
+      "id": 10,
+      "action": "INSERT",
+      "table_name": "notifications"
+    },
+    {
+      "id": 11,
+      "action": "UPDATE",
+      "table_name": "reports"
+    },
+    {
+      "id": 12,
+      "action": "DELETE",
+      "table_name": "activities"
+    },
+    {
+      "id": 13,
+      "action": "INSERT",
+      "table_name": "contract_versions"
+    },
+    {
+      "id": 14,
+      "action": "UPDATE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 16,
+      "action": "DELETE",
+      "table_name": "reports"
+    },
+    {
+      "id": 17,
+      "action": "UPDATE",
+      "table_name": "notifications"
+    },
+    {
+      "id": 18,
+      "action": "INSERT",
+      "table_name": "renewals"
+    },
+    {
+      "id": 19,
+      "action": "UPDATE",
+      "table_name": "activities"
+    },
+    {
+      "id": 20,
+      "action": "INSERT",
+      "table_name": "contracts"
+    },
+    {
+      "id": 21,
+      "action": "DELETE",
+      "table_name": "obligations"
+    },
+    {
+      "id": 22,
+      "action": "UPDATE",
+      "table_name": "reports"
+    },
+    {
+      "id": 23,
+      "action": "INSERT",
+      "table_name": "notifications"
+    },
+    {
+      "id": 24,
+      "action": "UPDATE",
+      "table_name": "contract_versions"
+    },
+    {
+      "id": 26,
+      "action": "INSERT",
+      "table_name": "reports"
+    },
+    {
+      "id": 27,
+      "action": "DELETE",
+      "table_name": "notifications"
+    },
+    {
+      "id": 28,
+      "action": "UPDATE",
+      "table_name": "obligations"
+    },
+    {
+      "id": 29,
+      "action": "INSERT",
+      "table_name": "activities"
+    },
+    {
+      "id": 30,
+      "action": "UPDATE",
+      "table_name": "contract_versions"
+    },
+    {
+      "id": 31,
+      "action": "DELETE",
+      "table_name": "renewals"
+    },
+    {
+      "id": 32,
+      "action": "INSERT",
+      "table_name": "contracts"
+    },
+    {
+      "id": 33,
+      "action": "UPDATE",
+      "table_name": "reports"
+    },
+    {
+      "id": 34,
+      "action": "INSERT",
+      "table_name": "notifications"
+    },
+    {
+      "id": 36,
+      "action": "UPDATE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 37,
+      "action": "INSERT",
+      "table_name": "obligations"
+    },
+    {
+      "id": 38,
+      "action": "UPDATE",
+      "table_name": "renewals"
+    },
+    {
+      "id": 39,
+      "action": "DELETE",
+      "table_name": "reports"
+    },
+    {
+      "id": 40,
+      "action": "INSERT",
+      "table_name": "notifications"
+    },
+    {
+      "id": 41,
+      "action": "UPDATE",
+      "table_name": "activities"
+    },
+    {
+      "id": 42,
+      "action": "INSERT",
+      "table_name": "contract_versions"
+    },
+    {
+      "id": 43,
+      "action": "DELETE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 44,
+      "action": "UPDATE",
+      "table_name": "obligations"
+    },
+    {
+      "id": 46,
+      "action": "UPDATE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 47,
+      "action": "DELETE",
+      "table_name": "activities"
+    },
+    {
+      "id": 48,
+      "action": "INSERT",
+      "table_name": "notifications"
+    },
+    {
+      "id": 49,
+      "action": "UPDATE",
+      "table_name": "renewals"
+    },
+    {
+      "id": 50,
+      "action": "INSERT",
+      "table_name": "contracts"
+    },
+    {
+      "id": 5,
+      "action": "INSERT",
+      "table_name": "contracts"
+    },
+    {
+      "id": 15,
+      "action": "INSERT",
+      "table_name": "obligations"
+    },
+    {
+      "id": 25,
+      "action": "UPDATE",
+      "table_name": "contracts"
+    },
+    {
+      "id": 35,
+      "action": "DELETE",
+      "table_name": "activities"
+    },
+    {
+      "id": 45,
+      "action": "INSERT",
+      "table_name": "reports"
+    }
+  ]
+}

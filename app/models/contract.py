@@ -20,6 +20,8 @@ class Contract(Base):
 
     category = Column(String(100), nullable=False)
 
+    department = Column(String(100), nullable=True)
+
     description = Column(String(500))
 
     start_date = Column(Date, nullable=False)
@@ -76,11 +78,6 @@ class Contract(Base):
         back_populates="assigned_contracts"
     )
 
-    contract_versions = relationship(
-        "ContractVersion",
-        back_populates="contract"
-    )
-
     obligations = relationship(
         "Obligation",
         back_populates="contract"
@@ -96,13 +93,7 @@ class Contract(Base):
         "Notification",
         back_populates="contract"
     )
-
     activities = relationship(
         "Activity",
         back_populates="contract"
-    )
-
-    notifications = relationship(
-    "Notification",
-    back_populates="contract"
     )

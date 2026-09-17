@@ -37,6 +37,8 @@ class Obligation(Base):
         nullable=False
     )
 
+    priority = Column(String(20), nullable=True, default="Medium")
+
     due_date = Column(
         Date,
         nullable=False

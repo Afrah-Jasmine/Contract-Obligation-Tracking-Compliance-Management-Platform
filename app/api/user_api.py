@@ -5,12 +5,11 @@ from app.database.database import get_db
 from app.models.user import User
 from app.models.activity import Activity
 from app.models.audit_log import AuditLog
-from app.models.contract_version import ContractVersion
 from app.models.contract import Contract
 from app.models.notification import Notification
 from app.models.obligation import Obligation
 from app.models.report import Report
-from app.schemas.user_schema import UserCreate, UserResponse
+from app.schemas.user_schema import UserCreate, UserResponse, UserUpdate
 from app.utils.security import hash_password
 from fastapi import Depends
 from app.core.role_checker import RoleChecker
@@ -27,7 +26,7 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED
 )
 def create_user(
-    user_data: UserCreate,
+    user_data: UserUpdate,
     db: Session = Depends(get_db)
 ):
     hashed_password = hash_password(user_data.password)
@@ -90,12 +89,11 @@ def update_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    hashed_password = hash_password(user_data.password)
-
-    user.full_name = user_data.full_name
-    user.email = user_data.email
-    user.password = hashed_password
-    user.role = user_data.role
+    update_data = user_data.model_dump(exclude_unset=True, exclude_none=True)
+    if "password" in update_data:
+        user.password = hash_password(update_data.pop("password"))
+    for key, value in update_data.items():
+        setattr(user, key, value)
 
     db.commit()
     db.refresh(user)
@@ -120,7 +118,6 @@ def delete_user(
     # Null out dependent foreign keys so DB won't block the delete
     db.query(Activity).filter(Activity.user_id == user_id).update({Activity.user_id: None}, synchronize_session=False)
     db.query(AuditLog).filter(AuditLog.user_id == user_id).update({AuditLog.user_id: None}, synchronize_session=False)
-    db.query(ContractVersion).filter(ContractVersion.uploaded_by == user_id).update({ContractVersion.uploaded_by: None}, synchronize_session=False)
     db.query(Contract).filter(Contract.created_by == user_id).update({Contract.created_by: None}, synchronize_session=False)
     db.query(Notification).filter(Notification.user_id == user_id).update({Notification.user_id: None}, synchronize_session=False)
     db.query(Obligation).filter(Obligation.assigned_to == user_id).update({Obligation.assigned_to: None}, synchronize_session=False)

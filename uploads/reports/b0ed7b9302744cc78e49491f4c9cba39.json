@@ -1,0 +1,40 @@
+{
+  "report_type": "Contract Report",
+  "records": [
+    {
+      "id": 1,
+      "title": "ABC Vendor Agreement",
+      "status": "Draft"
+    },
+    {
+      "id": 2,
+      "title": "Microsoft Service Agreement",
+      "status": "Draft"
+    },
+    {
+      "id": 3,
+      "title": "Netflix Licensing Agreement",
+      "status": "Draft"
+    },
+    {
+      "id": 4,
+      "title": "YouTube Premium Licensing Agreement",
+      "status": "Active"
+    },
+    {
+      "id": 5,
+      "title": "Employee Service Agreement",
+      "status": "Draft"
+    },
+    {
+      "id": 6,
+      "title": "Auth flow probe",
+      "status": "Draft"
+    },
+    {
+      "id": 7,
+      "title": "Protected flow verification",
+      "status": "Draft"
+    }
+  ]
+}

@@ -24,8 +24,6 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    print("TOKEN RECEIVED:", token)
-
     if token is None:
         raise credentials_exception
 
@@ -49,6 +47,9 @@ def get_current_user(
         user = db.query(User).filter(User.email == email).first()
 
     if user is None:
+        raise credentials_exception
+
+    if not user.is_active:
         raise credentials_exception
 
     return user

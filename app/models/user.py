@@ -1,5 +1,6 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, JSON, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.database.database import Base
 
@@ -13,6 +14,11 @@ class User(Base):
     password = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    avatar_url = Column(String(500), nullable=True)
+    last_login = Column(DateTime(timezone=True), nullable=True)
+    preferences = Column(JSON, nullable=True, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     contracts = relationship(
         "Contract",
@@ -61,9 +67,4 @@ class User(Base):
     "Renewal",
     back_populates="user",
     passive_deletes=True
-    )
-
-    notifications = relationship(
-    "Notification",
-    back_populates="user"
     )

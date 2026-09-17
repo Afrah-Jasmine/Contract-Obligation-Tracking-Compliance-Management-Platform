@@ -18,3 +18,9 @@ class ComplianceSummaryResponse(BaseModel):
     compliant: int
     partially_compliant: int
     non_compliant: int
+
+
+class ComplianceTimelineResponse(BaseModel):
+    date: str
+    reason: str
+    status: str

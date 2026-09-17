@@ -9,6 +9,7 @@ class ObligationCreate(BaseModel):
     title: str
     description: str
     obligation_type: str
+    priority: Optional[str] = "Medium"
     due_date: date
     assigned_to: int
 
@@ -17,6 +18,7 @@ class ObligationUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     obligation_type: Optional[str] = None
+    priority: Optional[str] = None
     due_date: Optional[date] = None
     assigned_to: Optional[int] = None
 
@@ -31,6 +33,7 @@ class ObligationResponse(BaseModel):
     title: str
     description: str
     obligation_type: str
+    priority: Optional[str]
     due_date: date
     assigned_to: int | None
     status: str

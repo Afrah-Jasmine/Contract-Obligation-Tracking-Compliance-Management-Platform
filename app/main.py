@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.database import test_database_connection
+
 from app.api.user_api import router as user_router
 from app.api.contract_api import router as contract_router
-from app.api.contract_version_api import router as contract_version_router
 from app.api.obligation_api import router as obligation_router
 from app.api.renewal_api import router as renewal_router
 from app.api.notification_api import router as notification_router
@@ -13,6 +13,7 @@ from app.api.audit_log_api import router as audit_log_router
 from app.api.activity_api import router as activity_router
 from app.api.auth_api import router as auth_router
 from app.api.compliance_api import router as compliance_router
+from app.api.dashboard_api import router as dashboard_router
 
 app = FastAPI(
     title="ContractIQ API",
@@ -20,32 +21,25 @@ app = FastAPI(
     swagger_ui_parameters={"persistAuthorization": True},
 )
 
+# -----------------------------
+# CORS
+# -----------------------------
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
 
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        routes=app.routes,
-    )
-    openapi_schema["components"]["securitySchemes"] = {
-        "OAuth2PasswordBearer": {
-            "type": "oauth2",
-            "flows": {
-                "password": {
-                    "tokenUrl": "/auth/login",
-                    "scopes": {},
-                }
-            },
-        }
-    }
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -53,9 +47,11 @@ def startup_event():
     test_database_connection()
 
 
+# -----------------------------
+# Routers
+# -----------------------------
 app.include_router(user_router)
 app.include_router(contract_router)
-app.include_router(contract_version_router)
 app.include_router(obligation_router)
 app.include_router(renewal_router)
 app.include_router(notification_router)
@@ -64,6 +60,7 @@ app.include_router(audit_log_router)
 app.include_router(activity_router)
 app.include_router(auth_router)
 app.include_router(compliance_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/")

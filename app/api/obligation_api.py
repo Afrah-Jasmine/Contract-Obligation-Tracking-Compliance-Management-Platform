@@ -57,6 +57,7 @@ def create_obligation(
         title=obligation_data.title,
         description=obligation_data.description,
         obligation_type=obligation_data.obligation_type,
+        priority=obligation_data.priority,
         due_date=obligation_data.due_date,
         assigned_to=obligation_data.assigned_to,
         status="Pending"
@@ -224,3 +225,16 @@ def update_status(
     db.refresh(obligation)
 
     return obligation
+
+
+@router.delete("/{obligation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_obligation(
+    obligation_id: int,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    obligation = db.query(Obligation).filter(Obligation.id == obligation_id).first()
+    if not obligation:
+        raise HTTPException(status_code=404, detail="Obligation not found")
+    db.delete(obligation)
+    db.commit()
