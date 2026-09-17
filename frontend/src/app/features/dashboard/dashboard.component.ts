@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import {
   ComplianceAnalyticsSummary,
   ContractAnalyticsSummary,
@@ -545,7 +546,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   constructor(
     private dashboardService: DashboardService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -568,6 +570,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
+        if (err.status === 401) {
+          this.authService.logout();
+          return;
+        }
         this.hasError = true;
         this.notificationService.showError('Error connecting to FastAPI backend summary API.');
       }
