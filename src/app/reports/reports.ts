@@ -1,359 +1,443 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef
+} from '@angular/core';
+
+import { CommonModule } from '@angular/common';
+
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ReportService } from '../services/report';
 
 @Component({
   selector: 'app-reports',
+  standalone: true,
   imports: [
     CommonModule,
     MatCardModule,
-    MatButtonModule
+    MatButtonModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.css'
 })
 export class Reports {
 
-  // =====================================================
-  // CONTRACT REPORT DATA
-  // =====================================================
+  // =========================================================
+  // CONTRACT REPORT
+  // =========================================================
 
   contracts: any[] = [];
   showContracts = false;
   loadingContracts = false;
 
-  // =====================================================
-  // OBLIGATION REPORT DATA
-  // =====================================================
+  // =========================================================
+  // OBLIGATION REPORT
+  // =========================================================
 
   obligations: any[] = [];
   showObligations = false;
   loadingObligations = false;
 
-  // =====================================================
-  // RENEWAL REPORT DATA
-  // =====================================================
+  // =========================================================
+  // RENEWAL REPORT
+  // =========================================================
 
   renewals: any[] = [];
   showRenewals = false;
   loadingRenewals = false;
 
-  // =====================================================
-  // COMPLIANCE REPORT DATA
-  // =====================================================
+  // =========================================================
+  // COMPLIANCE REPORT
+  // =========================================================
 
   compliance: any[] = [];
   showCompliance = false;
   loadingCompliance = false;
 
   constructor(
-    private reportService: ReportService
+    private readonly reportService: ReportService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
-  // =====================================================
+  // =========================================================
   // CONTRACT REPORT
-  // =====================================================
+  // =========================================================
 
-  viewContractReport() {
+  viewContractReport(): void {
+
+    console.log('Contract Report: loading started');
 
     this.loadingContracts = true;
+    this.showContracts = false;
+
+    this.cdr.detectChanges();
 
     this.reportService.getContractsReport().subscribe({
 
       next: (data) => {
 
-        this.contracts = data;
+        console.log(
+          'Contract Report received:',
+          data
+        );
+
+        this.contracts = data ?? [];
+
         this.showContracts = true;
         this.loadingContracts = false;
 
+        this.cdr.detectChanges();
+
+        console.log(
+          'Contract Report: loading finished'
+        );
       },
 
       error: (error) => {
 
         console.error(
-          'Contract report error:',
+          'Contract Report error:',
           error
         );
 
+        this.contracts = [];
+        this.showContracts = false;
         this.loadingContracts = false;
 
-        alert(
-          'Unable to load Contract Report. Please check whether the backend is running.'
-        );
+        this.cdr.detectChanges();
 
+        alert(
+          'Unable to load Contract Report.'
+        );
       }
 
     });
   }
 
-  // =====================================================
+  // =========================================================
   // OBLIGATION REPORT
-  // =====================================================
+  // =========================================================
 
-  viewObligationReport() {
+  viewObligationReport(): void {
+
+    console.log(
+      'Obligation Report: loading started'
+    );
 
     this.loadingObligations = true;
+    this.showObligations = false;
 
-    this.reportService.getObligationsReport().subscribe({
+    this.cdr.detectChanges();
 
-      next: (data) => {
+    this.reportService
+      .getObligationsReport()
+      .subscribe({
 
-        this.obligations = data;
-        this.showObligations = true;
-        this.loadingObligations = false;
+        next: (data) => {
 
-      },
+          console.log(
+            'Obligation Report received:',
+            data
+          );
 
-      error: (error) => {
+          this.obligations = data ?? [];
 
-        console.error(
-          'Obligation report error:',
-          error
-        );
+          this.showObligations = true;
+          this.loadingObligations = false;
 
-        this.loadingObligations = false;
+          this.cdr.detectChanges();
 
-        alert(
-          'Unable to load Obligation Report. Please check whether the backend is running.'
-        );
+          console.log(
+            'Obligation Report: loading finished'
+          );
+        },
 
-      }
+        error: (error) => {
 
-    });
+          console.error(
+            'Obligation Report error:',
+            error
+          );
+
+          this.obligations = [];
+          this.showObligations = false;
+          this.loadingObligations = false;
+
+          this.cdr.detectChanges();
+
+          alert(
+            'Unable to load Obligation Report.'
+          );
+        }
+
+      });
   }
 
-  // =====================================================
+  // =========================================================
   // RENEWAL REPORT
-  // =====================================================
+  // =========================================================
 
-  viewRenewalReport() {
+  viewRenewalReport(): void {
+
+    console.log(
+      'Renewal Report: loading started'
+    );
 
     this.loadingRenewals = true;
+    this.showRenewals = false;
 
-    this.reportService.getRenewalsReport().subscribe({
+    this.cdr.detectChanges();
 
-      next: (data) => {
+    this.reportService
+      .getRenewalsReport()
+      .subscribe({
 
-        this.renewals = data;
-        this.showRenewals = true;
-        this.loadingRenewals = false;
+        next: (data) => {
 
-      },
+          console.log(
+            'Renewal Report received:',
+            data
+          );
 
-      error: (error) => {
+          this.renewals = data ?? [];
 
-        console.error(
-          'Renewal report error:',
-          error
-        );
+          this.showRenewals = true;
+          this.loadingRenewals = false;
 
-        this.loadingRenewals = false;
+          this.cdr.detectChanges();
 
-        alert(
-          'Unable to load Renewal Report. Please check whether the backend is running.'
-        );
+          console.log(
+            'Renewal Report: loading finished'
+          );
+        },
 
-      }
+        error: (error) => {
 
-    });
+          console.error(
+            'Renewal Report error:',
+            error
+          );
+
+          this.renewals = [];
+          this.showRenewals = false;
+          this.loadingRenewals = false;
+
+          this.cdr.detectChanges();
+
+          alert(
+            'Unable to load Renewal Report.'
+          );
+        }
+
+      });
   }
 
-  // =====================================================
+  // =========================================================
   // COMPLIANCE REPORT
-  // =====================================================
+  // =========================================================
 
-  viewComplianceReport() {
+  viewComplianceReport(): void {
+
+    console.log(
+      'Compliance Report: loading started'
+    );
 
     this.loadingCompliance = true;
+    this.showCompliance = false;
 
-    this.reportService.getComplianceReport().subscribe({
+    this.cdr.detectChanges();
 
-      next: (data) => {
+    this.reportService
+      .getComplianceReport()
+      .subscribe({
 
-        this.compliance = data;
-        this.showCompliance = true;
-        this.loadingCompliance = false;
+        next: (data) => {
 
-      },
+          console.log(
+            'Compliance Report received:',
+            data
+          );
 
-      error: (error) => {
+          this.compliance = data ?? [];
 
-        console.error(
-          'Compliance report error:',
-          error
-        );
+          this.showCompliance = true;
+          this.loadingCompliance = false;
 
-        this.loadingCompliance = false;
+          this.cdr.detectChanges();
 
-        alert(
-          'Unable to load Compliance Report. Please check whether the backend is running.'
-        );
+          console.log(
+            'Compliance Report: loading finished'
+          );
+        },
 
-      }
+        error: (error) => {
 
-    });
+          console.error(
+            'Compliance Report error:',
+            error
+          );
+
+          this.compliance = [];
+          this.showCompliance = false;
+          this.loadingCompliance = false;
+
+          this.cdr.detectChanges();
+
+          alert(
+            'Unable to load Compliance Report.'
+          );
+        }
+
+      });
   }
 
+  // =========================================================
+  // EXCEL DOWNLOADS
+  // =========================================================
 
-  // =====================================================
-  // DOWNLOAD CONTRACT EXCEL
-  // =====================================================
+  downloadContractExcel(): void {
 
-  downloadContractExcel() {
+    this.reportService
+      .downloadContractsExcel()
+      .subscribe({
 
-    this.reportService.downloadContractsExcel().subscribe({
+        next: (file) => {
 
-      next: (file) => {
+          this.downloadFile(
+            file,
+            'contract-report.xlsx'
+          );
+        },
 
-        this.downloadFile(
-          file,
-          'contract-report.xlsx'
-        );
+        error: (error) => {
 
-      },
+          console.error(
+            'Contract Excel download error:',
+            error
+          );
 
-      error: (error) => {
+          alert(
+            'Unable to download Contract Excel report.'
+          );
+        }
 
-        console.error(
-          'Contract Excel download error:',
-          error
-        );
-
-        alert(
-          'Unable to download Contract Excel report.'
-        );
-
-      }
-
-    });
+      });
   }
 
+  downloadObligationExcel(): void {
 
-  // =====================================================
-  // DOWNLOAD OBLIGATION EXCEL
-  // =====================================================
+    this.reportService
+      .downloadObligationsExcel()
+      .subscribe({
 
-  downloadObligationExcel() {
+        next: (file) => {
 
-    this.reportService.downloadObligationsExcel().subscribe({
+          this.downloadFile(
+            file,
+            'obligation-report.xlsx'
+          );
+        },
 
-      next: (file) => {
+        error: (error) => {
 
-        this.downloadFile(
-          file,
-          'obligation-report.xlsx'
-        );
+          console.error(
+            'Obligation Excel download error:',
+            error
+          );
 
-      },
+          alert(
+            'Unable to download Obligation Excel report.'
+          );
+        }
 
-      error: (error) => {
-
-        console.error(
-          'Obligation Excel download error:',
-          error
-        );
-
-        alert(
-          'Unable to download Obligation Excel report.'
-        );
-
-      }
-
-    });
+      });
   }
 
+  downloadRenewalExcel(): void {
 
-  // =====================================================
-  // DOWNLOAD RENEWAL EXCEL
-  // =====================================================
+    this.reportService
+      .downloadRenewalsExcel()
+      .subscribe({
 
-  downloadRenewalExcel() {
+        next: (file) => {
 
-    this.reportService.downloadRenewalsExcel().subscribe({
+          this.downloadFile(
+            file,
+            'renewal-report.xlsx'
+          );
+        },
 
-      next: (file) => {
+        error: (error) => {
 
-        this.downloadFile(
-          file,
-          'renewal-report.xlsx'
-        );
+          console.error(
+            'Renewal Excel download error:',
+            error
+          );
 
-      },
+          alert(
+            'Unable to download Renewal Excel report.'
+          );
+        }
 
-      error: (error) => {
-
-        console.error(
-          'Renewal Excel download error:',
-          error
-        );
-
-        alert(
-          'Unable to download Renewal Excel report.'
-        );
-
-      }
-
-    });
+      });
   }
 
+  downloadComplianceExcel(): void {
 
-  // =====================================================
-  // DOWNLOAD COMPLIANCE EXCEL
-  // =====================================================
+    this.reportService
+      .downloadComplianceExcel()
+      .subscribe({
 
-  downloadComplianceExcel() {
+        next: (file) => {
 
-    this.reportService.downloadComplianceExcel().subscribe({
+          this.downloadFile(
+            file,
+            'compliance-report.xlsx'
+          );
+        },
 
-      next: (file) => {
+        error: (error) => {
 
-        this.downloadFile(
-          file,
-          'compliance-report.xlsx'
-        );
+          console.error(
+            'Compliance Excel download error:',
+            error
+          );
 
-      },
+          alert(
+            'Unable to download Compliance Excel report.'
+          );
+        }
 
-      error: (error) => {
-
-        console.error(
-          'Compliance Excel download error:',
-          error
-        );
-
-        alert(
-          'Unable to download Compliance Excel report.'
-        );
-
-      }
-
-    });
+      });
   }
 
-
-  // =====================================================
-  // COMMON FILE DOWNLOAD FUNCTION
-  // =====================================================
+  // =========================================================
+  // FILE DOWNLOAD HELPER
+  // =========================================================
 
   private downloadFile(
     file: Blob,
     filename: string
-  ) {
+  ): void {
 
-    const url = window.URL.createObjectURL(file);
+    const url =
+      window.URL.createObjectURL(file);
 
-    const link = document.createElement('a');
+    const link =
+      document.createElement('a');
 
     link.href = url;
-
     link.download = filename;
+
+    document.body.appendChild(link);
 
     link.click();
 
+    document.body.removeChild(link);
+
     window.URL.revokeObjectURL(url);
   }
-
 }

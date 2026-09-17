@@ -15,6 +15,7 @@ import { AuditHistory } from './audit-history/audit-history';
 import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
+
   {
     path: '',
     redirectTo: 'login',
