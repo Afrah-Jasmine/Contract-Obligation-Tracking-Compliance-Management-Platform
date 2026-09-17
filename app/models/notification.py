@@ -1,14 +1,6 @@
-# app/models/notification.py
+from datetime import datetime
 
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Text,
-    DateTime,
-    ForeignKey,
-)
-from sqlalchemy.sql import func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database.database import Base
@@ -17,49 +9,32 @@ from app.database.database import Base
 class Notification(Base):
     __tablename__ = "notifications"
 
-    # =========================================================
-    # PRIMARY KEY
-    # =========================================================
-
     id = Column(
         Integer,
         primary_key=True,
         index=True,
     )
 
-    # =========================================================
-    # USER
-    # =========================================================
-
     user_id = Column(
         Integer,
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
-
-    # =========================================================
-    # CONTRACT
-    # =========================================================
 
     contract_id = Column(
         Integer,
-        ForeignKey("contracts.id"),
+        ForeignKey("contracts.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
-
-    # =========================================================
-    # OBLIGATION
-    # =========================================================
 
     obligation_id = Column(
         Integer,
-        ForeignKey("obligations.id"),
+        ForeignKey("obligations.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
-
-    # =========================================================
-    # NOTIFICATION INFORMATION
-    # =========================================================
 
     notification_type = Column(
         String(100),
@@ -76,19 +51,11 @@ class Notification(Base):
         nullable=False,
     )
 
-    # =========================================================
-    # NOTIFICATION STATUS
-    # =========================================================
-
     status = Column(
-        String(20),
+        String(50),
         nullable=False,
         default="Unread",
     )
-
-    # =========================================================
-    # SCHEDULING / DELIVERY
-    # =========================================================
 
     scheduled_at = Column(
         DateTime,
@@ -100,53 +67,33 @@ class Notification(Base):
         nullable=True,
     )
 
-    # =========================================================
-    # READ INFORMATION
-    # =========================================================
-
     read_at = Column(
         DateTime,
         nullable=True,
     )
 
-    # =========================================================
-    # TIMESTAMPS
-    # =========================================================
-
     created_at = Column(
         DateTime,
         nullable=False,
-        server_default=func.now(),
+        default=datetime.utcnow,
     )
 
     updated_at = Column(
         DateTime,
         nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
     )
-
-    # =========================================================
-    # USER RELATIONSHIP
-    # =========================================================
 
     user = relationship(
         "User",
         back_populates="notifications",
     )
 
-    # =========================================================
-    # CONTRACT RELATIONSHIP
-    # =========================================================
-
     contract = relationship(
         "Contract",
         back_populates="notifications",
     )
-
-    # =========================================================
-    # OBLIGATION RELATIONSHIP
-    # =========================================================
 
     obligation = relationship(
         "Obligation",
