@@ -1,0 +1,114 @@
+.obligations-container {
+  min-height: 100vh;
+  padding: 48px 6%;
+  background: #f5f7fb;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  color: #6d28d9;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0 0 6px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 38px;
+  color: #111827;
+}
+
+.page-header p:not(.eyebrow) {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.refresh-btn {
+  background: #6d28d9;
+  color: white;
+  border: none;
+  padding: 13px 22px;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  opacity: 0.9;
+}
+
+.table-card {
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  overflow-x: auto;
+}
+
+.table-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.table-title h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #111827;
+}
+
+.table-title span {
+  color: #64748b;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+th {
+  text-align: left;
+  padding: 15px 12px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 17px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #334155;
+}
+
+.status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.message {
+  padding: 35px;
+  text-align: center;
+  color: #64748b;
+}
+
+.error {
+  color: #dc2626;
+}

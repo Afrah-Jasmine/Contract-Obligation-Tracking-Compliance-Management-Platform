@@ -1,0 +1,81 @@
+<div class="obligations-container">
+
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+      <h1>Obligations</h1>
+      <p>Track and manage contract obligations.</p>
+    </div>
+
+    <button class="refresh-btn" (click)="loadObligations()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="table-card">
+
+    <div class="table-title">
+      <h2>All Obligations</h2>
+      <span>{{ obligations.length }} Obligations</span>
+    </div>
+
+    <div *ngIf="loading" class="message">
+      Loading obligations...
+    </div>
+
+    <div *ngIf="error" class="message error">
+      {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error && obligations.length === 0"
+         class="message">
+      No obligations found.
+    </div>
+
+    <table *ngIf="!loading && !error && obligations.length > 0">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Contract ID</th>
+          <th>Due Date</th>
+          <th>Assigned To</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let obligation of obligations">
+
+          <td>{{ obligation.id }}</td>
+
+          <td>
+            <strong>{{ obligation.title }}</strong>
+          </td>
+
+          <td>{{ obligation.obligation_type }}</td>
+
+          <td>{{ obligation.contract_id }}</td>
+
+          <td>{{ obligation.due_date }}</td>
+
+          <td>{{ obligation.assigned_to }}</td>
+
+          <td>
+            <span class="status">
+              {{ obligation.status }}
+            </span>
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

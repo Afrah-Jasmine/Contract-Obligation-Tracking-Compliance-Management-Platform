@@ -1,0 +1,79 @@
+<div class="renewals-container">
+
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+      <h1>Renewals</h1>
+      <p>Track and manage contract renewals.</p>
+    </div>
+
+    <button class="refresh-btn" (click)="loadRenewals()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="table-card">
+
+    <div class="table-title">
+      <h2>All Renewals</h2>
+      <span>{{ renewals.length }} Renewals</span>
+    </div>
+
+    <div *ngIf="loading" class="message">
+      Loading renewals...
+    </div>
+
+    <div *ngIf="!loading && error" class="message error">
+      {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error && renewals.length === 0"
+         class="message">
+      No renewals found.
+    </div>
+
+    <table *ngIf="!loading && !error && renewals.length > 0">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Contract ID</th>
+          <th>Renewal Date</th>
+          <th>Previous Expiry</th>
+          <th>New Expiry</th>
+          <th>Assigned To</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let renewal of renewals">
+
+          <td>{{ renewal.id }}</td>
+
+          <td>{{ renewal.contract_id }}</td>
+
+          <td>{{ renewal.renewal_date }}</td>
+
+          <td>{{ renewal.previous_expiry_date }}</td>
+
+          <td>{{ renewal.new_expiry_date }}</td>
+
+          <td>{{ renewal.assigned_to }}</td>
+
+          <td>
+            <span class="status">
+              {{ renewal.status }}
+            </span>
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

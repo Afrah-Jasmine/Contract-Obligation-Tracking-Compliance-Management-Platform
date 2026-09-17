@@ -1,0 +1,181 @@
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+      <h1>Contract Management Dashboard</h1>
+      <p class="subtitle">
+        Overview of contracts, obligations, renewals and compliance.
+      </p>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+
+    <div class="summary-card users">
+      <div class="card-icon">👥</div>
+      <div>
+        <p>Total Users</p>
+        <h2>{{ totalUsers }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card contracts">
+      <div class="card-icon">📄</div>
+      <div>
+        <p>Total Contracts</p>
+        <h2>{{ totalContracts }}</h2>
+        <span>Active: {{ activeContracts }}</span>
+      </div>
+    </div>
+
+    <div class="summary-card obligations">
+      <div class="card-icon">✓</div>
+      <div>
+        <p>Total Obligations</p>
+        <h2>{{ totalObligations }}</h2>
+        <span>Completed: {{ completedObligations }}</span>
+      </div>
+    </div>
+
+    <div class="summary-card renewals">
+      <div class="card-icon">↻</div>
+      <div>
+        <p>Total Renewals</p>
+        <h2>{{ totalRenewals }}</h2>
+        <span>Upcoming: {{ upcomingRenewals }}</span>
+      </div>
+    </div>
+
+    <div class="summary-card compliance">
+      <div class="card-icon">🛡</div>
+      <div>
+        <p>Compliance Contracts</p>
+        <h2>{{ totalComplianceContracts }}</h2>
+        <span>Compliant: {{ compliantContracts }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Status Section -->
+  <div class="dashboard-grid">
+
+    <!-- Obligation Status -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Obligation Status</h2>
+        <span class="panel-label">Overview</span>
+      </div>
+
+      <div class="status-list">
+
+        <div class="status-row">
+          <span>Completed</span>
+          <strong>{{ completedObligations }}</strong>
+        </div>
+
+        <div class="status-row">
+          <span>Pending</span>
+          <strong>{{ pendingObligations }}</strong>
+        </div>
+
+        <div class="status-row">
+          <span>Overdue</span>
+          <strong>{{ overdueObligations }}</strong>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Compliance Status -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Compliance Status</h2>
+        <span class="panel-label">Overview</span>
+      </div>
+
+      <div class="status-list">
+
+        <div class="status-row">
+          <span>Compliant</span>
+          <strong>{{ compliantContracts }}</strong>
+        </div>
+
+        <div class="status-row">
+          <span>Pending</span>
+          <strong>{{ pendingComplianceContracts }}</strong>
+        </div>
+
+        <div class="status-row">
+          <span>Delayed</span>
+          <strong>{{ delayedContracts }}</strong>
+        </div>
+
+        <div class="status-row">
+          <span>Non-Compliant</span>
+          <strong>{{ nonCompliantContracts }}</strong>
+        </div>
+
+        <div class="status-row">
+          <span>High Risk</span>
+          <strong>{{ highRiskContracts }}</strong>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Users -->
+  <div class="panel users-panel">
+
+    <div class="panel-header">
+      <div>
+        <h2>Users</h2>
+        <p>Users retrieved from the backend</p>
+      </div>
+
+      <span class="user-count">
+        {{ totalUsers }} Users
+      </span>
+    </div>
+
+    <div *ngIf="users.length > 0" class="table-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>User</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let user of users; let i = index">
+
+            <td>{{ i + 1 }}</td>
+
+            <td>
+              {{ user | json }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <div *ngIf="users.length === 0" class="empty-state">
+      No users found.
+    </div>
+
+  </div>
+
+</div>

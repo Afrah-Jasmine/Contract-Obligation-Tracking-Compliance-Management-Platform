@@ -1,0 +1,150 @@
+<div class="contracts-container">
+
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+      <h1>Contracts</h1>
+      <p>Manage and track your contracts and approval workflow.</p>
+    </div>
+
+    <button class="refresh-btn" (click)="loadContracts()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="table-card">
+
+    <div class="table-title">
+      <h2>All Contracts</h2>
+      <span>{{ contracts().length }} Contracts</span>
+    </div>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Contract</th>
+          <th>Number</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let contract of contracts()">
+
+          <td>{{ contract.id }}</td>
+
+          <td>
+            <strong>{{ contract.title }}</strong>
+          </td>
+
+          <td>{{ contract.contract_number }}</td>
+
+          <td>{{ contract.category }}</td>
+
+          <td>
+            <span class="status">
+              {{ contract.status }}
+            </span>
+          </td>
+
+          <td>{{ contract.start_date }}</td>
+
+          <td>{{ contract.end_date }}</td>
+
+          <td>
+            <button
+              class="view-btn"
+              (click)="viewContract(contract)">
+              View
+            </button>
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- Contract Details -->
+
+  <div
+    *ngIf="selectedContract()"
+    class="details-overlay">
+
+    <div class="details-card">
+
+      <div class="details-header">
+
+        <h2>Contract Details</h2>
+
+        <button
+          class="close-btn"
+          (click)="closeDetails()">
+          ×
+        </button>
+
+      </div>
+
+      <div class="details-content">
+
+        <p>
+          <strong>Title:</strong>
+          {{ selectedContract().title }}
+        </p>
+
+        <p>
+          <strong>Contract Number:</strong>
+          {{ selectedContract().contract_number }}
+        </p>
+
+        <p>
+          <strong>Category:</strong>
+          {{ selectedContract().category }}
+        </p>
+
+        <p>
+          <strong>Description:</strong>
+          {{ selectedContract().description || 'No description' }}
+        </p>
+
+        <p>
+          <strong>Start Date:</strong>
+          {{ selectedContract().start_date }}
+        </p>
+
+        <p>
+          <strong>End Date:</strong>
+          {{ selectedContract().end_date }}
+        </p>
+
+        <p>
+          <strong>Status:</strong>
+          {{ selectedContract().status }}
+        </p>
+
+        <p>
+          <strong>Created By:</strong>
+          {{ selectedContract().created_by }}
+        </p>
+
+        <p>
+          <strong>Assigned To:</strong>
+          {{ selectedContract().assigned_to || 'Not assigned' }}
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

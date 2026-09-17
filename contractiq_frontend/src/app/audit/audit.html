@@ -1,0 +1,234 @@
+<p>audit works!</p>
+<div class="audit-container">
+
+  <!-- HEADER -->
+
+  <div class="page-header">
+
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+
+      <h1>Audit / Activity</h1>
+
+      <p>
+        View current system activity across contracts, obligations and renewals.
+      </p>
+    </div>
+
+    <button
+      class="refresh-btn"
+      (click)="loadActivity()">
+      ↻ Refresh
+    </button>
+
+  </div>
+
+
+  <!-- LOADING -->
+
+  <div
+    *ngIf="loading"
+    class="message">
+    Loading activity...
+  </div>
+
+
+  <!-- CONTENT -->
+
+  <div *ngIf="!loading">
+
+
+    <!-- SUMMARY -->
+
+    <div class="summary-grid">
+
+      <div class="summary-card">
+
+        <span>Total Records</span>
+
+        <strong>
+          {{ getTotalActivities() }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <span>Active Contracts</span>
+
+        <strong>
+          {{ getActiveContracts() }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <span>Completed Obligations</span>
+
+        <strong>
+          {{ getCompletedObligations() }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <span>Overdue Obligations</span>
+
+        <strong>
+          {{ getOverdueObligations() }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACTIVITY CARD -->
+
+    <div class="activity-card">
+
+      <div class="activity-header">
+
+        <div>
+          <h2>System Activity</h2>
+
+          <p>
+            Current records and their latest statuses.
+          </p>
+        </div>
+
+        <span>
+          {{ getTotalActivities() }} Records
+        </span>
+
+      </div>
+
+
+      <!-- CONTRACT ACTIVITY -->
+
+      <div class="section-title">
+        <h3>Contract Activity</h3>
+      </div>
+
+
+      <div
+        class="activity-item"
+        *ngFor="let contract of contracts">
+
+        <div class="activity-icon contract-icon">
+          C
+        </div>
+
+        <div class="activity-content">
+
+          <strong>
+            Contract #{{ contract.id }}
+          </strong>
+
+          <p>
+            {{ contract.title }}
+          </p>
+
+          <small>
+            Status: {{ contract.status }}
+            &nbsp; • &nbsp;
+            Contract No: {{ contract.contract_number }}
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- OBLIGATION ACTIVITY -->
+
+      <div class="section-title">
+        <h3>Obligation Activity</h3>
+      </div>
+
+
+      <div
+        class="activity-item"
+        *ngFor="let obligation of obligations">
+
+        <div class="activity-icon obligation-icon">
+          O
+        </div>
+
+        <div class="activity-content">
+
+          <strong>
+            Obligation #{{ obligation.id }}
+          </strong>
+
+          <p>
+            {{ obligation.title }}
+          </p>
+
+          <small>
+            Status: {{ obligation.status }}
+            &nbsp; • &nbsp;
+            Due: {{ obligation.due_date }}
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- RENEWAL ACTIVITY -->
+
+      <div class="section-title">
+        <h3>Renewal Activity</h3>
+      </div>
+
+
+      <div
+        class="activity-item"
+        *ngFor="let renewal of renewals">
+
+        <div class="activity-icon renewal-icon">
+          R
+        </div>
+
+        <div class="activity-content">
+
+          <strong>
+            Renewal #{{ renewal.id }}
+          </strong>
+
+          <p>
+            Contract ID: {{ renewal.contract_id }}
+          </p>
+
+          <small>
+            Status: {{ renewal.status }}
+            &nbsp; • &nbsp;
+            Renewal Date: {{ renewal.renewal_date }}
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- EMPTY -->
+
+      <div
+        *ngIf="contracts.length === 0 &&
+               obligations.length === 0 &&
+               renewals.length === 0"
+        class="empty">
+        No activity records found.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

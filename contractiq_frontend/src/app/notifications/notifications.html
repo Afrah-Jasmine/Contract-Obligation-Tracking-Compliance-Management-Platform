@@ -1,0 +1,151 @@
+<div class="notifications-container">
+
+  <div class="page-header">
+
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+
+      <h1>Notifications</h1>
+
+      <p>
+        Stay informed about important contract obligations and deadlines.
+      </p>
+    </div>
+
+    <button
+      class="refresh-btn"
+      (click)="loadNotifications()">
+      ↻ Refresh
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <span class="summary-label">Total Alerts</span>
+      <strong>{{ obligations.length }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">Overdue</span>
+      <strong>{{ getOverdueCount() }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">Delayed</span>
+      <strong>{{ getDelayedCount() }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">Pending</span>
+      <strong>{{ getPendingCount() }}</strong>
+    </div>
+
+  </div>
+
+
+  <!-- NOTIFICATIONS -->
+
+  <div class="notification-card">
+
+    <div class="notification-header">
+
+      <div>
+        <h2>Recent Notifications</h2>
+
+        <p>
+          Alerts generated from current obligation status.
+        </p>
+      </div>
+
+      <span>
+        {{ obligations.length }} Alerts
+      </span>
+
+    </div>
+
+
+    <div
+      *ngIf="loading"
+      class="message">
+      Loading notifications...
+    </div>
+
+
+    <div
+      *ngIf="!loading && error"
+      class="message error">
+      {{ error }}
+    </div>
+
+
+    <div
+      *ngIf="!loading && !error && obligations.length === 0"
+      class="message">
+      No notifications available.
+    </div>
+
+
+    <div
+      *ngIf="!loading && !error && obligations.length > 0"
+      class="notification-list">
+
+      <div
+        class="notification-item"
+        *ngFor="let obligation of obligations"
+        [ngClass]="getNotificationClass(obligation)">
+
+        <div class="notification-icon">
+          !
+        </div>
+
+
+        <div class="notification-content">
+
+          <div class="notification-top">
+
+            <strong>
+              {{ getNotificationType(obligation) }}
+            </strong>
+
+            <span>
+              Obligation #{{ obligation.id }}
+            </span>
+
+          </div>
+
+
+          <p>
+            {{ getNotificationMessage(obligation) }}
+          </p>
+
+
+          <div class="notification-details">
+
+            <span>
+              Contract ID: {{ obligation.contract_id }}
+            </span>
+
+            <span>
+              Due Date: {{ obligation.due_date }}
+            </span>
+
+            <span>
+              Assigned To: {{ obligation.assigned_to }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,163 @@
+<p>compliance works!</p>
+<div class="compliance-container">
+
+  <div class="page-header">
+
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+
+      <h1>Compliance</h1>
+
+      <p>
+        Monitor contract status and compliance visibility.
+      </p>
+    </div>
+
+    <button
+      class="refresh-btn"
+      (click)="loadCompliance()">
+      ↻ Refresh
+    </button>
+
+  </div>
+
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <span class="summary-label">Total Contracts</span>
+      <strong>{{ contracts.length }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">Compliant</span>
+      <strong>
+        {{ getCompliantCount() }}
+      </strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">Under Monitoring</span>
+      <strong>
+        {{ getMonitoringCount() }}
+      </strong>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-label">At Risk</span>
+      <strong>
+        {{ getRiskCount() }}
+      </strong>
+    </div>
+
+  </div>
+
+
+  <div class="table-card">
+
+    <div class="table-title">
+
+      <div>
+        <h2>Contract Compliance</h2>
+        <p>Current compliance status of all contracts.</p>
+      </div>
+
+      <span>
+        {{ contracts.length }} Contracts
+      </span>
+
+    </div>
+
+
+    <div
+      *ngIf="loading"
+      class="message">
+      Loading compliance data...
+    </div>
+
+
+    <div
+      *ngIf="!loading && error"
+      class="message error">
+      {{ error }}
+    </div>
+
+
+    <div
+      *ngIf="!loading && !error && contracts.length === 0"
+      class="message">
+      No contracts found.
+    </div>
+
+
+    <table
+      *ngIf="!loading && !error && contracts.length > 0">
+
+      <thead>
+
+        <tr>
+          <th>ID</th>
+          <th>Contract</th>
+          <th>Contract Number</th>
+          <th>Category</th>
+          <th>Contract Status</th>
+          <th>End Date</th>
+          <th>Compliance</th>
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        <tr *ngFor="let contract of contracts">
+
+          <td>
+            {{ contract.id }}
+          </td>
+
+          <td>
+            <strong>
+              {{ contract.title }}
+            </strong>
+          </td>
+
+          <td>
+            {{ contract.contract_number }}
+          </td>
+
+          <td>
+            {{ contract.category }}
+          </td>
+
+          <td>
+            <span class="contract-status">
+              {{ contract.status }}
+            </span>
+          </td>
+
+          <td>
+            {{ contract.end_date }}
+          </td>
+
+          <td>
+
+            <span
+              class="compliance-status"
+              [ngClass]="getStatusClass(contract)">
+
+              {{ getComplianceStatus(contract) }}
+
+            </span>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

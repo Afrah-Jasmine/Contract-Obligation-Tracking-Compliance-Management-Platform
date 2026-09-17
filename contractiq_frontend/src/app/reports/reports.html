@@ -1,0 +1,360 @@
+<div class="reports-container">
+
+  <!-- HEADER -->
+
+  <div class="page-header">
+
+    <div>
+      <p class="eyebrow">CONTRACTIQ</p>
+
+      <h1>Reports & Analytics</h1>
+
+      <p>
+        Overview of contracts, obligations and renewals.
+      </p>
+    </div>
+
+    <button
+      class="refresh-btn"
+      (click)="loadReports()">
+      ↻ Refresh
+    </button>
+
+  </div>
+
+
+  <!-- LOADING -->
+
+  <div
+    *ngIf="loading"
+    class="message">
+    Loading reports...
+  </div>
+
+
+  <!-- ERROR -->
+
+  <div
+    *ngIf="!loading && error"
+    class="message error">
+    {{ error }}
+  </div>
+
+
+  <!-- REPORT CONTENT -->
+
+  <div *ngIf="!loading && !error">
+
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="summary-grid">
+
+      <div class="summary-card">
+
+        <span class="summary-label">
+          Total Contracts
+        </span>
+
+        <strong>
+          {{ contracts.length }}
+        </strong>
+
+        <small>
+          {{ getActiveContracts() }} Active
+        </small>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <span class="summary-label">
+          Total Obligations
+        </span>
+
+        <strong>
+          {{ obligations.length }}
+        </strong>
+
+        <small>
+          {{ getOverdueObligations() }} Overdue
+        </small>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <span class="summary-label">
+          Total Renewals
+        </span>
+
+        <strong>
+          {{ renewals.length }}
+        </strong>
+
+        <small>
+          {{ getUpcomingRenewals() }} Upcoming
+        </small>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <span class="summary-label">
+          Compliance Rate
+        </span>
+
+        <strong>
+          {{ contracts.length > 0
+            ? getContractPercentage('Active')
+            : 0 }}%
+        </strong>
+
+        <small>
+          Active Contracts
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- TWO REPORT CARDS -->
+
+    <div class="reports-grid">
+
+
+      <!-- CONTRACT REPORT -->
+
+      <div class="report-card">
+
+        <div class="report-header">
+
+          <div>
+            <h2>Contract Overview</h2>
+
+            <p>
+              Contract lifecycle distribution.
+            </p>
+          </div>
+
+          <span class="report-icon">
+            C
+          </span>
+
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Active</span>
+
+          <strong>
+            {{ getActiveContracts() }}
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [style.width.%]="getContractPercentage('Active')">
+          </div>
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Approved</span>
+
+          <strong>
+            {{ getContractPercentage('Approved') }}%
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [style.width.%]="getContractPercentage('Approved')">
+          </div>
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Under Review</span>
+
+          <strong>
+            {{ getContractPercentage('Under Review') }}%
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [style.width.%]="getContractPercentage('Under Review')">
+          </div>
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Expired</span>
+
+          <strong>
+            {{ getExpiredContracts() }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- OBLIGATION REPORT -->
+
+      <div class="report-card">
+
+        <div class="report-header">
+
+          <div>
+            <h2>Obligation Overview</h2>
+
+            <p>
+              Current obligation status.
+            </p>
+          </div>
+
+          <span class="report-icon">
+            O
+          </span>
+
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Completed</span>
+
+          <strong>
+            {{ getCompletedObligations() }}
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill completed"
+            [style.width.%]="getObligationPercentage('Completed')">
+          </div>
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>In Progress</span>
+
+          <strong>
+            {{ getObligationPercentage('In Progress') }}%
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill progress"
+            [style.width.%]="getObligationPercentage('In Progress')">
+          </div>
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Pending</span>
+
+          <strong>
+            {{ getPendingObligations() }}
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill pending"
+            [style.width.%]="getObligationPercentage('Pending')">
+          </div>
+        </div>
+
+
+        <div class="stat-row">
+
+          <span>Overdue</span>
+
+          <strong>
+            {{ getOverdueObligations() }}
+          </strong>
+
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill overdue"
+            [style.width.%]="getObligationPercentage('Overdue')">
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- RENEWAL REPORT -->
+
+    <div class="renewal-card">
+
+      <div class="report-header">
+
+        <div>
+          <h2>Renewal Overview</h2>
+
+          <p>
+            Current renewal activity.
+          </p>
+        </div>
+
+        <span class="report-icon">
+          R
+        </span>
+
+      </div>
+
+
+      <div class="renewal-stats">
+
+        <div>
+          <span>All Renewals</span>
+          <strong>{{ renewals.length }}</strong>
+        </div>
+
+        <div>
+          <span>Upcoming</span>
+          <strong>{{ getUpcomingRenewals() }}</strong>
+        </div>
+
+        <div>
+          <span>Completed</span>
+          <strong>{{ getCompletedRenewals() }}</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+</div>
