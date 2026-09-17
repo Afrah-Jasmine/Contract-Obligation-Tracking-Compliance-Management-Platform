@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReportsService } from '../services/reports.service';
 
@@ -36,9 +36,13 @@ export class ReportsPage implements OnInit {
     high_risk: 0
   };
 
-  constructor(private reportsService: ReportsService) {
+  constructor(
+  private reportsService: ReportsService,
+  private cdr: ChangeDetectorRef
+) {
   console.log('🟢 CONSTRUCTOR');
 }
+
 
   ngOnInit(): void {
 
@@ -52,8 +56,9 @@ export class ReportsPage implements OnInit {
   console.log("🔥 BEFORE ASSIGN:", this.contractSummary);
 
   this.contractSummary = data;
+this.cdr.detectChanges();
 
-  console.log("🔥 AFTER ASSIGN:", this.contractSummary);
+console.log("🔥 AFTER ASSIGN:", this.contractSummary);
   console.log("🔥 AFTER ASSIGN TOTAL:", this.contractSummary.total);
 },
 
@@ -69,8 +74,9 @@ export class ReportsPage implements OnInit {
   console.log("🔥 OBLIGATION API RESPONSE:", data);
 
   this.obligationSummary = data;
+this.cdr.detectChanges();
 
-  console.log("🔥 OBLIGATION TOTAL:", this.obligationSummary.total);
+console.log("🔥 OBLIGATION TOTAL:", this.obligationSummary.total);
 },
 
   error: (err) => {
@@ -85,8 +91,9 @@ export class ReportsPage implements OnInit {
   console.log("🔥 RENEWAL API RESPONSE:", data);
 
   this.renewalSummary = data;
+this.cdr.detectChanges();
 
-  console.log("🔥 RENEWAL SUMMARY:", this.renewalSummary);
+console.log("🔥 RENEWAL SUMMARY:", this.renewalSummary);
 },
 
       error: (err) => {
@@ -101,8 +108,9 @@ export class ReportsPage implements OnInit {
   console.log("🔥 COMPLIANCE API RESPONSE:", data);
 
   this.complianceSummary = data;
+this.cdr.detectChanges();
 
-  console.log("🔥 COMPLIANCE SUMMARY:", this.complianceSummary);
+console.log("🔥 COMPLIANCE SUMMARY:", this.complianceSummary);
 },
 
       error: (err) => {
