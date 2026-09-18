@@ -41,9 +41,7 @@ export interface UpdateObligationRequest {
   providedIn: 'root'
 })
 export class ObligationsService {
-
-  private readonly baseUrl =
-    'http://127.0.0.1:8080/obligations';
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/obligations';
 
   constructor(private http: HttpClient) {}
 

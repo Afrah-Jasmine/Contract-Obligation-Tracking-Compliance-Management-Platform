@@ -20,8 +20,7 @@ export interface AuditLog {
 })
 export class AuditService {
 
-  private readonly baseUrl = 'http://127.0.0.1:8080/audit';
-
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/audit';
   constructor(private http: HttpClient) {}
 
   getAuditLogs(): Observable<AuditLog[]> {

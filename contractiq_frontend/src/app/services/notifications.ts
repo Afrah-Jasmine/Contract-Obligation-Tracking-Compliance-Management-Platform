@@ -29,10 +29,7 @@ export interface CreateNotificationRequest {
   providedIn: 'root'
 })
 export class NotificationsService {
-
-  private readonly baseUrl =
-    'http://127.0.0.1:8080/notifications';
-
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/notifications';
   constructor(
     private http: HttpClient
   ) {}
