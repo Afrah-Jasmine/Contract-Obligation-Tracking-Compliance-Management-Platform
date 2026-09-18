@@ -1,1 +1,833 @@
-<p>obligations works!</p>
+<div class="obligations-page">
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
+  <div class="page-header">
+
+    <div>
+      <h1>Obligations</h1>
+
+      <p>
+        Track and manage contractual obligations in ContractIQ.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="refresh-button"
+        (click)="loadObligations()">
+
+        Refresh
+
+      </button>
+
+      <button
+        type="button"
+        class="create-button"
+        (click)="openCreateForm()">
+
+        + Create Obligation
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CREATE OBLIGATION FORM
+       ===================================================== -->
+
+  @if (showCreateForm) {
+
+    <div class="create-form-card">
+
+      <div class="form-header">
+
+        <div>
+
+          <h2>Create New Obligation</h2>
+
+          <p>
+            Enter the details of the contractual obligation.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="cancelCreate()">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      <!-- CREATE ERROR -->
+
+      @if (createError) {
+
+        <div class="form-error">
+
+          {{ createError }}
+
+        </div>
+
+      }
+
+
+      <form
+        #obligationForm="ngForm"
+        (ngSubmit)="createObligation()">
+
+        <div class="form-grid">
+
+
+          <!-- CONTRACT ID -->
+
+          <div class="form-field">
+
+            <label>
+              Contract ID *
+            </label>
+
+            <input
+              type="number"
+              name="contract_id"
+              [(ngModel)]="newObligation.contract_id"
+              placeholder="Example: 8"
+              required>
+
+          </div>
+
+
+          <!-- ASSIGNED USER -->
+
+          <div class="form-field">
+
+            <label>
+              Assigned User ID *
+            </label>
+
+            <input
+              type="number"
+              name="assigned_to"
+              [(ngModel)]="newObligation.assigned_to"
+              placeholder="Example: 4"
+              required>
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="form-field">
+
+            <label>
+              Obligation Title *
+            </label>
+
+            <input
+              type="text"
+              name="title"
+              [(ngModel)]="newObligation.title"
+              placeholder="Enter obligation title"
+              required>
+
+          </div>
+
+
+          <!-- OBLIGATION TYPE -->
+
+          <div class="form-field">
+
+            <label>
+              Obligation Type *
+            </label>
+
+            <select
+              name="obligation_type"
+              [(ngModel)]="newObligation.obligation_type"
+              required>
+
+              <option value="">
+                Select Obligation Type
+              </option>
+
+              <option value="Payment Obligation">
+                Payment Obligation
+              </option>
+
+              <option value="Delivery Commitment">
+                Delivery Commitment
+              </option>
+
+              <option value="Reporting Requirement">
+                Reporting Requirement
+              </option>
+
+              <option value="Renewal Condition">
+                Renewal Condition
+              </option>
+
+              <option value="Service Level Agreement">
+                Service Level Agreement
+              </option>
+
+              <option value="Legal Compliance Requirement">
+                Legal Compliance Requirement
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DUE DATE -->
+
+          <div class="form-field">
+
+            <label>
+              Due Date *
+            </label>
+
+            <input
+              type="date"
+              name="due_date"
+              [(ngModel)]="newObligation.due_date"
+              required>
+
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-field">
+
+            <label>
+              Status
+            </label>
+
+            <select
+              name="status"
+              [(ngModel)]="newObligation.status">
+
+              <option value="Pending">
+                Pending
+              </option>
+
+              <option value="In Progress">
+                In Progress
+              </option>
+
+              <option value="Completed">
+                Completed
+              </option>
+
+              <option value="Delayed">
+                Delayed
+              </option>
+
+              <option value="Overdue">
+                Overdue
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="form-field full-width">
+
+            <label>
+              Description
+            </label>
+
+            <textarea
+              name="description"
+              [(ngModel)]="newObligation.description"
+              rows="4"
+              placeholder="Enter obligation description">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <!-- CREATE ACTIONS -->
+
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="cancelCreate()">
+
+            Cancel
+
+          </button>
+
+          <button
+            type="submit"
+            class="submit-button"
+            [disabled]="creating">
+
+            @if (creating) {
+
+              Creating...
+
+            } @else {
+
+              Create Obligation
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       SUCCESS MESSAGE
+       ===================================================== -->
+
+  @if (createSuccess) {
+
+    <div class="success-message">
+
+      {{ createSuccess }}
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
+
+  @if (loading) {
+
+    <div class="state-card">
+
+      <div class="loading-spinner"></div>
+
+      <p>
+        Loading obligations...
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       ERROR
+       ===================================================== -->
+
+  @if (errorMessage && !loading) {
+
+    <div class="state-card error-state">
+
+      <h3>
+        Unable to load obligations
+      </h3>
+
+      <p>
+        {{ errorMessage }}
+      </p>
+
+      <button
+        type="button"
+        class="retry-button"
+        (click)="loadObligations()">
+
+        Try Again
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       EMPTY
+       ===================================================== -->
+
+  @if (!loading && !errorMessage && obligations.length === 0) {
+
+    <div class="state-card">
+
+      <h3>
+        No Obligations Found
+      </h3>
+
+      <p>
+        There are currently no obligations available.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       OBLIGATION TABLE
+       ===================================================== -->
+
+  @if (!loading && !errorMessage && obligations.length > 0) {
+
+    <!-- SUMMARY -->
+
+    <div class="summary-card">
+
+      <div>
+
+        <span class="summary-label">
+          Total Obligations
+        </span>
+
+        <strong>
+          {{ obligations.length }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-card">
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>ID</th>
+
+              <th>Contract</th>
+
+              <th>Title</th>
+
+              <th>Type</th>
+
+              <th>Due Date</th>
+
+              <th>Assigned To</th>
+
+              <th>Status</th>
+
+              <th class="actions-header">
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              obligation of obligations;
+              track obligation.id
+            ) {
+
+              <tr>
+
+
+                <!-- ID -->
+
+                <td>
+                  {{ obligation.id }}
+                </td>
+
+
+                <!-- CONTRACT -->
+
+                <td>
+
+                  <strong>
+                    #{{ obligation.contract_id }}
+                  </strong>
+
+                </td>
+
+
+                <!-- TITLE -->
+
+                <td>
+
+                  <strong>
+                    {{ obligation.title }}
+                  </strong>
+
+                </td>
+
+
+                <!-- TYPE -->
+
+                <td>
+
+                  {{ obligation.obligation_type }}
+
+                </td>
+
+
+                <!-- DUE DATE -->
+
+                <td>
+
+                  {{ obligation.due_date }}
+
+                </td>
+
+
+                <!-- ASSIGNED -->
+
+                <td>
+
+                  {{ obligation.assigned_to || '—' }}
+
+                </td>
+
+
+                <!-- STATUS -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.pending]="obligation.status === 'Pending'"
+                    [class.in-progress]="obligation.status === 'In Progress'"
+                    [class.completed]="obligation.status === 'Completed'"
+                    [class.delayed]="obligation.status === 'Delayed'"
+                    [class.overdue]="obligation.status === 'Overdue'">
+
+                    {{ obligation.status }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- ACTION -->
+
+                <td class="actions-cell">
+
+                  <button
+                    type="button"
+                    class="edit-button"
+                    (click)="editObligation(obligation)">
+
+                    Edit
+
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       EDIT OBLIGATION MODAL
+       ===================================================== -->
+
+  @if (showEditForm && editingObligation) {
+
+    <div class="modal-overlay">
+
+      <div class="edit-modal">
+
+
+        <!-- EDIT HEADER -->
+
+        <div class="edit-header">
+
+          <div>
+
+            <h2>
+              Edit Obligation
+            </h2>
+
+            <p>
+
+              Update obligation:
+
+              <strong>
+                {{ editingObligation.title }}
+              </strong>
+
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="close-button"
+            (click)="closeEditForm()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <!-- EDIT ERROR -->
+
+        @if (editErrorMessage) {
+
+          <div class="edit-error">
+
+            {{ editErrorMessage }}
+
+          </div>
+
+        }
+
+
+        <!-- EDIT FORM -->
+
+        <div class="edit-form-grid">
+
+
+          <!-- TITLE -->
+
+          <div class="form-group">
+
+            <label>
+              Obligation Title *
+            </label>
+
+            <input
+              type="text"
+              name="edit_title"
+              [(ngModel)]="editForm.title"
+              placeholder="Enter obligation title">
+
+          </div>
+
+
+          <!-- TYPE -->
+
+          <div class="form-group">
+
+            <label>
+              Obligation Type *
+            </label>
+
+            <select
+              name="edit_type"
+              [(ngModel)]="editForm.obligation_type">
+
+              <option value="Payment Obligation">
+                Payment Obligation
+              </option>
+
+              <option value="Delivery Commitment">
+                Delivery Commitment
+              </option>
+
+              <option value="Reporting Requirement">
+                Reporting Requirement
+              </option>
+
+              <option value="Renewal Condition">
+                Renewal Condition
+              </option>
+
+              <option value="Service Level Agreement">
+                Service Level Agreement
+              </option>
+
+              <option value="Legal Compliance Requirement">
+                Legal Compliance Requirement
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DUE DATE -->
+
+          <div class="form-group">
+
+            <label>
+              Due Date *
+            </label>
+
+            <input
+              type="date"
+              name="edit_due_date"
+              [(ngModel)]="editForm.due_date">
+
+          </div>
+
+
+          <!-- ASSIGNED -->
+
+          <div class="form-group">
+
+            <label>
+              Assigned User ID *
+            </label>
+
+            <input
+              type="number"
+              name="edit_assigned"
+              [(ngModel)]="editForm.assigned_to">
+
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-group">
+
+            <label>
+              Status
+            </label>
+
+            <select
+              name="edit_status"
+              [(ngModel)]="editForm.status">
+
+              <option value="Pending">
+                Pending
+              </option>
+
+              <option value="In Progress">
+                In Progress
+              </option>
+
+              <option value="Completed">
+                Completed
+              </option>
+
+              <option value="Delayed">
+                Delayed
+              </option>
+
+              <option value="Overdue">
+                Overdue
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- COMPLETION DATE -->
+
+          <div class="form-group">
+
+            <label>
+              Completion Date
+            </label>
+
+            <input
+              type="date"
+              name="edit_completion"
+              [(ngModel)]="editForm.completion_date">
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="form-group full-width">
+
+            <label>
+              Description
+            </label>
+
+            <textarea
+              name="edit_description"
+              rows="4"
+              [(ngModel)]="editForm.description"
+              placeholder="Enter obligation description">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <!-- EDIT ACTIONS -->
+
+        <div class="edit-footer">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeEditForm()">
+
+            Cancel
+
+          </button>
+
+          <button
+            type="button"
+            class="save-button"
+            [disabled]="saving"
+            (click)="saveObligation()">
+
+            @if (saving) {
+
+              Saving...
+
+            } @else {
+
+              Save Changes
+
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

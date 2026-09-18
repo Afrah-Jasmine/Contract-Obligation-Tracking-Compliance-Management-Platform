@@ -58,6 +58,7 @@ from app.routers.notifications import router as notifications_router
 from app.routers.reports import router as reports_router
 from app.routers.reports import dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers.audit import router as audit_router
 
 app = FastAPI(
     title="ContractIQ API",
@@ -92,3 +93,4 @@ app.include_router(compliance_router)
 app.include_router(notifications_router)
 app.include_router(reports_router)
 app.include_router(dashboard_router)
+app.include_router(audit_router)

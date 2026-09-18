@@ -1,1 +1,151 @@
-<p>audit works!</p>
+<div class="audit-page">
+
+  <div class="page-header">
+    <div>
+      <h1>Audit History</h1>
+      <p>Track important actions and changes made across ContractIQ.</p>
+    </div>
+
+    <button class="refresh-btn" type="button" (click)="loadAuditLogs()">
+      ↻ Refresh
+    </button>
+  </div>
+
+
+  @if (loading) {
+    <div class="state-card">
+      <div class="spinner"></div>
+      <h3>Loading audit history...</h3>
+      <p>Please wait while we retrieve the latest records.</p>
+    </div>
+  }
+
+
+  @if (!loading && errorMessage) {
+    <div class="state-card error-state">
+      <div class="state-icon">!</div>
+      <h3>Unable to load audit history</h3>
+      <p>{{ errorMessage }}</p>
+
+      <button
+        class="retry-btn"
+        type="button"
+        (click)="loadAuditLogs()">
+        Try Again
+      </button>
+    </div>
+  }
+
+
+  @if (!loading && !errorMessage && auditLogs.length === 0) {
+    <div class="state-card empty-state">
+      <div class="state-icon">◷</div>
+      <h3>No audit history available</h3>
+      <p>
+        There are currently no audit records to display.
+        Activity will appear here when changes are recorded.
+      </p>
+    </div>
+  }
+
+
+  @if (!loading && !errorMessage && auditLogs.length > 0) {
+
+    <div class="audit-summary">
+      <div class="summary-card">
+        <span class="summary-label">Total Activities</span>
+        <span class="summary-value">{{ auditLogs.length }}</span>
+      </div>
+    </div>
+
+
+    <div class="audit-list">
+
+      @for (log of auditLogs; track log.id) {
+
+        <div class="audit-card">
+
+          <div class="audit-card-header">
+
+            <div class="action-section">
+              <span class="action-badge">
+                {{ log.action }}
+              </span>
+
+              <span class="entity-name">
+                {{ log.entity_name }}
+              </span>
+            </div>
+
+            <span class="audit-date">
+              {{ log.created_at | date:'medium' }}
+            </span>
+
+          </div>
+
+
+          <div class="audit-details">
+
+            <div class="detail-item">
+              <span class="detail-label">Audit ID</span>
+              <span class="detail-value">{{ log.id }}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">User ID</span>
+              <span class="detail-value">{{ log.user_id }}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Entity ID</span>
+              <span class="detail-value">{{ log.entity_id }}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Contract ID</span>
+              <span class="detail-value">
+                {{ log.contract_id ?? '—' }}
+              </span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">IP Address</span>
+              <span class="detail-value">
+                {{ log.ip_address ?? '—' }}
+              </span>
+            </div>
+
+          </div>
+
+
+          @if (log.before_data || log.after_data) {
+
+            <div class="changes-section">
+
+              @if (log.before_data) {
+                <div class="change-box">
+                  <span class="change-label">Before</span>
+                  <pre>{{ log.before_data }}</pre>
+                </div>
+              }
+
+              @if (log.after_data) {
+                <div class="change-box">
+                  <span class="change-label">After</span>
+                  <pre>{{ log.after_data }}</pre>
+                </div>
+              }
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </div>
+
+  }
+
+</div>

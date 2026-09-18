@@ -1,1 +1,1099 @@
-<p>reports works!</p>
+<div class="reports-page">
+
+  <!-- ============================================================
+       PAGE HEADER
+       ============================================================ -->
+
+  <div class="page-header">
+
+    <div>
+      <h1>Reports & Analytics</h1>
+
+      <p>
+        Monitor contracts, obligations, renewals, compliance,
+        risk and department performance.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      (click)="loadReports()"
+      [disabled]="loading || exporting !== ''">
+
+      <span class="refresh-icon">↻</span>
+
+      {{ loading ? 'Refreshing...' : 'Refresh' }}
+
+    </button>
+
+  </div>
+
+
+  <!-- ============================================================
+       ERROR MESSAGE
+       ============================================================ -->
+
+  @if (errorMessage) {
+
+    <div class="error-banner">
+
+      <div class="error-banner-icon">
+        ⚠
+      </div>
+
+      <div>
+        <strong>Report Error</strong>
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="retry-button"
+        (click)="loadReports()">
+
+        Retry
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- ============================================================
+       LOADING
+       ============================================================ -->
+
+  @if (loading && !contractStats) {
+
+    <div class="state-card">
+
+      <div class="spinner"></div>
+
+      <h2>Loading Reports</h2>
+
+      <p>
+        Please wait while ContractIQ retrieves the latest
+        analytics.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- ============================================================
+       CONTRACT ANALYTICS
+       ============================================================ -->
+
+  @if (contractStats) {
+
+    <section class="report-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Contract Analytics</h2>
+
+          <p>
+            Current contract status distribution
+          </p>
+        </div>
+
+
+        <!-- CONTRACT EXPORT BUTTONS -->
+
+        <div class="export-buttons">
+
+          <button
+            type="button"
+            class="export-button"
+            (click)="downloadContractPdf()"
+            [disabled]="exporting !== ''">
+
+            @if (isExporting('contract-pdf')) {
+              Generating...
+            } @else {
+              PDF
+            }
+
+          </button>
+
+
+          <button
+            type="button"
+            class="export-button secondary"
+            (click)="downloadContractExcel()"
+            [disabled]="exporting !== ''">
+
+            @if (isExporting('contract-excel')) {
+              Generating...
+            } @else {
+              Excel
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Total Contracts
+          </span>
+
+          <strong>
+            {{ contractStats.total_contracts }}
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card active-card">
+
+          <span class="stat-label">
+            Active
+          </span>
+
+          <strong>
+            {{ contractStats.active_contracts }}
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card draft-card">
+
+          <span class="stat-label">
+            Draft
+          </span>
+
+          <strong>
+            {{ contractStats.draft_contracts }}
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Under Review
+          </span>
+
+          <strong>
+            {{ contractStats.under_review_contracts }}
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Approved
+          </span>
+
+          <strong>
+            {{ contractStats.approved_contracts }}
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Expired
+          </span>
+
+          <strong>
+            {{ contractStats.expired_contracts }}
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-label">
+            Terminated
+          </span>
+
+          <strong>
+            {{ contractStats.terminated_contracts }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==========================================================
+         OBLIGATION ANALYTICS
+         ========================================================== -->
+
+    @if (obligationStats) {
+
+      <section class="report-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Obligation Analytics</h2>
+
+            <p>
+              Current obligation status and completion performance
+            </p>
+          </div>
+
+
+          <div class="export-buttons">
+
+            <button
+              type="button"
+              class="export-button"
+              (click)="downloadObligationPdf()"
+              [disabled]="exporting !== ''">
+
+              @if (isExporting('obligation-pdf')) {
+                Generating...
+              } @else {
+                PDF
+              }
+
+            </button>
+
+
+            <button
+              type="button"
+              class="export-button secondary"
+              (click)="downloadObligationExcel()"
+              [disabled]="exporting !== ''">
+
+              @if (isExporting('obligation-excel')) {
+                Generating...
+              } @else {
+                Excel
+              }
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Total Obligations
+            </span>
+
+            <strong>
+              {{ obligationStats.total_obligations }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card pending-card">
+
+            <span class="stat-label">
+              Pending
+            </span>
+
+            <strong>
+              {{ obligationStats.pending_obligations }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Delayed
+            </span>
+
+            <strong>
+              {{ obligationStats.delayed_obligations }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card completed-card">
+
+            <span class="stat-label">
+              Completed
+            </span>
+
+            <strong>
+              {{ obligationStats.completed_obligations }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card overdue-card">
+
+            <span class="stat-label">
+              Overdue
+            </span>
+
+            <strong>
+              {{ obligationStats.overdue_obligations }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card score-card">
+
+            <span class="stat-label">
+              Completion Rate
+            </span>
+
+            <strong>
+              {{ obligationStats.completion_rate }}%
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- ==========================================================
+         RENEWAL ANALYTICS
+         ========================================================== -->
+
+    @if (renewalStats) {
+
+      <section class="report-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Renewal Analytics</h2>
+
+            <p>
+              Overview of contract renewal activity
+            </p>
+          </div>
+
+
+          <div class="export-buttons">
+
+            <button
+              type="button"
+              class="export-button"
+              (click)="downloadRenewalPdf()"
+              [disabled]="exporting !== ''">
+
+              @if (isExporting('renewal-pdf')) {
+                Generating...
+              } @else {
+                PDF
+              }
+
+            </button>
+
+
+            <button
+              type="button"
+              class="export-button secondary"
+              (click)="downloadRenewalExcel()"
+              [disabled]="exporting !== ''">
+
+              @if (isExporting('renewal-excel')) {
+                Generating...
+              } @else {
+                Excel
+              }
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Total Renewals
+            </span>
+
+            <strong>
+              {{ renewalStats.total_renewals }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card pending-card">
+
+            <span class="stat-label">
+              Upcoming
+            </span>
+
+            <strong>
+              {{ renewalStats.upcoming_renewals }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              In Progress
+            </span>
+
+            <strong>
+              {{ renewalStats.in_progress_renewals }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card completed-card">
+
+            <span class="stat-label">
+              Renewed
+            </span>
+
+            <strong>
+              {{ renewalStats.renewed_renewals }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card overdue-card">
+
+            <span class="stat-label">
+              Expired
+            </span>
+
+            <strong>
+              {{ renewalStats.expired_renewals }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Cancelled
+            </span>
+
+            <strong>
+              {{ renewalStats.cancelled_renewals }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- ==========================================================
+         COMPLIANCE ANALYTICS
+         ========================================================== -->
+
+    @if (complianceStats) {
+
+      <section class="report-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Compliance Analytics</h2>
+
+            <p>
+              Overall compliance and risk performance
+            </p>
+          </div>
+
+
+          <div class="export-buttons">
+
+            <button
+              type="button"
+              class="export-button"
+              (click)="downloadCompliancePdf()"
+              [disabled]="exporting !== ''">
+
+              @if (isExporting('compliance-pdf')) {
+                Generating...
+              } @else {
+                PDF
+              }
+
+            </button>
+
+
+            <button
+              type="button"
+              class="export-button secondary"
+              (click)="downloadComplianceExcel()"
+              [disabled]="exporting !== ''">
+
+              @if (isExporting('compliance-excel')) {
+                Generating...
+              } @else {
+                Excel
+              }
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Total Evaluated
+            </span>
+
+            <strong>
+              {{ complianceStats.total_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card completed-card">
+
+            <span class="stat-label">
+              Compliant
+            </span>
+
+            <strong>
+              {{ complianceStats.compliant_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card pending-card">
+
+            <span class="stat-label">
+              Pending
+            </span>
+
+            <strong>
+              {{ complianceStats.pending_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Delayed
+            </span>
+
+            <strong>
+              {{ complianceStats.delayed_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card overdue-card">
+
+            <span class="stat-label">
+              Non-Compliant
+            </span>
+
+            <strong>
+              {{ complianceStats.non_compliant_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card overdue-card">
+
+            <span class="stat-label">
+              High Risk
+            </span>
+
+            <strong>
+              {{ complianceStats.high_risk_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card score-card">
+
+            <span class="stat-label">
+              Average Compliance
+            </span>
+
+            <strong>
+              {{ complianceStats.average_compliance_score }}%
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- ==========================================================
+         RISK ANALYSIS
+         ========================================================== -->
+
+    @if (riskSummary) {
+
+      <section class="report-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h2>Risk Analysis</h2>
+
+            <p>
+              Distribution of contracts by risk level
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+
+            <span class="stat-label">
+              Total Risk Contracts
+            </span>
+
+            <strong>
+              {{ riskSummary.total_risk_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card completed-card">
+
+            <span class="stat-label">
+              Low Risk
+            </span>
+
+            <strong>
+              {{ riskSummary.low_risk_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card pending-card">
+
+            <span class="stat-label">
+              Medium Risk
+            </span>
+
+            <strong>
+              {{ riskSummary.medium_risk_contracts }}
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card overdue-card">
+
+            <span class="stat-label">
+              High Risk
+            </span>
+
+            <strong>
+              {{ riskSummary.high_risk_contracts }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+
+    <!-- ==========================================================
+         UPCOMING RENEWALS
+         ========================================================== -->
+
+    <section class="report-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Upcoming Renewals</h2>
+
+          <p>
+            Renewals scheduled within the upcoming reporting period
+          </p>
+        </div>
+
+      </div>
+
+
+      @if (upcomingRenewals.length === 0) {
+
+        <div class="empty-card">
+
+          <div class="empty-icon">
+            📅
+          </div>
+
+          <h3>
+            No Upcoming Renewals
+          </h3>
+
+          <p>
+            There are currently no upcoming renewals to display.
+          </p>
+
+        </div>
+
+      } @else {
+
+        <div class="detail-list">
+
+          @for (
+            renewal of upcomingRenewals;
+            track renewal.id
+          ) {
+
+            <div class="detail-card">
+
+              <div class="detail-main">
+
+                <strong>
+                  Renewal #{{ renewal.id }}
+                </strong>
+
+                <span>
+                  Contract #{{ renewal.contract_id }}
+                </span>
+
+              </div>
+
+
+              <div class="detail-info">
+
+                <div>
+                  <span>Renewal Date</span>
+
+                  <strong>
+                    {{ renewal.renewal_date }}
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Notice Period</span>
+
+                  <strong>
+                    {{ renewal.notice_days }} days
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Status</span>
+
+                  <strong class="status-badge">
+                    {{ renewal.status }}
+                  </strong>
+                </div>
+
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+
+    <!-- ==========================================================
+         OVERDUE OBLIGATIONS
+         ========================================================== -->
+
+    <section class="report-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Overdue Obligations</h2>
+
+          <p>
+            Obligations that require immediate attention
+          </p>
+        </div>
+
+      </div>
+
+
+      @if (overdueObligations.length === 0) {
+
+        <div class="empty-card">
+
+          <div class="empty-icon">
+            ✓
+          </div>
+
+          <h3>
+            No Overdue Obligations
+          </h3>
+
+          <p>
+            There are currently no overdue obligations.
+          </p>
+
+        </div>
+
+      } @else {
+
+        <div class="detail-list">
+
+          @for (
+            obligation of overdueObligations;
+            track obligation.id
+          ) {
+
+            <div class="detail-card overdue-detail">
+
+              <div class="detail-main">
+
+                <strong>
+                  {{ obligation.title }}
+                </strong>
+
+                <span>
+                  Contract #{{ obligation.contract_id }}
+                </span>
+
+              </div>
+
+
+              <div class="detail-info">
+
+                <div>
+                  <span>Due Date</span>
+
+                  <strong class="danger-text">
+                    {{ obligation.due_date }}
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Type</span>
+
+                  <strong>
+                    {{ obligation.obligation_type }}
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Status</span>
+
+                  <strong class="danger-badge">
+                    {{ obligation.status }}
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Priority</span>
+
+                  <strong>
+                    {{ obligation.priority ?? 'N/A' }}
+                  </strong>
+                </div>
+
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+
+    <!-- ==========================================================
+         DEPARTMENT PERFORMANCE
+         ========================================================== -->
+
+    <section class="report-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Department Performance</h2>
+
+          <p>
+            Contract and obligation performance by department
+          </p>
+        </div>
+
+      </div>
+
+
+      @if (departmentData.length === 0) {
+
+        <div class="empty-card">
+
+          <div class="empty-icon">
+            🏢
+          </div>
+
+          <h3>
+            No Department Data
+          </h3>
+
+          <p>
+            Department performance information is not available yet.
+          </p>
+
+        </div>
+
+      } @else {
+
+        <div class="department-list">
+
+          @for (
+            department of departmentData;
+            track department.department
+          ) {
+
+            <div class="department-card">
+
+              <div class="department-name">
+                {{ department.department }}
+              </div>
+
+
+              <div class="department-stat">
+
+                <span>
+                  Contracts
+                </span>
+
+                <strong>
+                  {{ department.total_contracts }}
+                </strong>
+
+              </div>
+
+
+              <div class="department-stat">
+
+                <span>
+                  Obligations
+                </span>
+
+                <strong>
+                  {{ department.total_obligations }}
+                </strong>
+
+              </div>
+
+
+              <div class="department-stat">
+
+                <span>
+                  Completed
+                </span>
+
+                <strong>
+                  {{ department.completed_obligations }}
+                </strong>
+
+              </div>
+
+
+              <div class="department-stat">
+
+                <span>
+                  Overdue
+                </span>
+
+                <strong class="danger-text">
+                  {{ department.overdue_obligations }}
+                </strong>
+
+              </div>
+
+
+              <div class="department-stat">
+
+                <span>
+                  Compliance
+                </span>
+
+                <strong class="score-text">
+                  {{ department.compliance_score }}%
+                </strong>
+
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  }
+
+</div>

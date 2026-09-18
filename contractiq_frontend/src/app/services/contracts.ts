@@ -22,6 +22,32 @@ export interface Contract {
   approved_at: string | null;
 }
 
+export interface CreateContractRequest {
+  contract_code: string;
+  title: string;
+  description: string;
+  counterparty: string;
+  category: string;
+  department: string | null;
+  status: string;
+  risk_level: string;
+  start_date: string;
+  end_date: string;
+  assigned_to?: number | null;
+}
+
+export interface UpdateContractRequest {
+  contract_code: string;
+  title: string;
+  description: string;
+  counterparty: string;
+  category: string;
+  department: string | null;
+  risk_level: string;
+  start_date: string;
+  end_date: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,6 +64,25 @@ export class ContractsService {
   getContract(contractId: number): Observable<Contract> {
     return this.http.get<Contract>(
       `${this.baseUrl}/${contractId}`
+    );
+  }
+
+  createContract(
+    contract: CreateContractRequest
+  ): Observable<Contract> {
+    return this.http.post<Contract>(
+      `${this.baseUrl}/`,
+      contract
+    );
+  }
+
+  updateContract(
+    contractId: number,
+    contractData: UpdateContractRequest
+  ): Observable<Contract> {
+    return this.http.put<Contract>(
+      `${this.baseUrl}/${contractId}`,
+      contractData
     );
   }
 }

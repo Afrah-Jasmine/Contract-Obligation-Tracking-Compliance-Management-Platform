@@ -1,1 +1,984 @@
-<p>renewals works!</p>
+<div class="renewals-page">
+
+  <!-- =========================
+       PAGE HEADER
+  ========================== -->
+
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <div class="page-title-row">
+
+        <div class="page-icon">
+          <span>↻</span>
+        </div>
+
+        <div>
+          <h1>Renewals</h1>
+
+          <p>
+            Track upcoming contract renewals, deadlines and renewal status.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="header-actions">
+
+        <button
+          class="refresh-button"
+          type="button"
+          (click)="loadRenewals()"
+          [disabled]="loading">
+
+          <span class="button-icon">↻</span>
+
+          Refresh
+
+        </button>
+
+        <button
+          class="create-button"
+          type="button"
+          (click)="openCreateForm()">
+
+          <span class="button-icon">+</span>
+
+          Create Renewal
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       CREATE FORM
+  ========================== -->
+
+  @if (showCreateForm) {
+
+    <div class="create-form-card">
+
+      <div class="form-header">
+
+        <div>
+          <h2>Create Renewal</h2>
+
+          <p>
+            Add a new contract renewal schedule.
+          </p>
+        </div>
+
+        <button
+          class="close-button"
+          type="button"
+          (click)="cancelCreate()">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      @if (createError) {
+
+        <div class="form-error">
+          {{ createError }}
+        </div>
+
+      }
+
+
+      <form
+        (ngSubmit)="createRenewal()"
+        class="renewal-form">
+
+        <div class="form-grid">
+
+          <!-- Contract -->
+
+          <div class="form-group">
+
+            <label>
+              Contract ID
+              <span>*</span>
+            </label>
+
+            <input
+              type="number"
+              name="contract_id"
+              [(ngModel)]="newRenewal.contract_id"
+              placeholder="Enter contract ID"
+              min="1"
+              required>
+
+          </div>
+
+
+          <!-- Assigned To -->
+
+          <div class="form-group">
+
+            <label>
+              Assigned To
+              <span>*</span>
+            </label>
+
+            <input
+              type="number"
+              name="assigned_to"
+              [(ngModel)]="newRenewal.assigned_to"
+              placeholder="Enter user ID"
+              min="1"
+              required>
+
+          </div>
+
+
+          <!-- Previous Expiry -->
+
+          <div class="form-group">
+
+            <label>
+              Previous Expiry Date
+              <span>*</span>
+            </label>
+
+            <input
+              type="date"
+              name="previous_expiry_date"
+              [(ngModel)]="newRenewal.previous_expiry_date"
+              required>
+
+          </div>
+
+
+          <!-- Renewal Date -->
+
+          <div class="form-group">
+
+            <label>
+              Renewal Date
+              <span>*</span>
+            </label>
+
+            <input
+              type="date"
+              name="renewal_date"
+              [(ngModel)]="newRenewal.renewal_date"
+              required>
+
+          </div>
+
+
+          <!-- Notice Days -->
+
+          <div class="form-group">
+
+            <label>
+              Notice Period
+            </label>
+
+            <div class="input-with-suffix">
+
+              <input
+                type="number"
+                name="notice_days"
+                [(ngModel)]="newRenewal.notice_days"
+                min="0"
+                placeholder="30">
+
+              <span>days</span>
+
+            </div>
+
+          </div>
+
+
+          <!-- Status -->
+
+          <div class="form-group">
+
+            <label>
+              Status
+            </label>
+
+            <select
+              name="status"
+              [(ngModel)]="newRenewal.status">
+
+              <option value="Upcoming">
+                Upcoming
+              </option>
+
+              <option value="In Progress">
+                In Progress
+              </option>
+
+              <option value="Renewed">
+                Renewed
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- New Expiry -->
+
+          <div class="form-group">
+
+            <label>
+              New Expiry Date
+            </label>
+
+            <input
+              type="date"
+              name="new_expiry_date"
+              [(ngModel)]="newRenewal.new_expiry_date">
+
+          </div>
+
+
+          <!-- Notes -->
+
+          <div class="form-group full-width">
+
+            <label>
+              Notes
+            </label>
+
+            <textarea
+              name="notes"
+              [(ngModel)]="newRenewal.notes"
+              rows="3"
+              placeholder="Enter additional renewal notes...">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="cancelCreate()">
+
+            Cancel
+
+          </button>
+
+          <button
+            type="submit"
+            class="submit-button"
+            [disabled]="creating">
+
+            @if (creating) {
+              Creating...
+            } @else {
+              Create Renewal
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- =========================
+       SUCCESS MESSAGE
+  ========================== -->
+
+  @if (createSuccess) {
+
+    <div class="success-message">
+
+      <span class="success-icon">✓</span>
+
+      <span>{{ createSuccess }}</span>
+
+    </div>
+
+  }
+
+
+  <!-- =========================
+       LOADING
+  ========================== -->
+
+  @if (loading) {
+
+    <div class="state-card">
+
+      <div class="loading-spinner"></div>
+
+      <h3>Loading renewals...</h3>
+
+      <p>
+        Please wait while renewal records are retrieved.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- =========================
+       ERROR
+  ========================== -->
+
+  @if (!loading && errorMessage) {
+
+    <div class="state-card error-state">
+
+      <div class="state-icon">
+        !
+      </div>
+
+      <h3>
+        Unable to load renewals
+      </h3>
+
+      <p>
+        {{ errorMessage }}
+      </p>
+
+      <button
+        class="retry-button"
+        type="button"
+        (click)="loadRenewals()">
+
+        Try Again
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- =========================
+       EMPTY
+  ========================== -->
+
+  @if (!loading && !errorMessage && renewals.length === 0) {
+
+    <div class="state-card empty-state">
+
+      <div class="empty-icon">
+        ↻
+      </div>
+
+      <h3>
+        No renewals found
+      </h3>
+
+      <p>
+        Create a renewal schedule to start tracking contract renewals.
+      </p>
+
+      <button
+        class="create-button empty-create"
+        type="button"
+        (click)="openCreateForm()">
+
+        <span class="button-icon">+</span>
+
+        Create Renewal
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- =========================
+       DATA
+  ========================== -->
+
+  @if (!loading && !errorMessage && renewals.length > 0) {
+
+    <!-- SUMMARY -->
+
+    <div class="summary-grid">
+
+      <!-- Total -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon total-icon">
+          ↻
+        </div>
+
+        <div class="summary-content">
+
+          <span class="summary-label">
+            Total Renewals
+          </span>
+
+          <strong>
+            {{ totalRenewals }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- Upcoming -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon upcoming-icon">
+          ◷
+        </div>
+
+        <div class="summary-content">
+
+          <span class="summary-label">
+            Upcoming
+          </span>
+
+          <strong>
+            {{ upcomingRenewals }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- In Progress -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon progress-icon">
+          ◌
+        </div>
+
+        <div class="summary-content">
+
+          <span class="summary-label">
+            In Progress
+          </span>
+
+          <strong>
+            {{ inProgressRenewals }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- Renewed -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon renewed-icon">
+          ✓
+        </div>
+
+        <div class="summary-content">
+
+          <span class="summary-label">
+            Renewed
+          </span>
+
+          <strong>
+            {{ renewedRenewals }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-card">
+
+      <div class="table-header">
+
+        <div>
+
+          <h2>
+            Renewal Records
+          </h2>
+
+          <p>
+            Contract renewal schedules and assignments
+          </p>
+
+        </div>
+
+        <span class="record-count">
+          {{ renewals.length }} Records
+        </span>
+
+      </div>
+
+
+      <div class="table-wrapper">
+
+        <table class="renewals-table">
+
+          <thead>
+
+            <tr>
+
+              <th class="id-header">
+                ID
+              </th>
+
+              <th>
+                Contract
+              </th>
+
+              <th>
+                Renewal Date
+              </th>
+
+              <th>
+                Notice
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th>
+                New Expiry
+              </th>
+
+              <th>
+                Managed By
+              </th>
+
+              <th class="actions-header">
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              renewal of renewals;
+              track renewal.id
+            ) {
+
+              <tr>
+
+                <!-- ID -->
+
+                <td class="id-cell">
+                  {{ renewal.id }}
+                </td>
+
+
+                <!-- Contract -->
+
+                <td class="contract-cell">
+
+                  <span class="contract-badge">
+                    #{{ renewal.contract_id }}
+                  </span>
+
+                </td>
+
+
+                <!-- Renewal Date -->
+
+                <td class="date-cell">
+
+                  {{
+                    renewal.renewal_date
+                      | date:'yyyy-MM-dd'
+                  }}
+
+                </td>
+
+
+                <!-- Notice -->
+
+                <td class="notice-cell">
+
+                  <strong>
+                    {{ renewal.notice_days }}
+                  </strong>
+
+                  <span class="days-text">
+                    days
+                  </span>
+
+                </td>
+
+
+                <!-- Status -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [ngClass]="{
+                      'status-upcoming':
+                        renewal.status === 'Upcoming',
+
+                      'status-progress':
+                        renewal.status === 'In Progress',
+
+                      'status-renewed':
+                        renewal.status === 'Renewed'
+                    }">
+
+                    {{ renewal.status }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- New Expiry -->
+
+                <td class="date-cell">
+
+                  @if (renewal.new_expiry_date) {
+
+                    {{
+                      renewal.new_expiry_date
+                        | date:'yyyy-MM-dd'
+                    }}
+
+                  } @else {
+
+                    <span class="not-available">
+                      —
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <!-- Assigned -->
+
+                <td class="assigned-cell">
+
+                  <span class="user-badge">
+                    User #{{ renewal.assigned_to }}
+                  </span>
+
+                </td>
+
+
+                <!-- Actions -->
+
+                <td class="actions-cell">
+
+                  <button
+                    type="button"
+                    class="edit-button"
+                    (click)="editRenewal(renewal)">
+
+                    Edit
+
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =========================
+       EDIT MODAL
+  ========================== -->
+
+  @if (showEditForm && editingRenewal) {
+
+    <div
+      class="modal-overlay"
+      (click)="closeEditForm()">
+
+      <div
+        class="edit-modal"
+        (click)="$event.stopPropagation()">
+
+
+        <!-- Modal Header -->
+
+        <div class="edit-header">
+
+          <div>
+
+            <span class="modal-eyebrow">
+              Renewal #{{ editingRenewal.id }}
+            </span>
+
+            <h2>
+              Edit Renewal
+            </h2>
+
+            <p>
+              Update renewal schedule and assignment details.
+            </p>
+
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            (click)="closeEditForm()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        @if (editErrorMessage) {
+
+          <div class="form-error">
+            {{ editErrorMessage }}
+          </div>
+
+        }
+
+
+        <!-- Edit Form -->
+
+        <form
+          (ngSubmit)="saveRenewal()"
+          class="edit-form">
+
+          <div class="edit-form-grid">
+
+
+            <!-- Contract -->
+
+            <div class="form-group">
+
+              <label>
+                Contract
+              </label>
+
+              <div class="readonly-field">
+                Contract #{{ editingRenewal.contract_id }}
+              </div>
+
+            </div>
+
+
+            <!-- Assigned -->
+
+            <div class="form-group">
+
+              <label>
+                Assigned To
+                <span>*</span>
+              </label>
+
+              <input
+                type="number"
+                name="edit_assigned_to"
+                [(ngModel)]="editForm.assigned_to"
+                min="1"
+                required>
+
+            </div>
+
+
+            <!-- Previous Expiry -->
+
+            <div class="form-group">
+
+              <label>
+                Previous Expiry Date
+                <span>*</span>
+              </label>
+
+              <input
+                type="date"
+                name="edit_previous_expiry_date"
+                [(ngModel)]="editForm.previous_expiry_date"
+                required>
+
+            </div>
+
+
+            <!-- Renewal Date -->
+
+            <div class="form-group">
+
+              <label>
+                Renewal Date
+                <span>*</span>
+              </label>
+
+              <input
+                type="date"
+                name="edit_renewal_date"
+                [(ngModel)]="editForm.renewal_date"
+                required>
+
+            </div>
+
+
+            <!-- Notice -->
+
+            <div class="form-group">
+
+              <label>
+                Notice Period
+              </label>
+
+              <div class="input-with-suffix">
+
+                <input
+                  type="number"
+                  name="edit_notice_days"
+                  [(ngModel)]="editForm.notice_days"
+                  min="0">
+
+                <span>days</span>
+
+              </div>
+
+            </div>
+
+
+            <!-- Status -->
+
+            <div class="form-group">
+
+              <label>
+                Status
+              </label>
+
+              <select
+                name="edit_status"
+                [(ngModel)]="editForm.status">
+
+                <option value="Upcoming">
+                  Upcoming
+                </option>
+
+                <option value="In Progress">
+                  In Progress
+                </option>
+
+                <option value="Renewed">
+                  Renewed
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <!-- New Expiry -->
+
+            <div class="form-group">
+
+              <label>
+                New Expiry Date
+              </label>
+
+              <input
+                type="date"
+                name="edit_new_expiry_date"
+                [(ngModel)]="editForm.new_expiry_date">
+
+            </div>
+
+
+            <!-- Notes -->
+
+            <div class="form-group full-width">
+
+              <label>
+                Notes
+              </label>
+
+              <textarea
+                name="edit_notes"
+                [(ngModel)]="editForm.notes"
+                rows="3"
+                placeholder="Enter renewal notes...">
+              </textarea>
+
+            </div>
+
+          </div>
+
+
+          <!-- Footer -->
+
+          <div class="modal-footer">
+
+            <button
+              type="button"
+              class="cancel-button"
+              (click)="closeEditForm()">
+
+              Cancel
+
+            </button>
+
+            <button
+              type="submit"
+              class="save-button"
+              [disabled]="saving">
+
+              @if (saving) {
+                Saving...
+              } @else {
+                Save Changes
+              }
+
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

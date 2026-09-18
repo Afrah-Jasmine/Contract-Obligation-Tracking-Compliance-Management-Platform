@@ -1,1 +1,287 @@
-<p>compliance works!</p>
+<div class="compliance-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h1>Compliance</h1>
+      <p>
+        Monitor contractual compliance and compliance scores across your contracts.
+      </p>
+    </div>
+
+    <button
+      class="refresh-button"
+      type="button"
+      (click)="loadCompliance()"
+      [disabled]="loading">
+
+      <span class="refresh-icon">↻</span>
+      {{ loading ? 'Refreshing...' : 'Refresh' }}
+
+    </button>
+  </div>
+
+
+  <!-- Loading State -->
+  @if (loading) {
+
+    <div class="state-card">
+
+      <div class="spinner"></div>
+
+      <h2>Loading compliance</h2>
+
+      <p>
+        Please wait while we fetch your compliance information.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Error State -->
+  @if (!loading && errorMessage) {
+
+    <div class="state-card error-state">
+
+      <div class="state-icon">⚠</div>
+
+      <h2>Unable to load compliance</h2>
+
+      <p>
+        {{ errorMessage }}
+      </p>
+
+      <button
+        class="retry-button"
+        type="button"
+        (click)="loadCompliance()">
+
+        Try Again
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- Empty State -->
+  @if (!loading && !errorMessage && complianceRecords.length === 0) {
+
+    <div class="state-card empty-state">
+
+      <div class="empty-icon">
+        🛡️
+      </div>
+
+      <h2>No compliance records</h2>
+
+      <p>
+        There are no compliance records available
+        for your account right now.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Compliance Records -->
+  @if (!loading && !errorMessage && complianceRecords.length > 0) {
+
+    <div class="compliance-section">
+
+      <!-- Section Header -->
+      <div class="section-header">
+
+        <div>
+
+          <h2>Compliance Records</h2>
+
+          <p>
+            {{ complianceRecords.length }}
+            {{ complianceRecords.length === 1 ? 'record' : 'records' }}
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- Compliance List -->
+      <div class="compliance-list">
+
+        @for (record of complianceRecords; track record.contract_id) {
+
+          <div class="compliance-card">
+
+            <!-- Icon -->
+            <div class="compliance-icon">
+              🛡️
+            </div>
+
+
+            <div class="compliance-content">
+
+              <!-- Top Section -->
+              <div class="compliance-top">
+
+                <div>
+
+                  <h3>
+                    {{ record.contract_number }}
+                  </h3>
+
+                  <p class="contract-id">
+                    Contract ID: #{{ record.contract_id }}
+                  </p>
+
+                </div>
+
+
+                <!-- Status Badge -->
+                <div class="badges">
+
+                  <span
+                    class="status-badge"
+                    [class.compliant]="record.compliance_status === 'Compliant'"
+                    [class.non-compliant]="record.compliance_status === 'Non-Compliant'"
+                    [class.pending]="record.compliance_status === 'Pending'">
+
+                    {{ record.compliance_status }}
+
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <!-- Compliance Details -->
+              <div class="compliance-details">
+
+                <!-- Compliance Status -->
+                <div class="detail-item">
+
+                  <span class="detail-label">
+                    Compliance Status
+                  </span>
+
+                  <span class="detail-value">
+                    {{ record.compliance_status }}
+                  </span>
+
+                </div>
+
+
+                <!-- Compliance Score -->
+                <div class="detail-item">
+
+                  <span class="detail-label">
+                    Compliance Score
+                  </span>
+
+                  <span class="detail-value">
+                    {{ record.compliance_score }}%
+                  </span>
+
+                </div>
+
+
+                <!-- Contract Number -->
+                <div class="detail-item">
+
+                  <span class="detail-label">
+                    Contract
+                  </span>
+
+                  <span class="detail-value">
+                    {{ record.contract_number }}
+                  </span>
+
+                </div>
+
+
+                <!-- Contract ID -->
+                <div class="detail-item">
+
+                  <span class="detail-label">
+                    Contract ID
+                  </span>
+
+                  <span class="detail-value">
+                    #{{ record.contract_id }}
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <!-- Score Progress -->
+              <div class="score-section">
+
+                <div class="score-header">
+
+                  <span>
+                    Compliance Score
+                  </span>
+
+                  <strong>
+                    {{ record.compliance_score }}%
+                  </strong>
+
+                </div>
+
+                <div class="score-bar">
+
+                  <div
+                    class="score-fill"
+                    [style.width.%]="record.compliance_score">
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <!-- Status Message -->
+              <div class="compliance-message">
+
+                @if (record.compliance_status === 'Compliant') {
+
+                  <p>
+                    ✓ This contract is currently compliant with its recorded obligations.
+                  </p>
+
+                } @else if (record.compliance_status === 'Pending') {
+
+                  <p>
+                    ◷ Compliance monitoring is currently in progress for this contract.
+                  </p>
+
+                } @else {
+
+                  <p>
+                    ⚠ This contract requires compliance attention.
+                  </p>
+
+                }
+
+              </div>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

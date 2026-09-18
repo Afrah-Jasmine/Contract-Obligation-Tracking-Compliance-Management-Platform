@@ -1,1 +1,746 @@
-<p>notifications works!</p>
+<div class="notifications-page">
+
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <div class="page-title-row">
+
+        <div class="page-icon">
+          <span>♢</span>
+        </div>
+
+        <div>
+
+          <h1>
+            Notifications
+          </h1>
+
+          <p>
+            Stay updated with important contract activities,
+            obligations, renewals, and compliance alerts.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="header-actions">
+
+        <button
+          class="refresh-button"
+          type="button"
+          (click)="loadNotifications()"
+          [disabled]="loading">
+
+          <span class="button-icon">
+            ↻
+          </span>
+
+          {{ loading ? 'Refreshing...' : 'Refresh' }}
+
+        </button>
+
+
+        <button
+          class="create-button"
+          type="button"
+          (click)="openCreateForm()">
+
+          <span class="button-icon">
+            +
+          </span>
+
+          Create Notification
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       SUCCESS ALERT
+  ====================================================== -->
+
+  @if (createSuccess || alertSuccess) {
+
+    <div class="success-message">
+
+      <span class="success-icon">
+        ✓
+      </span>
+
+      <span>
+        {{ createSuccess || alertSuccess }}
+      </span>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       GENERATE ALERT ERROR
+  ====================================================== -->
+
+  @if (alertError) {
+
+    <div class="inline-error">
+
+      <span>!</span>
+
+      {{ alertError }}
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       CREATE NOTIFICATION FORM
+  ====================================================== -->
+
+  @if (showCreateForm) {
+
+    <div class="create-form-card">
+
+      <div class="form-header">
+
+        <div>
+
+          <span class="form-eyebrow">
+            Notification Management
+          </span>
+
+          <h2>
+            Create Notification
+          </h2>
+
+          <p>
+            Send a notification to the selected user.
+          </p>
+
+        </div>
+
+
+        <button
+          class="close-button"
+          type="button"
+          (click)="closeCreateForm()">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      @if (createError) {
+
+        <div class="form-error">
+          {{ createError }}
+        </div>
+
+      }
+
+
+      <form
+        class="notification-form"
+        (ngSubmit)="createNotification()">
+
+        <div class="form-grid">
+
+
+          <!-- USER -->
+
+          <div class="form-group">
+
+            <label>
+              User ID
+              <span>*</span>
+            </label>
+
+            <input
+              type="number"
+              name="user_id"
+              [(ngModel)]="newNotification.user_id"
+              min="1"
+              placeholder="Enter user ID"
+              required>
+
+          </div>
+
+
+          <!-- TYPE -->
+
+          <div class="form-group">
+
+            <label>
+              Notification Type
+            </label>
+
+            <select
+              name="notification_type"
+              [(ngModel)]="newNotification.notification_type">
+
+              <option value="General">
+                General
+              </option>
+
+              <option value="Renewal">
+                Renewal
+              </option>
+
+              <option value="Obligation">
+                Obligation
+              </option>
+
+              <option value="Compliance Alert">
+                Compliance Alert
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- CONTRACT -->
+
+          <div class="form-group">
+
+            <label>
+              Contract ID
+            </label>
+
+            <input
+              type="number"
+              name="contract_id"
+              [(ngModel)]="newNotification.contract_id"
+              min="1"
+              placeholder="Optional">
+
+          </div>
+
+
+          <!-- OBLIGATION -->
+
+          <div class="form-group">
+
+            <label>
+              Obligation ID
+            </label>
+
+            <input
+              type="number"
+              name="obligation_id"
+              [(ngModel)]="newNotification.obligation_id"
+              min="1"
+              placeholder="Optional">
+
+          </div>
+
+
+          <!-- RENEWAL -->
+
+          <div class="form-group">
+
+            <label>
+              Renewal ID
+            </label>
+
+            <input
+              type="number"
+              name="renewal_id"
+              [(ngModel)]="newNotification.renewal_id"
+              min="1"
+              placeholder="Optional">
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="form-group">
+
+            <label>
+              Title
+              <span>*</span>
+            </label>
+
+            <input
+              type="text"
+              name="title"
+              [(ngModel)]="newNotification.title"
+              placeholder="Enter notification title"
+              required>
+
+          </div>
+
+
+          <!-- MESSAGE -->
+
+          <div class="form-group full-width">
+
+            <label>
+              Message
+              <span>*</span>
+            </label>
+
+            <textarea
+              name="message"
+              [(ngModel)]="newNotification.message"
+              rows="4"
+              placeholder="Enter notification message..."
+              required>
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeCreateForm()">
+
+            Cancel
+
+          </button>
+
+
+          <button
+            type="submit"
+            class="submit-button"
+            [disabled]="creating">
+
+            @if (creating) {
+
+              Creating...
+
+            } @else {
+
+              Create Notification
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       LOADING
+  ====================================================== -->
+
+  @if (loading) {
+
+    <div class="state-card">
+
+      <div class="loading-spinner"></div>
+
+      <h3>
+        Loading notifications...
+      </h3>
+
+      <p>
+        Please wait while we fetch your latest notifications.
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       ERROR
+  ====================================================== -->
+
+  @if (!loading && errorMessage) {
+
+    <div class="state-card error-state">
+
+      <div class="state-icon">
+        !
+      </div>
+
+      <h3>
+        Unable to load notifications
+      </h3>
+
+      <p>
+        {{ errorMessage }}
+      </p>
+
+      <button
+        class="retry-button"
+        type="button"
+        (click)="loadNotifications()">
+
+        Try Again
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       EMPTY
+  ====================================================== -->
+
+  @if (
+    !loading &&
+    !errorMessage &&
+    notifications.length === 0
+  ) {
+
+    <div class="state-card empty-state">
+
+      <div class="empty-icon">
+        ♢
+      </div>
+
+      <h3>
+        No notifications
+      </h3>
+
+      <p>
+        You're all caught up. There are no notifications
+        requiring your attention right now.
+      </p>
+
+      <button
+        class="create-button"
+        type="button"
+        (click)="openCreateForm()">
+
+        <span class="button-icon">
+          +
+        </span>
+
+        Create Notification
+
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       NOTIFICATION DATA
+  ====================================================== -->
+
+  @if (
+    !loading &&
+    !errorMessage &&
+    notifications.length > 0
+  ) {
+
+    <!-- SUMMARY -->
+
+    <div class="summary-grid">
+
+
+      <!-- TOTAL -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon total-icon">
+          ♢
+        </div>
+
+        <div class="summary-content">
+
+          <span>
+            Total Notifications
+          </span>
+
+          <strong>
+            {{ totalNotifications }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- UNREAD -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon unread-summary-icon">
+          ●
+        </div>
+
+        <div class="summary-content">
+
+          <span>
+            Unread
+          </span>
+
+          <strong>
+            {{ unreadNotifications }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- READ -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon read-summary-icon">
+          ✓
+        </div>
+
+        <div class="summary-content">
+
+          <span>
+            Read
+          </span>
+
+          <strong>
+            {{ readNotifications }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+    <!-- =================================================
+         NOTIFICATION SECTION
+    ================================================== -->
+
+    <div class="notification-section">
+
+
+      <!-- SECTION HEADER -->
+
+      <div class="section-header">
+
+        <div>
+
+          <h2>
+            Recent Notifications
+          </h2>
+
+          <p>
+            {{ notifications.length }}
+            {{ notifications.length === 1
+              ? 'notification'
+              : 'notifications'
+            }}
+          </p>
+
+        </div>
+
+
+        <div class="section-actions">
+
+          <button
+            class="generate-button"
+            type="button"
+            (click)="generateAlerts()"
+            [disabled]="generatingAlerts">
+
+            <span>
+              ⚡
+            </span>
+
+            {{
+              generatingAlerts
+                ? 'Generating...'
+                : 'Generate Alerts'
+            }}
+
+          </button>
+
+
+          <button
+            class="mark-all-button"
+            type="button"
+            (click)="markAllAsRead()"
+            [disabled]="
+              markingAllRead ||
+              unreadNotifications === 0
+            ">
+
+            <span>
+              ✓
+            </span>
+
+            {{
+              markingAllRead
+                ? 'Updating...'
+                : 'Mark All Read'
+            }}
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           LIST
+      ================================================== -->
+
+      <div class="notification-list">
+
+        @for (
+          notification of notifications;
+          track notification.id
+        ) {
+
+          <div
+            class="notification-card"
+            [class.unread]="!notification.is_read">
+
+
+            <!-- ICON -->
+
+            <div
+              class="notification-icon"
+              [class.unread-icon]="!notification.is_read">
+
+              <span>
+                ♢
+              </span>
+
+            </div>
+
+
+            <!-- CONTENT -->
+
+            <div class="notification-content">
+
+
+              <div class="notification-top">
+
+                <div class="title-area">
+
+                  <h3>
+                    {{ notification.title }}
+                  </h3>
+
+
+                  @if (!notification.is_read) {
+
+                    <span class="unread-badge">
+                      NEW
+                    </span>
+
+                  }
+
+                </div>
+
+
+                <span class="notification-id">
+                  #{{ notification.id }}
+                </span>
+
+              </div>
+
+
+              <!-- MESSAGE -->
+
+              <p class="notification-message">
+                {{ notification.message }}
+              </p>
+
+
+              <!-- META -->
+
+              <div class="notification-meta">
+
+                <span class="type-badge">
+                  {{ notification.type }}
+                </span>
+
+
+                <span class="notification-date">
+
+                  <span class="date-icon">
+                    ◷
+                  </span>
+
+                  {{ notification.created_at | date:'medium' }}
+
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- MARK READ -->
+
+            @if (!notification.is_read) {
+
+              <button
+                type="button"
+                class="read-button"
+                (click)="markAsRead(notification)"
+                [disabled]="markingReadId === notification.id">
+
+                @if (
+                  markingReadId === notification.id
+                ) {
+
+                  Updating...
+
+                } @else {
+
+                  Mark Read
+
+                }
+
+              </button>
+
+            } @else {
+
+              <span class="read-label">
+                ✓ Read
+              </span>
+
+            }
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

@@ -1,60 +1,506 @@
 <div class="contracts-page">
 
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
   <div class="page-header">
+
     <div>
       <h1>Contracts</h1>
-      <p>Manage and monitor all contracts in ContractIQ.</p>
+
+      <p>
+        Manage and monitor all contracts in ContractIQ.
+      </p>
     </div>
 
-    <button
-      type="button"
-      class="refresh-button"
-      (click)="loadContracts()">
-      Refresh
-    </button>
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="refresh-button"
+        (click)="loadContracts()">
+
+        Refresh
+
+      </button>
+
+      <button
+        type="button"
+        class="create-button"
+        (click)="openCreateForm()">
+
+        + Create Contract
+
+      </button>
+
+    </div>
+
   </div>
 
 
-  @if (loading) {
-    <div class="state-card">
-      <div class="loading-spinner"></div>
-      <p>Loading contracts...</p>
+  <!-- =====================================================
+       CREATE CONTRACT FORM
+       ===================================================== -->
+
+  @if (showCreateForm) {
+
+    <div class="create-form-card">
+
+      <div class="form-header">
+
+        <div>
+
+          <h2>Create New Contract</h2>
+
+          <p>
+            Enter the details of the new contract.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="cancelCreate()">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      @if (createError) {
+
+        <div class="form-error">
+          {{ createError }}
+        </div>
+
+      }
+
+
+      <form
+        #contractForm="ngForm"
+        (ngSubmit)="createContract()">
+
+        <div class="form-grid">
+
+          <!-- CONTRACT CODE -->
+
+          <div class="form-field">
+
+            <label>
+              Contract Code *
+            </label>
+
+            <input
+              type="text"
+              name="contract_code"
+              [(ngModel)]="newContract.contract_code"
+              placeholder="Example: CNT-2026-001"
+              required>
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="form-field">
+
+            <label>
+              Contract Title *
+            </label>
+
+            <input
+              type="text"
+              name="title"
+              [(ngModel)]="newContract.title"
+              placeholder="Enter contract title"
+              required>
+
+          </div>
+
+
+          <!-- COUNTERPARTY -->
+
+          <div class="form-field">
+
+            <label>
+              Counterparty *
+            </label>
+
+            <input
+              type="text"
+              name="counterparty"
+              [(ngModel)]="newContract.counterparty"
+              placeholder="Enter counterparty name"
+              required>
+
+          </div>
+
+
+          <!-- CATEGORY -->
+
+          <div class="form-field">
+
+            <label>
+              Category *
+            </label>
+
+            <select
+              name="category"
+              [(ngModel)]="newContract.category"
+              required>
+
+              <option value="">
+                Select Category
+              </option>
+
+              <option value="IT Services">
+                IT Services
+              </option>
+
+              <option value="Software">
+                Software
+              </option>
+
+              <option value="Maintenance">
+                Maintenance
+              </option>
+
+              <option value="Procurement">
+                Procurement
+              </option>
+
+              <option value="Employment">
+                Employment
+              </option>
+
+              <option value="Lease">
+                Lease
+              </option>
+
+              <option value="Confidentiality">
+                Confidentiality
+              </option>
+
+              <option value="Other">
+                Other
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DEPARTMENT -->
+
+          <div class="form-field">
+
+            <label>
+              Department
+            </label>
+
+            <select
+              name="department"
+              [(ngModel)]="newContract.department">
+
+              <option [ngValue]="null">
+                Select Department
+              </option>
+
+              <option value="HR">
+                HR
+              </option>
+
+              <option value="IT">
+                IT
+              </option>
+
+              <option value="Finance">
+                Finance
+              </option>
+
+              <option value="Legal">
+                Legal
+              </option>
+
+              <option value="Operations">
+                Operations
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- RISK LEVEL -->
+
+          <div class="form-field">
+
+            <label>
+              Risk Level
+            </label>
+
+            <select
+              name="risk_level"
+              [(ngModel)]="newContract.risk_level">
+
+              <option value="Low">
+                Low
+              </option>
+
+              <option value="Medium">
+                Medium
+              </option>
+
+              <option value="High">
+                High
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-field">
+
+            <label>
+              Status
+            </label>
+
+            <select
+              name="status"
+              [(ngModel)]="newContract.status">
+
+              <option value="Draft">
+                Draft
+              </option>
+
+              <option value="Active">
+                Active
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- START DATE -->
+
+          <div class="form-field">
+
+            <label>
+              Start Date *
+            </label>
+
+            <input
+              type="date"
+              name="start_date"
+              [(ngModel)]="newContract.start_date"
+              required>
+
+          </div>
+
+
+          <!-- END DATE -->
+
+          <div class="form-field">
+
+            <label>
+              End Date *
+            </label>
+
+            <input
+              type="date"
+              name="end_date"
+              [(ngModel)]="newContract.end_date"
+              required>
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="form-field full-width">
+
+            <label>
+              Description
+            </label>
+
+            <textarea
+              name="description"
+              [(ngModel)]="newContract.description"
+              rows="4"
+              placeholder="Enter contract description">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <!-- FORM ACTIONS -->
+
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="cancelCreate()">
+
+            Cancel
+
+          </button>
+
+          <button
+            type="submit"
+            class="submit-button"
+            [disabled]="creating">
+
+            @if (creating) {
+
+              Creating...
+
+            } @else {
+
+              Create Contract
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
     </div>
+
   }
 
 
+  <!-- =====================================================
+       SUCCESS MESSAGE
+       ===================================================== -->
+
+  @if (createSuccess) {
+
+    <div class="success-message">
+
+      {{ createSuccess }}
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
+
+  @if (loading) {
+
+    <div class="state-card">
+
+      <div class="loading-spinner"></div>
+
+      <p>
+        Loading contracts...
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       ERROR
+       ===================================================== -->
+
   @if (errorMessage && !loading) {
+
     <div class="state-card error-state">
-      <h3>Unable to load contracts</h3>
-      <p>{{ errorMessage }}</p>
+
+      <h3>
+        Unable to load contracts
+      </h3>
+
+      <p>
+        {{ errorMessage }}
+      </p>
 
       <button
         type="button"
         class="retry-button"
         (click)="loadContracts()">
+
         Try Again
+
       </button>
+
     </div>
+
   }
 
 
-  @if (!loading && !errorMessage && contracts.length === 0) {
+  <!-- =====================================================
+       EMPTY
+       ===================================================== -->
+
+  @if (
+    !loading &&
+    !errorMessage &&
+    contracts.length === 0
+  ) {
+
     <div class="state-card">
-      <h3>No Contracts Found</h3>
-      <p>There are currently no contracts available.</p>
+
+      <h3>
+        No Contracts Found
+      </h3>
+
+      <p>
+        There are currently no contracts available.
+      </p>
+
     </div>
+
   }
 
 
-  @if (!loading && !errorMessage && contracts.length > 0) {
+  <!-- =====================================================
+       CONTRACT TABLE
+       ===================================================== -->
+
+  @if (
+    !loading &&
+    !errorMessage &&
+    contracts.length > 0
+  ) {
+
+    <!-- SUMMARY -->
 
     <div class="summary-card">
+
       <div>
-        <span class="summary-label">Total Contracts</span>
-        <strong>{{ contracts.length }}</strong>
+
+        <span class="summary-label">
+          Total Contracts
+        </span>
+
+        <strong>
+          {{ contracts.length }}
+        </strong>
+
       </div>
+
     </div>
 
+
+    <!-- TABLE -->
 
     <div class="table-card">
 
@@ -63,75 +509,167 @@
         <table>
 
           <thead>
+
             <tr>
+
               <th>ID</th>
+
               <th>Contract Code</th>
+
               <th>Title</th>
+
               <th>Counterparty</th>
+
               <th>Category</th>
+
               <th>Department</th>
+
               <th>Status</th>
+
               <th>Risk</th>
+
               <th>Start Date</th>
+
               <th>End Date</th>
+
+              <th class="actions-header">
+                Actions
+              </th>
+
             </tr>
+
           </thead>
+
 
           <tbody>
 
-            @for (contract of contracts; track contract.id) {
+            @for (
+              contract of contracts;
+              track contract.id
+            ) {
 
               <tr>
+
+                <!-- ID -->
 
                 <td>
                   {{ contract.id }}
                 </td>
 
+
+                <!-- CODE -->
+
                 <td>
-                  <strong>{{ contract.contract_code }}</strong>
+
+                  <strong>
+                    {{ contract.contract_code }}
+                  </strong>
+
                 </td>
+
+
+                <!-- TITLE -->
 
                 <td>
                   {{ contract.title }}
                 </td>
 
+
+                <!-- COUNTERPARTY -->
+
                 <td>
                   {{ contract.counterparty }}
                 </td>
+
+
+                <!-- CATEGORY -->
 
                 <td>
                   {{ contract.category }}
                 </td>
 
+
+                <!-- DEPARTMENT -->
+
                 <td>
                   {{ contract.department || '—' }}
                 </td>
 
+
+                <!-- STATUS -->
+
                 <td>
+
                   <span
                     class="status-badge"
-                    [class.active]="contract.status === 'Active'"
-                    [class.expired]="contract.status === 'Expired'"
-                    [class.draft]="contract.status === 'Draft'"
-                    [class.terminated]="contract.status === 'Terminated'">
+
+                    [class.active]="
+                      contract.status === 'Active'
+                    "
+
+                    [class.expired]="
+                      contract.status === 'Expired'
+                    "
+
+                    [class.draft]="
+                      contract.status === 'Draft'
+                    "
+
+                    [class.terminated]="
+                      contract.status === 'Terminated'
+                    ">
 
                     {{ contract.status }}
 
                   </span>
+
                 </td>
 
+
+                <!-- RISK -->
+
                 <td>
+
                   <span class="risk-badge">
+
                     {{ contract.risk_level }}
+
                   </span>
+
                 </td>
 
-                <td>
+
+                <!-- START DATE -->
+
+                <td class="date-cell">
+
                   {{ contract.start_date }}
+
                 </td>
 
-                <td>
+
+                <!-- END DATE -->
+
+                <td class="date-cell">
+
                   {{ contract.end_date }}
+
+                </td>
+
+
+                <!-- ACTIONS -->
+
+                <td class="actions-cell">
+
+                  <button
+                    type="button"
+                    class="edit-button"
+                    (click)="editContract(contract)">
+
+                    Edit
+
+                  </button>
+
                 </td>
 
               </tr>
@@ -141,6 +679,338 @@
           </tbody>
 
         </table>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =====================================================
+       EDIT CONTRACT MODAL
+       ===================================================== -->
+
+  @if (
+    showEditForm &&
+    editingContract
+  ) {
+
+    <div class="modal-overlay">
+
+      <div class="edit-modal">
+
+        <!-- EDIT HEADER -->
+
+        <div class="edit-header">
+
+          <div>
+
+            <h2>
+              Edit Contract
+            </h2>
+
+            <p>
+
+              Update contract:
+
+              <strong>
+                {{ editingContract.contract_code }}
+              </strong>
+
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="close-button"
+            (click)="closeEditForm()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <!-- EDIT ERROR -->
+
+        @if (editErrorMessage) {
+
+          <div class="edit-error">
+
+            {{ editErrorMessage }}
+
+          </div>
+
+        }
+
+
+        <!-- EDIT FORM -->
+
+        <div class="edit-form-grid">
+
+          <!-- CODE -->
+
+          <div class="form-group">
+
+            <label>
+              Contract Code *
+            </label>
+
+            <input
+              type="text"
+              name="edit_contract_code"
+              [(ngModel)]="editForm.contract_code"
+              placeholder="Enter contract code">
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="form-group">
+
+            <label>
+              Contract Title *
+            </label>
+
+            <input
+              type="text"
+              name="edit_title"
+              [(ngModel)]="editForm.title"
+              placeholder="Enter contract title">
+
+          </div>
+
+
+          <!-- COUNTERPARTY -->
+
+          <div class="form-group">
+
+            <label>
+              Counterparty *
+            </label>
+
+            <input
+              type="text"
+              name="edit_counterparty"
+              [(ngModel)]="editForm.counterparty"
+              placeholder="Enter counterparty">
+
+          </div>
+
+
+          <!-- CATEGORY -->
+
+          <div class="form-group">
+
+            <label>
+              Category *
+            </label>
+
+            <select
+              name="edit_category"
+              [(ngModel)]="editForm.category">
+
+              <option value="">
+                Select Category
+              </option>
+
+              <option value="IT Services">
+                IT Services
+              </option>
+
+              <option value="Software">
+                Software
+              </option>
+
+              <option value="Maintenance">
+                Maintenance
+              </option>
+
+              <option value="Procurement">
+                Procurement
+              </option>
+
+              <option value="Employment">
+                Employment
+              </option>
+
+              <option value="Lease">
+                Lease
+              </option>
+
+              <option value="Confidentiality">
+                Confidentiality
+              </option>
+
+              <option value="Other">
+                Other
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DEPARTMENT -->
+
+          <div class="form-group">
+
+            <label>
+              Department
+            </label>
+
+            <select
+              name="edit_department"
+              [(ngModel)]="editForm.department">
+
+              <option [ngValue]="null">
+                Select Department
+              </option>
+
+              <option value="HR">
+                HR
+              </option>
+
+              <option value="IT">
+                IT
+              </option>
+
+              <option value="Finance">
+                Finance
+              </option>
+
+              <option value="Legal">
+                Legal
+              </option>
+
+              <option value="Operations">
+                Operations
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- RISK -->
+
+          <div class="form-group">
+
+            <label>
+              Risk Level
+            </label>
+
+            <select
+              name="edit_risk"
+              [(ngModel)]="editForm.risk_level">
+
+              <option value="Low">
+                Low
+              </option>
+
+              <option value="Medium">
+                Medium
+              </option>
+
+              <option value="High">
+                High
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- START DATE -->
+
+          <div class="form-group">
+
+            <label>
+              Start Date *
+            </label>
+
+            <input
+              type="date"
+              name="edit_start_date"
+              [(ngModel)]="editForm.start_date">
+
+          </div>
+
+
+          <!-- END DATE -->
+
+          <div class="form-group">
+
+            <label>
+              End Date *
+            </label>
+
+            <input
+              type="date"
+              name="edit_end_date"
+              [(ngModel)]="editForm.end_date">
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="form-group full-width">
+
+            <label>
+              Description
+            </label>
+
+            <textarea
+              name="edit_description"
+              rows="4"
+              [(ngModel)]="editForm.description"
+              placeholder="Enter contract description">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <!-- EDIT FOOTER -->
+
+        <div class="edit-footer">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeEditForm()">
+
+            Cancel
+
+          </button>
+
+
+          <button
+            type="button"
+            class="save-button"
+            [disabled]="saving"
+            (click)="saveContract()">
+
+            @if (saving) {
+
+              Saving...
+
+            } @else {
+
+              Save Changes
+
+            }
+
+          </button>
+
+        </div>
 
       </div>
 
