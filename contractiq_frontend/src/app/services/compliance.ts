@@ -14,7 +14,7 @@ export interface ComplianceRecord {
 })
 export class ComplianceService {
 
-private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/compliance';
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-et7o.onrender.com/compliance';
   constructor(private http: HttpClient) {}
 
   getCompliance(): Observable<ComplianceRecord[]> {

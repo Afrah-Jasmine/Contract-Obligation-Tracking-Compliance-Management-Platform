@@ -34,7 +34,7 @@ export interface PasswordUpdateRequest {
 })
 export class UsersService {
 
-private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/users';
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-et7o.onrender.com/users';
   constructor(private http: HttpClient) {}
 
   getUsers(): Observable<User[]> {

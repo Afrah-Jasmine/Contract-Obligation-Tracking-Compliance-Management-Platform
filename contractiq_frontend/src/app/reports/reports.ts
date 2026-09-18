@@ -129,20 +129,6 @@
 //         'Unable to load reports. Please try again.';
 //     }
 //   }
-
-//   downloadContractPdf(): void {
-//     window.open(
-//       'http://127.0.0.1:8080/reports/contracts/export/pdf',
-//       '_blank'
-//     );
-//   }
-
-//   downloadContractExcel(): void {
-//     window.open(
-//       'http://127.0.0.1:8080/reports/contracts/export/excel',
-//       '_blank'
-//     );
-//   }
 // }
 
 

@@ -25,7 +25,7 @@ interface TokenPayload {
 })
 export class AuthService {
 
-  private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com';
+  private readonly baseUrl = 'https://contract-obligation-tracking-compliance-et7o.onrender.com';
   private readonly tokenKey = 'contractiq_token';
 
   constructor(private http: HttpClient) {}

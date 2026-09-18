@@ -53,7 +53,7 @@ export interface UpdateContractRequest {
 })
 export class ContractsService {
 
-private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/contracts';
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-et7o.onrender.com/contracts';
   constructor(private http: HttpClient) {}
 
   getContracts(): Observable<Contract[]> {

@@ -87,7 +87,7 @@ export interface UpdateRenewalRequest {
   providedIn: 'root'
 })
 export class RenewalsService {
-private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com/renewals';
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-et7o.onrender.com/renewals';
 
   constructor(
     private http: HttpClient

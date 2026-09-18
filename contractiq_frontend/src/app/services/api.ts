@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ApiService {
 
-private readonly baseUrl = 'https://contract-obligation-tracking-compliance-zagb.onrender.com';
+private readonly baseUrl = 'https://contract-obligation-tracking-compliance-et7o.onrender.com';
   constructor(private http: HttpClient) {}
 
   // ============================================================

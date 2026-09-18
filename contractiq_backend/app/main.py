@@ -22,11 +22,17 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://contract-obligation-tracking-compliance-management-h7rjcnop5.vercel.app",
-        "https://contract-obligation-tracking-compli.vercel.app",],
+    allow_origins=[
+        "https://contract-obligation-tracking-compliance-management-h7rjcnop5.vercel.app",
+        "https://contract-obligation-tracking-compliance-management-platform.vercel.app",
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ],
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 @app.on_event("startup")
 def startup_event():
@@ -36,6 +42,13 @@ def startup_event():
 def root():
     return {
         "message": "ContractIQ Backend is running successfully."
+    }
+
+@app.get("/health", tags=["Health"])
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "ContractIQ Backend"
     }
 
 app.include_router(router)
