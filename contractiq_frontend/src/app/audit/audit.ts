@@ -35,7 +35,7 @@ export class Audit implements OnInit {
     this.auditService
       .getAuditLogs()
       .pipe(
-        timeout(10000),
+        timeout(60000),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();

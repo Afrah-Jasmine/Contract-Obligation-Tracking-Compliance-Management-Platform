@@ -82,7 +82,7 @@ export class Obligations implements OnInit {
     this.obligationsService
       .getObligations()
       .pipe(
-        timeout(10000),
+        timeout(60000),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();

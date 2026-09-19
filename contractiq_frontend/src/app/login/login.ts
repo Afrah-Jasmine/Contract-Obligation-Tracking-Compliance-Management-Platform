@@ -92,8 +92,8 @@ export class Login {
       .login(email, password)
       .pipe(
 
-        // Prevent infinite "Signing in..." state
-        timeout(10000),
+        // Allow up to 60s for Render free-tier cold starts
+        timeout(60000),
 
         // Always stop loading when request finishes
         finalize(() => {

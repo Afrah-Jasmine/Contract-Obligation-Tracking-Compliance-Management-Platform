@@ -43,7 +43,7 @@ export class Compliance implements OnInit {
     this.complianceService
       .getCompliance()
       .pipe(
-        timeout(10000),
+        timeout(60000),
 
         finalize(() => {
           this.loading = false;

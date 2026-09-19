@@ -103,7 +103,7 @@ export class Contracts implements OnInit {
     this.contractsService
       .getContracts()
       .pipe(
-        timeout(10000),
+        timeout(60000),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();

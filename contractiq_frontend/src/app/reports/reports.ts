@@ -312,7 +312,7 @@ export class Reports implements OnInit {
     this.apiService
       .getContractStatistics()
       .pipe(
-        timeout(10000),
+        timeout(60000),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();
