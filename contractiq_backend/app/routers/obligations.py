@@ -14,6 +14,7 @@ from app.schemas.obligation import (
     ObligationResponse,
 )
 from app.core.dependencies import get_current_user
+from app.services.audit_service import log_audit_event
 
 
 router = APIRouter(
@@ -120,6 +121,16 @@ def create_obligation(
     db.add(obligation)
     db.commit()
     db.refresh(obligation)
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=obligation.contract_id,
+        action="OBLIGATION_CREATED",
+        entity_name="Obligation",
+        entity_id=obligation.id,
+        after_data=f"Created obligation {obligation.title} ({obligation.obligation_type})"
+    )
 
     return obligation
 
@@ -340,6 +351,17 @@ def update_obligation_status(
     db.commit()
     db.refresh(obligation)
 
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=obligation.contract_id,
+        action="OBLIGATION_STATUS_UPDATED",
+        entity_name="Obligation",
+        entity_id=obligation.id,
+        before_data=current_status,
+        after_data=new_status
+    )
+
     return obligation
 
 
@@ -390,5 +412,16 @@ def complete_obligation(
 
     db.commit()
     db.refresh(obligation)
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=obligation.contract_id,
+        action="OBLIGATION_COMPLETED",
+        entity_name="Obligation",
+        entity_id=obligation.id,
+        before_data="In Progress",
+        after_data="Completed"
+    )
 
     return obligation

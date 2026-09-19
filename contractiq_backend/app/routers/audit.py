@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.models.audit_log import AuditLog
+from app.schemas.audit import AuditLogResponse
 from app.services.audit_service import (
     get_audit_logs,
     get_audit_log_by_id
@@ -17,7 +18,10 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get(
+    "/",
+    response_model=list[AuditLogResponse]
+)
 def get_all_audit_logs(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -25,7 +29,10 @@ def get_all_audit_logs(
     return get_audit_logs(db)
 
 
-@router.get("/{audit_id}")
+@router.get(
+    "/{audit_id}",
+    response_model=AuditLogResponse
+)
 def get_single_audit_log(
     audit_id: int,
     db: Session = Depends(get_db),
@@ -39,4 +46,4 @@ def get_single_audit_log(
             detail="Audit log not found"
         )
 
-    return audit_log
+    return audit_log

@@ -15,6 +15,7 @@ from app.schemas.renewal import (
     RenewalComplete,
 )
 from app.core.dependencies import get_current_user
+from app.services.audit_service import log_audit_event
 
 
 router = APIRouter(
@@ -157,6 +158,16 @@ def create_renewal(
     db.add(renewal)
     db.commit()
     db.refresh(renewal)
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=renewal.contract_id,
+        action="RENEWAL_CREATED",
+        entity_name="Renewal",
+        entity_id=renewal.id,
+        after_data=f"Created renewal for contract {renewal.contract_id}, renewal date {renewal.renewal_date}"
+    )
 
     return renewal
 
@@ -429,6 +440,17 @@ def update_renewal_status(
 
     db.commit()
     db.refresh(renewal)
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=renewal.contract_id,
+        action="RENEWAL_STATUS_UPDATED",
+        entity_name="Renewal",
+        entity_id=renewal.id,
+        before_data=current_status,
+        after_data=new_status
+    )
 
     return renewal
 

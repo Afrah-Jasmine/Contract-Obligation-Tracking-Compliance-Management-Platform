@@ -194,6 +194,7 @@ from app.schemas.user import (
     PasswordUpdate
 )
 from app.utils.security import hash_password
+from app.services.audit_service import log_audit_event
 
 
 router = APIRouter(
@@ -229,6 +230,15 @@ def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        action="USER_CREATED",
+        entity_name="User",
+        entity_id=user.id,
+        after_data=f"Created user {user.full_name} ({user.email}) with role {user.role}"
+    )
 
     return user
 

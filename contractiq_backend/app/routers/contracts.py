@@ -31,6 +31,7 @@ from app.services.notification_service import (
 )
 
 from app.core.dependencies import get_current_user
+from app.services.audit_service import log_audit_event
 
 
 router = APIRouter(
@@ -97,6 +98,16 @@ def create_contract(
             status_code=status.HTTP_409_CONFLICT,
             detail="Contract code already exists"
         )
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=contract.id,
+        action="CONTRACT_CREATED",
+        entity_name="Contract",
+        entity_id=contract.id,
+        after_data=f"Created contract {contract.contract_code}: {contract.title}"
+    )
 
     return contract
 
@@ -370,6 +381,17 @@ def update_contract_status(
             new_status=new_status
         )
 
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=contract.id,
+        action="CONTRACT_STATUS_UPDATED",
+        entity_name="Contract",
+        entity_id=contract.id,
+        before_data=current_status,
+        after_data=new_status
+    )
+
     return contract
 
 
@@ -406,6 +428,17 @@ def submit_for_review(
     notify_contract_submitted_for_review(
         db=db,
         contract=contract
+    )
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=contract.id,
+        action="CONTRACT_SUBMITTED_FOR_REVIEW",
+        entity_name="Contract",
+        entity_id=contract.id,
+        before_data="Draft",
+        after_data="Under Review"
     )
 
     return contract
@@ -459,6 +492,17 @@ def approve_contract(
     notify_contract_approved(
         db=db,
         contract=contract
+    )
+
+    log_audit_event(
+        db=db,
+        user_id=current_user.id,
+        contract_id=contract.id,
+        action="CONTRACT_APPROVED",
+        entity_name="Contract",
+        entity_id=contract.id,
+        before_data="Under Review",
+        after_data="Approved"
     )
 
     return contract
